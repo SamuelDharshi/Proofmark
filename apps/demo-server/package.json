@@ -1,0 +1,10 @@
+{
+  "name": "@thanks/demo-server",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "bin": { "demo-server": "src/server.ts" },
+  "scripts": { "start": "tsx src/server.ts", "mutate": "tsx src/toggle.ts on", "restore": "tsx src/toggle.ts off" },
+  "dependencies": { "@modelcontextprotocol/sdk": "^1.32.0", "zod": "^3.25.0" },
+  "devDependencies": { "tsx": "^4.23.0", "typescript": "^5.6.0", "@types/node": "^22.0.0" }
+}
