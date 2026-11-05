@@ -1,7 +1,6 @@
 "use client";
 import { useMemo, useRef } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
-import { Edges } from "@react-three/drei";
 import * as THREE from "three";
 import type { MotionValue } from "framer-motion";
 
@@ -18,6 +17,16 @@ function stateColor(p: number, out: THREE.Color) {
   const toRed = ease(range(p, 0.52, 0.6));
   out.copy(NEUTRAL).lerp(GREEN, toGreen).lerp(RED, toRed);
   return out;
+}
+
+/** Box outline with a colour we can drive per frame. */
+function Outline({ args, mat }: { args: [number, number, number]; mat: (m: THREE.LineBasicMaterial | null) => void }) {
+  const geo = useMemo(() => new THREE.EdgesGeometry(new THREE.BoxGeometry(...args)), [args]);
+  return (
+    <lineSegments geometry={geo}>
+      <lineBasicMaterial ref={mat} color="#c9ced8" />
+    </lineSegments>
+  );
 }
 
 function Lattice() {
@@ -47,12 +56,15 @@ function Lattice() {
   );
 }
 
+const PILLAR: [number, number, number] = [0.4, 4.2, 0.4];
+const LINTEL: [number, number, number] = [3.9, 0.4, 0.4];
+const DOOR: [number, number, number] = [1.1, 3.9, 0.08];
+
 function Gate({ p }: { p: MotionValue<number> }) {
   const left = useRef<THREE.Mesh>(null!);
   const right = useRef<THREE.Mesh>(null!);
-  const edge = useRef<THREE.Color>(new THREE.Color());
-  const light = useRef<THREE.PointLight>(null!);
-  const mats = useRef<THREE.MeshBasicMaterial[]>([]);
+    const light = useRef<THREE.PointLight>(null!);
+  const mats = useRef<THREE.LineBasicMaterial[]>([]);
   const col = useMemo(() => new THREE.Color(), []);
 
   useFrame(() => {
@@ -67,7 +79,7 @@ function Gate({ p }: { p: MotionValue<number> }) {
     mats.current.forEach((m) => m?.color.copy(col));
   });
 
-  const reg = (i: number) => (m: THREE.MeshBasicMaterial | null) => {
+  const reg = (i: number) => (m: THREE.LineBasicMaterial | null) => {
     if (m) mats.current[i] = m;
   };
 
@@ -77,25 +89,19 @@ function Gate({ p }: { p: MotionValue<number> }) {
         <mesh key={x} position={[x, 0, 0]}>
           <boxGeometry args={[0.4, 4.2, 0.4]} />
           <meshStandardMaterial color="#0f1217" roughness={0.5} metalness={0.6} />
-          <Edges scale={1.001}>
-            <meshBasicMaterial ref={reg(i)} color="#c9ced8" />
-          </Edges>
+          <Outline args={PILLAR} mat={reg(i)} />
         </mesh>
       ))}
       <mesh position={[0, 2.1, 0]}>
         <boxGeometry args={[3.9, 0.4, 0.4]} />
         <meshStandardMaterial color="#0f1217" roughness={0.5} metalness={0.6} />
-        <Edges scale={1.001}>
-          <meshBasicMaterial ref={reg(2)} color="#c9ced8" />
-        </Edges>
+        <Outline args={LINTEL} mat={reg(2)} />
       </mesh>
       {[left, right].map((r, i) => (
         <mesh key={i} ref={r} position={[i ? 0.55 : -0.55, -0.05, 0]}>
           <boxGeometry args={[1.1, 3.9, 0.08]} />
           <meshStandardMaterial color="#12161c" roughness={0.4} metalness={0.7} transparent opacity={0.92} />
-          <Edges scale={1.001}>
-            <meshBasicMaterial ref={reg(3 + i)} color="#c9ced8" />
-          </Edges>
+          <Outline args={DOOR} mat={reg(3 + i)} />
         </mesh>
       ))}
       <pointLight ref={light} position={[0, 0.5, 1.6]} distance={14} decay={2} intensity={6} />
@@ -219,6 +225,12 @@ function Rig({ p }: { p: MotionValue<number> }) {
   return null;
 }
 
+/** Keeps the scene in the right half on wide screens so it never sits under the headline. */
+function Offset({ children }: { children: React.ReactNode }) {
+  const width = useThree((t) => t.size.width);
+  return <group position={[width > 960 ? 2.7 : 0, 0, 0]}>{children}</group>;
+}
+
 function Backdrop() {
   return (
     <>
@@ -241,10 +253,12 @@ export default function Scene({ progress }: { progress: MotionValue<number> }) {
       aria-hidden
     >
       <Backdrop />
-      <Lattice />
-      <Gate p={progress} />
-      <Server p={progress} />
-      <Fleet p={progress} />
+      <Offset>
+        <Lattice />
+        <Gate p={progress} />
+        <Server p={progress} />
+        <Fleet p={progress} />
+      </Offset>
       <Rig p={progress} />
     </Canvas>
   );
