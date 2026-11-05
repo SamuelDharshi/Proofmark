@@ -1,0 +1,26 @@
+[
+  {
+    "name": "io.thanks.demo/filesystem",
+    "title": "Filesystem (demo)",
+    "description": "Read files and list directories. Local demo fixture.",
+    "version": "1.0.0",
+    "source": "local-fixture",
+    "entry": "apps/demo-server/src/server.ts"
+  },
+  {
+    "name": "io.thanks.demo/postgres",
+    "title": "Postgres (demo)",
+    "description": "Read-only SQL queries. Local demo fixture.",
+    "version": "0.4.2",
+    "source": "local-fixture",
+    "entry": "apps/demo-server/src/server.ts"
+  },
+  {
+    "name": "io.thanks.demo/github",
+    "title": "GitHub (demo)",
+    "description": "Issues and pull requests. Local demo fixture.",
+    "version": "2.1.0",
+    "source": "local-fixture",
+    "entry": "apps/demo-server/src/server.ts"
+  }
+]

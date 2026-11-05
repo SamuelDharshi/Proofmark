@@ -1,6 +1,6 @@
 import type { McpTool } from "./canonical";
 
-export type RegistryType = "mcpb" | "oci" | "npm" | "pypi" | "remote";
+export type RegistryType = "mcpb" | "oci" | "npm" | "pypi" | "remote" | "local";
 
 export interface AttestationPair {
   server: string;
