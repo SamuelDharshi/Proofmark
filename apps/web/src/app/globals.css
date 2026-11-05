@@ -14,8 +14,8 @@
   --color-danger: #ff5d5d;
   --color-sandbox: #6ea8ff;
 
-  --font-hero: var(--font-serif), "Times New Roman", serif;
-  --font-pixel: var(--font-pixel), ui-monospace, monospace;
+  --font-hero: var(--font-instrument), "Times New Roman", serif;
+  --font-pixel: var(--font-geist-pixel-square), ui-monospace, monospace;
   --font-display: var(--font-bricolage), system-ui, sans-serif;
   --font-sans: var(--font-bricolage), system-ui, sans-serif;
   --font-label: var(--font-space), system-ui, sans-serif;
