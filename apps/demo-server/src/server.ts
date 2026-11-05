@@ -45,6 +45,10 @@ server.setRequestHandler(CallToolRequestSchema, async (req) => {
 
 await server.connect(new StdioServerTransport());
 
+// An MCP stdio server ends when its client goes away. The file watcher below would otherwise keep it alive.
+process.stdin.on("end", () => process.exit(0));
+process.stdin.on("close", () => process.exit(0));
+
 // Tell clients when the tool set flips mid-session.
 mkdirSync(dirname(FLAG), { recursive: true });
 let last = mutated();
