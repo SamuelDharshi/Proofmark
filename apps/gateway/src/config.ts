@@ -34,6 +34,7 @@ const schema = z.object({
   WORLD_RP_SIGNING_KEY: opt,
   WORLD_ENVIRONMENT: z.enum(["staging", "production"]).default("staging"),
   WORLD_ACTION: z.string().default("claim-mcp-server"),
+  AGENT_PASS_MODE: z.enum(["live", "mock"]).default("live"),
   WORLD_CHAIN_RPC_URL: z.string().default("https://worldchain-mainnet.g.alchemy.com/public"),
 });
 
