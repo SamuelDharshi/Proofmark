@@ -1,11 +1,11 @@
 import { mkdirSync, existsSync, readFileSync, writeFileSync, renameSync } from "node:fs";
 import { join } from "node:path";
-import type { McpTool, SignedAttestation } from "@thanks/core";
+import type { McpTool, SignedAttestation } from "@proofmark/core";
 import { dataDir } from "./config";
 
 export interface Org {
   name: string; // acme
-  ensName: string; // acme.thanks.eth
+  ensName: string; // acme.proofmark.eth
   owner: string; // evm address of claimant
   payTo: string; // hedera account
   price: number; // usd per connect
@@ -23,7 +23,7 @@ export interface ServerClaim {
   ownershipProof: string; // how registry ownership was verified
 }
 export interface MaintainerKey {
-  subname: string; // alice.acme.thanks.eth
+  subname: string; // alice.acme.proofmark.eth
   label: string; // alice
   registry?: string; // org subname registry address
   org: string;

@@ -1,4 +1,4 @@
-import { decideTier, findTyposquat, type CheckResult } from "@thanks/core";
+import { decideTier, findTyposquat, type CheckResult } from "@proofmark/core";
 import { caps } from "./config";
 import { store, type AttestationRecord, type MaintainerKey, type Org } from "./store";
 import * as ens from "./ens";

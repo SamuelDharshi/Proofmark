@@ -1,7 +1,7 @@
 import { spawnSync } from "node:child_process";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
-import type { McpTool } from "@thanks/core";
+import type { McpTool } from "@proofmark/core";
 
 export interface SpawnSpec {
   command: string;
@@ -51,7 +51,7 @@ export async function openStdio(spec: SpawnSpec, opts: { timeoutMs?: number } = 
     env: { ...(process.env as Record<string, string>), ...(spec.env ?? {}) },
     stderr: "pipe",
   });
-  const client = new Client({ name: "thanks", version: "0.1.0" }, { capabilities: {} });
+  const client = new Client({ name: "proofmark", version: "0.1.0" }, { capabilities: {} });
   const timeout = opts.timeoutMs ?? 30000;
   await Promise.race([
     client.connect(transport),

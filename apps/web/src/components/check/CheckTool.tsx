@@ -3,11 +3,11 @@ import { useState } from "react";
 import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
 import { ArrowRight, Loader2, Search } from "lucide-react";
-import type { CheckResult } from "@thanks/core";
+import type { CheckResult } from "@proofmark/core";
 import { api } from "@/lib/api";
 import { TierBadge, tierColor } from "../TierBadge";
 
-const EXAMPLES = ["io.thanks.demo/filesystem", "io.thanks.demo/postgres", "com.example/anything"];
+const EXAMPLES = ["io.proofmark.demo/filesystem", "io.proofmark.demo/postgres", "com.example/anything"];
 
 export function CheckTool({ initial = "" }: { initial?: string }) {
   const [q, setQ] = useState(initial);

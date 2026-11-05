@@ -97,7 +97,7 @@ async function requireOwner(orgName: string, message: string, sig: string): Prom
 claimRoutes.post("/comaintainers", async (c) => {
   const b = (await c.req.json()) as { org: string; label: string; address: string; expiresAt: number; ownerSig: string };
   if (!slug(b.label ?? "") || !isAddress(b.address ?? "") || !(b.expiresAt > Date.now() / 1000)) return c.json({ error: "label, address and a future expiry are required" }, 400);
-  const org = await requireOwner(b.org, `thanks:add-comaintainer:${b.org}:${b.label}:${b.address}:${b.expiresAt}`, b.ownerSig);
+  const org = await requireOwner(b.org, `proofmark:add-comaintainer:${b.org}:${b.label}:${b.address}:${b.expiresAt}`, b.ownerSig);
   if (!org) return c.json({ error: "owner signature required" }, 403);
   if (store.get().keys.some((k) => k.org === org.name && k.label === b.label)) return c.json({ error: "label exists" }, 409);
 
@@ -118,7 +118,7 @@ claimRoutes.post("/comaintainers", async (c) => {
 /** One write revokes one co-maintainer. Their siblings' attestations stand. */
 claimRoutes.post("/revoke", async (c) => {
   const b = (await c.req.json()) as { org: string; label: string; ownerSig: string };
-  const org = await requireOwner(b.org, `thanks:revoke:${b.org}:${b.label}`, b.ownerSig);
+  const org = await requireOwner(b.org, `proofmark:revoke:${b.org}:${b.label}`, b.ownerSig);
   if (!org) return c.json({ error: "owner signature required" }, 403);
   const key = store.get().keys.find((k) => k.org === org.name && k.label === b.label);
   if (!key) return c.json({ error: "unknown co-maintainer" }, 404);

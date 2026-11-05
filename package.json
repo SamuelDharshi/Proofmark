@@ -1,12 +1,12 @@
 {
-  "name": "thanks",
+  "name": "proofmark",
   "private": true,
   "version": "0.1.0",
   "license": "MIT",
   "workspaces": ["packages/*", "apps/*"],
   "scripts": {
-    "gateway": "npm run dev -w @thanks/gateway",
-    "web": "npm run dev -w @thanks/web",
-    "test": "npm test -w @thanks/core && npm test -w @thanks/proxy"
+    "gateway": "npm run dev -w @proofmark/gateway",
+    "web": "npm run dev -w @proofmark/web",
+    "test": "npm test -w @proofmark/core && npm test -w @proofmark/proxy"
   }
 }

@@ -10,11 +10,11 @@ const mono = JetBrains_Mono({ subsets: ["latin"], variable: "--font-jetbrains", 
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"),
-  title: { default: "THANKS. A human still backs this server.", template: "%s · THANKS" },
+  title: { default: "Proofmark. A human still backs this server.", template: "%s · Proofmark" },
   description: "Agents pay over x402 on Hedera to check that a verified human still stands behind an MCP server, and are refused when its tools change.",
   icons: { icon: [{ url: "/favicon.svg", type: "image/svg+xml" }, { url: "/favicon.ico" }], apple: "/apple-touch-icon.png" },
-  openGraph: { title: "THANKS", description: "A human still backs this server. x402 on Hedera.", images: ["/og-image.png"], type: "website" },
-  twitter: { card: "summary_large_image", title: "THANKS", description: "A human still backs this server. x402 on Hedera.", images: ["/og-image.png"] },
+  openGraph: { title: "Proofmark", description: "A human still backs this server. x402 on Hedera.", images: ["/og-image.png"], type: "website" },
+  twitter: { card: "summary_large_image", title: "Proofmark", description: "A human still backs this server. x402 on Hedera.", images: ["/og-image.png"] },
 };
 
 export const viewport: Viewport = { themeColor: "#0a0b0d" };

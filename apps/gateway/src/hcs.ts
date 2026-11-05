@@ -11,7 +11,7 @@ function hedera() {
   return client;
 }
 
-export async function createTopic(memo = "THANKS attestation and payment log") {
+export async function createTopic(memo = "Proofmark attestation and payment log") {
   const tx = await new TopicCreateTransaction().setTopicMemo(memo).execute(hedera());
   const receipt = await tx.getReceipt(hedera());
   return { topicId: receipt.topicId!.toString(), tx: tx.transactionId.toString() };

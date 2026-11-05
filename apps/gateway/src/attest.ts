@@ -4,8 +4,8 @@ import { spawnSync } from "node:child_process";
 import { mkdtempSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { toolManifestHash, type AttestationPair, type McpTool, type RegistryType } from "@thanks/core";
-import { captureTools, containerSpec, dockerAvailable, type SpawnSpec } from "@thanks/runner";
+import { toolManifestHash, type AttestationPair, type McpTool, type RegistryType } from "@proofmark/core";
+import { captureTools, containerSpec, dockerAvailable, type SpawnSpec } from "@proofmark/runner";
 import { getServer, packageKind, type RegistryServer } from "./registry";
 import { fixtureEntry, fixtureServer, isFixture } from "./fixtures";
 
@@ -50,7 +50,7 @@ async function artefactHash(s: RegistryServer): Promise<{ type: RegistryType; ha
 
 /** Install an npm package inside a container, then return a spec that runs it offline. */
 function npmOfflineSpec(identifier: string, version: string): SpawnSpec {
-  const dir = mkdtempSync(join(tmpdir(), "thanks-npm-"));
+  const dir = mkdtempSync(join(tmpdir(), "proofmark-npm-"));
   const install = spawnSync(
     "docker",
     ["run", "--rm", "-v", `${dir}:/app`, "-w", "/app", "node:22-slim", "npm", "install", "--no-audit", "--no-fund", `${identifier}@${version}`],

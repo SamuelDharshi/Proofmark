@@ -153,7 +153,7 @@ export function ClaimWizard() {
 
           {step === 3 && (
             <div className="space-y-5">
-              <Field label="Organisation name" hint="Becomes <name>.thanks.eth on ENS. Letters, numbers and dashes.">
+              <Field label="Organisation name" hint="Becomes <name>.proofmark.eth on ENS. Letters, numbers and dashes.">
                 <input className={input} value={org} onChange={(e) => setOrg(e.target.value.toLowerCase())} placeholder="acme" />
               </Field>
               <Field label="Owner wallet" hint="Owns the ENS name and approves co-maintainers.">

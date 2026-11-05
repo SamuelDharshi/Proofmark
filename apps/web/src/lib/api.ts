@@ -1,4 +1,4 @@
-import type { CheckResult } from "@thanks/core";
+import type { CheckResult } from "@proofmark/core";
 
 export const GATEWAY = process.env.NEXT_PUBLIC_GATEWAY_URL ?? "http://localhost:8787";
 

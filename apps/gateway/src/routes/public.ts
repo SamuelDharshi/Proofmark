@@ -2,7 +2,7 @@ import { Hono } from "hono";
 import { existsSync, writeFileSync, rmSync } from "node:fs";
 import { resolve } from "node:path";
 import { getAddress, isAddress } from "viem";
-import { hederaTopicUrl, hederaAccountUrl } from "@thanks/core";
+import { hederaTopicUrl, hederaAccountUrl } from "@proofmark/core";
 import { caps, env } from "../config";
 import { store } from "../store";
 import { evaluate } from "../check";

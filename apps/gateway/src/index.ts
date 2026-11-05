@@ -22,6 +22,6 @@ app.onError((e, c) => {
 if (caps.ens) for (const o of store.get().orgs) if (o.resolver) ens.watchResolver(o.resolver as `0x${string}`);
 
 serve({ fetch: app.fetch, port: env.PORT }, (i) => {
-  console.log(`THANKS gateway on http://localhost:${i.port}`);
+  console.log(`Proofmark gateway on http://localhost:${i.port}`);
   console.log("configured:", Object.entries(caps).map(([k, v]) => `${k}=${v ? "yes" : "no"}`).join(" "));
 });

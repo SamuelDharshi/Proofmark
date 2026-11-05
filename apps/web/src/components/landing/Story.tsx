@@ -65,7 +65,7 @@ export function Story() {
                 Your agent just handed a stranger its shell.
               </h1>
               <p className="mt-6 max-w-[480px] text-[18px] text-muted">
-                THANKS checks that a verified human still backs an MCP server before an agent connects. $0.002, no human in the loop.
+                Proofmark checks that a verified human still backs an MCP server before an agent connects. $0.002, no human in the loop.
               </p>
               <div className="mt-9 flex flex-wrap gap-3">
                 <Link href="/marketplace" className="btn btn-primary">

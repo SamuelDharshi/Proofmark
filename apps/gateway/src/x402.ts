@@ -3,7 +3,7 @@ import { HTTPFacilitatorClient } from "@x402/core/http";
 import { x402ResourceServer, x402HTTPResourceServer } from "@x402/core/server";
 import { ExactHederaScheme } from "@x402/hedera/exact/server";
 import { paymentMiddlewareFromHTTPServer } from "@x402/hono";
-import { hederaTxUrl } from "@thanks/core";
+import { hederaTxUrl } from "@proofmark/core";
 import { env, usdToTinybars } from "./config";
 import { store, uid, logEvent } from "./store";
 import { anchor } from "./hcs";

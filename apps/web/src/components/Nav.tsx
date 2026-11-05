@@ -43,7 +43,7 @@ export function Nav({ solid = false }: { solid?: boolean }) {
         ].join(" ")}
         aria-label="Primary"
       >
-        <Link href="/" aria-label="THANKS home" className="py-1">
+        <Link href="/" aria-label="Proofmark home" className="py-1">
           <Wordmark />
         </Link>
 

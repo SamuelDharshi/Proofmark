@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
 import { Check, Copy, ExternalLink } from "lucide-react";
-import { ensAppUrl, evmAddressUrl, evmTxUrl, hederaAccountUrl, hederaTokenUrl, hederaTopicUrl, hederaTxUrl } from "@thanks/core";
+import { ensAppUrl, evmAddressUrl, evmTxUrl, hederaAccountUrl, hederaTokenUrl, hederaTopicUrl, hederaTxUrl } from "@proofmark/core";
 import { short } from "@/lib/format";
 
 export type Kind =

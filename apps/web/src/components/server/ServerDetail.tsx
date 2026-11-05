@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { AnimatePresence, LayoutGroup, motion } from "framer-motion";
 import { ArrowLeft, BadgeCheck, Hash, KeyRound, Layers, Plug, Wrench } from "lucide-react";
-import type { CheckResult } from "@thanks/core";
+import type { CheckResult } from "@proofmark/core";
 import { api, GATEWAY } from "@/lib/api";
 import { usd } from "@/lib/format";
 import { TierBadge, tierColor } from "../TierBadge";
@@ -146,7 +146,7 @@ export function ServerDetail({ name }: { name: string }) {
 
               {tab === "connect" && (
                 <div className="card p-5">
-                  <p className="text-[14px] text-muted">Point the agent client at THANKS instead of the server. The proxy pays, verifies and then launches it.</p>
+                  <p className="text-[14px] text-muted">Point the agent client at Proofmark instead of the server. The proxy pays, verifies and then launches it.</p>
                   <pre className="num mt-4 overflow-x-auto rounded-xl border border-line bg-bg p-4 text-[12.5px] leading-relaxed">{snippet}</pre>
                   <div className="mt-3"><CopyText value={snippet} display="Copy config" /></div>
                 </div>

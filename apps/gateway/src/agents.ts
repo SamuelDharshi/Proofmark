@@ -54,7 +54,7 @@ export async function agentPass(evm: string): Promise<PassStatus> {
 export async function verifyAgentRequest(h: { evm: string; ts: string; sig: string; server: string }) {
   const age = Math.abs(Date.now() - Number(h.ts));
   if (!Number.isFinite(age) || age > 120_000) return false;
-  return verifyMessage({ address: getAddress(h.evm), message: `thanks-connect:${h.server}:${h.ts}`, signature: h.sig as `0x${string}` }).catch(() => false);
+  return verifyMessage({ address: getAddress(h.evm), message: `proofmark-connect:${h.server}:${h.ts}`, signature: h.sig as `0x${string}` }).catch(() => false);
 }
 
 export const budgetLeft = (a: Agent) => Math.max(0, a.budgetUsd - a.spentUsd);

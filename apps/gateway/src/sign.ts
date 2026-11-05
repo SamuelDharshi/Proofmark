@@ -1,5 +1,5 @@
 import { privateKeyToAccount } from "viem/accounts";
-import { canonicalize, type AttestationPair } from "@thanks/core";
+import { canonicalize, type AttestationPair } from "@proofmark/core";
 import { env } from "./config";
 
 const account = () => {

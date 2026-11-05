@@ -73,7 +73,7 @@ export function Drill({ fleet, onChange }: { fleet: Fleet; onChange: () => void 
                 disabled={busy === "rev"}
                 onClick={() =>
                   wrap("rev", async () => {
-                    const ownerSig = await wallet.sign(`thanks:revoke:${org}:${label}`);
+                    const ownerSig = await wallet.sign(`proofmark:revoke:${org}:${label}`);
                     const r = await api.revoke({ org, label, ownerSig });
                     setMsg({ kind: "ok", text: `${r.subname} revoked.`, tx: r.tx ?? undefined });
                   })

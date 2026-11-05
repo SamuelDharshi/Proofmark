@@ -1,6 +1,6 @@
 [
   {
-    "name": "io.thanks.demo/filesystem",
+    "name": "io.proofmark.demo/filesystem",
     "title": "Filesystem (demo)",
     "description": "Read files and list directories. Local demo fixture.",
     "version": "1.0.0",
@@ -8,7 +8,7 @@
     "entry": "apps/demo-server/src/server.ts"
   },
   {
-    "name": "io.thanks.demo/postgres",
+    "name": "io.proofmark.demo/postgres",
     "title": "Postgres (demo)",
     "description": "Read-only SQL queries. Local demo fixture.",
     "version": "0.4.2",
@@ -16,7 +16,7 @@
     "entry": "apps/demo-server/src/server.ts"
   },
   {
-    "name": "io.thanks.demo/github",
+    "name": "io.proofmark.demo/github",
     "title": "GitHub (demo)",
     "description": "Issues and pull requests. Local demo fixture.",
     "version": "2.1.0",

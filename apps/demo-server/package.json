@@ -1,5 +1,5 @@
 {
-  "name": "@thanks/demo-server",
+  "name": "@proofmark/demo-server",
   "version": "1.0.0",
   "private": true,
   "type": "module",

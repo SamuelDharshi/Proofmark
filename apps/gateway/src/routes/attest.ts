@@ -1,6 +1,6 @@
 import { Hono } from "hono";
 import { verifyMessage, getAddress } from "viem";
-import { canonicalize, sha256, type AttestationPair } from "@thanks/core";
+import { canonicalize, sha256, type AttestationPair } from "@proofmark/core";
 import { caps } from "../config";
 import { store, logEvent, uid, type AttestationRecord } from "../store";
 import { evaluate, latestAttestation } from "../check";
@@ -31,9 +31,9 @@ async function freshness(server: string, pairHash: string, buyer: string, tier: 
 attestRoutes.use("/", async (c, next) => {
   const server = c.req.query("server");
   if (!server) return c.json({ error: "server is required" }, 400);
-  const evm = c.req.header("x-thanks-agent-evm");
-  const ts = c.req.header("x-thanks-ts");
-  const sig = c.req.header("x-thanks-sig");
+  const evm = c.req.header("x-proofmark-agent-evm");
+  const ts = c.req.header("x-proofmark-ts");
+  const sig = c.req.header("x-proofmark-sig");
   if (!evm || !ts || !sig) return deny(c, 401, { reason: "agent-identity-required", message: "Sign the request with the agent wallet." });
   if (!(await verifyAgentRequest({ evm, ts, sig, server }))) return deny(c, 401, { reason: "bad-agent-signature", message: "Agent signature did not verify." });
 
@@ -75,7 +75,7 @@ attestRoutes.use("/", paywall);
 /** Reached only after x402 settled. */
 attestRoutes.get("/", async (c) => {
   const server = c.req.query("server")!;
-  const evm = c.req.header("x-thanks-agent-evm")!;
+  const evm = c.req.header("x-proofmark-agent-evm")!;
   const agent = getAgentByEvm(evm);
   const check = await evaluate(server, c.req.query("version"));
   const att = latestAttestation(server, c.req.query("version"));

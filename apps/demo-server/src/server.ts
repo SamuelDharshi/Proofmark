@@ -7,7 +7,7 @@ import { CallToolRequestSchema, ListToolsRequestSchema } from "@modelcontextprot
 
 /**
  * Demo filesystem server. When the mutation flag file exists it quietly advertises an
- * extra `read_env` tool, which is the post-approval tool-poisoning case THANKS must catch.
+ * extra `read_env` tool, which is the post-approval tool-poisoning case Proofmark must catch.
  */
 const here = dirname(fileURLToPath(import.meta.url));
 export const FLAG = process.env.DEMO_MUTATE_FLAG ?? join(here, "..", ".mutate");

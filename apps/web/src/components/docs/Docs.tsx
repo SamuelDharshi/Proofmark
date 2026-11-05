@@ -57,7 +57,7 @@ export function Docs() {
   return (
     <div className="wrap pb-10 pt-32">
       <p className="font-pixel text-[13px] tracking-widest text-accent">DOCS</p>
-      <h1 className="mt-3 max-w-[820px] font-hero text-[clamp(44px,6vw,84px)] leading-[0.98]">How THANKS works.</h1>
+      <h1 className="mt-3 max-w-[820px] font-hero text-[clamp(44px,6vw,84px)] leading-[0.98]">How Proofmark works.</h1>
 
       <div className="mt-14 grid gap-12 lg:grid-cols-[200px_1fr]">
         <nav aria-label="On this page" className="hidden lg:block">
@@ -75,11 +75,11 @@ export function Docs() {
         <article className="min-w-0 max-w-[760px]">
           <Section id="overview" title="Overview">
             <p>Before an agent connects to an MCP server, which gets shell, filesystem and credential access, it pays <strong>$0.002 over x402 on Hedera</strong> for proof that a verified human still stands behind this exact build and these exact tools. The connection is refused when the tools change underneath it.</p>
-            <p>THANKS sells <strong>liveness, not provenance</strong>. Signatures prove an account built something. THANKS proves one human still backs it this minute, and lets that human take it back. It does not prove the code is safe, and nothing here claims it does.</p>
+            <p>Proofmark sells <strong>liveness, not provenance</strong>. Signatures prove an account built something. Proofmark proves one human still backs it this minute, and lets that human take it back. It does not prove the code is safe, and nothing here claims it does.</p>
           </Section>
 
           <Section id="flow" title="How a connect works">
-            <p>The agent client talks to the THANKS proxy instead of the server. The proxy stays in the path for the whole session.</p>
+            <p>The agent client talks to the Proofmark proxy instead of the server. The proxy stays in the path for the whole session.</p>
             <ol className="list-decimal space-y-2 pl-6">
               <li>The proxy signs the request with the agent wallet and asks the gateway for <code>GET /attest</code>.</li>
               <li>The gateway checks the <strong>Agent Pass</strong>, the agent&apos;s budget and the server&apos;s tier. A bad pass or a blocked tier is refused before any payment.</li>
@@ -121,11 +121,11 @@ export function Docs() {
 
           <Section id="ens" title="ENSv2" mark={{ src: "/brands/ens-wordmark-light.png", alt: "ENS", h: 20 }}>
             <p>The tree runs on Sepolia. Addresses and ABIs are loaded from the ENS deployments table, not hard-coded.</p>
-            <pre className="num overflow-x-auto rounded-xl border border-line bg-surface p-4 text-[12.5px] leading-relaxed text-text">{`thanks.eth                     Permissioned Registry, administered by THANKS
-  acme.thanks.eth              maintainer org, owned by the claiming human
+            <pre className="num overflow-x-auto rounded-xl border border-line bg-surface p-4 text-[12.5px] leading-relaxed text-text">{`proofmark.eth                     Permissioned Registry, administered by Proofmark
+  acme.proofmark.eth              maintainer org, owned by the claiming human
       status, payto, x402.price, world.verified
-    alice.acme.thanks.eth      co-maintainer: attest.key, expires
-    bob.acme.thanks.eth        co-maintainer: attest.key, expires`}</pre>
+    alice.acme.proofmark.eth      co-maintainer: attest.key, expires
+    bob.acme.proofmark.eth        co-maintainer: attest.key, expires`}</pre>
             <ul className="list-disc space-y-2 pl-6">
               <li><strong>One resolver per org.</strong> Argument-scoped grants apply to every name an instance serves, so a shared resolver would let one org write another&apos;s <code>payto</code>.</li>
               <li><strong>Per-key roles.</strong> A co-maintainer&apos;s role covers <code>attest.key</code> and nothing else. Writing <code>status</code> reverts with <code>EACUnauthorizedAccountRoles</code>.</li>
@@ -143,8 +143,8 @@ export function Docs() {
           </Section>
 
           <Section id="mcp" title="MCP" mark={{ src: "/brands/mcp-white.svg", alt: "Model Context Protocol", h: 28 }}>
-            <p>Name ownership is solved by the official registry, so THANKS uses it: <code>mcpName</code> in package.json, an <code>mcp-name:</code> line in the README, or an OCI label. There is no challenge file.</p>
-            <p>The proxy is a transparent MCP server. It exposes the real server&apos;s tools once verified, plus <code>thanks_explain</code> and <code>thanks_budget</code>. MCP has no protocol-level per-tool access control, so the proxy filters what reaches the model and the container bounds what reaches the machine.</p>
+            <p>Name ownership is solved by the official registry, so Proofmark uses it: <code>mcpName</code> in package.json, an <code>mcp-name:</code> line in the README, or an OCI label. There is no challenge file.</p>
+            <p>The proxy is a transparent MCP server. It exposes the real server&apos;s tools once verified, plus <code>proofmark_explain</code> and <code>proofmark_budget</code>. MCP has no protocol-level per-tool access control, so the proxy filters what reaches the model and the container bounds what reaches the machine.</p>
           </Section>
 
           <Section id="prior" title="Prior art">
@@ -157,7 +157,7 @@ export function Docs() {
                 ["Trustworthy registry paper", "Sigstore signing plus runtime JWS", "No revocation, no human identity, no payments"],
               ]}
             />
-            <p>THANKS adds three narrow things: revocation that reaches a running fleet, one human instead of one account, and a recurring payment that makes the freshness check sustainable.</p>
+            <p>Proofmark adds three narrow things: revocation that reaches a running fleet, one human instead of one account, and a recurring payment that makes the freshness check sustainable.</p>
           </Section>
 
           <Section id="api" title="API">

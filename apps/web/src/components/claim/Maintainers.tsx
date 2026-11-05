@@ -33,7 +33,7 @@ export function Maintainers({ server, org }: { server: string; org: string }) {
   const add = () =>
     run("add", async () => {
       const expiresAt = Math.floor(Date.now() / 1000) + Number(days) * 86400;
-      const ownerSig = await wallet.sign(`thanks:add-comaintainer:${org}:${label}:${addr}:${expiresAt}`);
+      const ownerSig = await wallet.sign(`proofmark:add-comaintainer:${org}:${label}:${addr}:${expiresAt}`);
       const r = await api.addCoMaintainer({ org, label, address: addr, expiresAt, ownerSig });
       setKeys((k) => [...k, { subname: r.key.subname, label: r.key.label, tx: r.key.ensTx }]);
     });

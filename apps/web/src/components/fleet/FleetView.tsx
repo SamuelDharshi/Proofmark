@@ -65,7 +65,7 @@ export function FleetView() {
                     ))}
                   </div>
                 ) : (
-                  <div className="card p-10 text-center text-muted">No agents registered. Run <span className="num">npm run agents:create -w @thanks/gateway</span>.</div>
+                  <div className="card p-10 text-center text-muted">No agents registered. Run <span className="num">npm run agents:create -w @proofmark/gateway</span>.</div>
                 ))}
               {tab === "activity" && <EventFeed events={data.events} />}
               {tab === "payments" && <PaymentTable payments={data.payments} />}

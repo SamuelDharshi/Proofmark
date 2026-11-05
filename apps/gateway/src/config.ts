@@ -31,7 +31,7 @@ const schema = z.object({
 
   SEPOLIA_RPC_URL: opt,
   ENS_ADMIN_PRIVATE_KEY: opt,
-  ENS_ROOT_NAME: z.string().default("thanks.eth"),
+  ENS_ROOT_NAME: z.string().default("proofmark.eth"),
 
   WORLD_APP_ID: opt,
   WORLD_RP_ID: opt,

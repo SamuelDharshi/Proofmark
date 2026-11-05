@@ -11,7 +11,7 @@ export function Wordmark({ className = "" }: { className?: string }) {
   return (
     <span className={`inline-flex items-center gap-2 ${className}`}>
       <LogoMark className="h-6 w-6 text-accent" />
-      <span className="font-display text-[17px] font-bold tracking-[0.14em]">THANKS</span>
+      <span className="font-display text-[16px] font-bold uppercase tracking-[0.12em]">Proofmark</span>
     </span>
   );
 }

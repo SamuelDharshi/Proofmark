@@ -17,7 +17,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen md:grid md:grid-cols-[232px_1fr]">
       <aside className="sticky top-0 z-30 flex items-center gap-2 border-b border-line bg-bg/80 px-4 py-3 backdrop-blur-xl md:h-screen md:flex-col md:items-stretch md:gap-8 md:border-b-0 md:border-r md:px-4 md:py-6">
-        <Link href="/" aria-label="THANKS home" className="px-2">
+        <Link href="/" aria-label="Proofmark home" className="px-2">
           <Wordmark />
         </Link>
         <nav className="flex flex-1 gap-1 overflow-x-auto md:flex-col" aria-label="App">

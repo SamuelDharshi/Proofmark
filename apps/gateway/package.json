@@ -1,5 +1,5 @@
 {
-  "name": "@thanks/gateway",
+  "name": "@proofmark/gateway",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -16,7 +16,7 @@
     "@hiero-ledger/sdk": "^2.90.1",
     "@hono/node-server": "^2.1.0",
     "@modelcontextprotocol/sdk": "^1.32.0",
-    "@thanks/core": "*",
+    "@proofmark/core": "*",
     "@worldcoin/agentkit": "^0.2.1",
     "@worldcoin/idkit-core": "^4.6.0",
     "@x402/core": "^2.30.0",

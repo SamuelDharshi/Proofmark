@@ -1,10 +1,10 @@
 {
-  "name": "@thanks/proxy",
+  "name": "@proofmark/proxy",
   "version": "0.1.0",
   "private": true,
   "type": "module",
   "bin": {
-    "thanks-proxy": "src/cli.ts"
+    "proofmark-proxy": "src/cli.ts"
   },
   "scripts": {
     "start": "tsx src/cli.ts",
@@ -13,8 +13,8 @@
     "connect:demo": "tsx src/connect-demo.ts"
   },
   "dependencies": {
-    "@thanks/core": "*",
-    "@thanks/runner": "*",
+    "@proofmark/core": "*",
+    "@proofmark/runner": "*",
     "@modelcontextprotocol/sdk": "^1.32.0",
     "@x402/core": "^2.30.0",
     "@x402/fetch": "^2.30.0",

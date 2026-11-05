@@ -1,17 +1,17 @@
 import { resolve, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
-import { hederaTxUrl } from "@thanks/core";
+import { hederaTxUrl } from "@proofmark/core";
 import { loadIdentity } from "./identity";
 import { connect } from "./connect";
 
 /**
  * One full connect through the real proxy code: pay over x402, verify both hashes, spawn, compare.
- * Usage: npm run connect:demo -w @thanks/proxy -- [server]
+ * Usage: npm run connect:demo -w @proofmark/proxy -- [server]
  */
 const here = dirname(fileURLToPath(import.meta.url));
 const entry = resolve(here, "../../demo-server/src/server.ts");
-const server = process.argv[2] ?? "io.thanks.demo/filesystem";
-const gateway = process.env.THANKS_GATEWAY_URL ?? "http://localhost:8787";
+const server = process.argv[2] ?? "io.proofmark.demo/filesystem";
+const gateway = process.env.PROOFMARK_GATEWAY_URL ?? "http://localhost:8787";
 
 const id = loadIdentity();
 console.log(`agent ${id.ensName}  payer ${id.hederaAccount}  evm ${id.evmAddress}`);

@@ -1,8 +1,8 @@
 import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { verifyMessage } from "viem";
-import { canonicalize, diffManifests, toolManifestHash, type McpTool, type ManifestDiff } from "@thanks/core";
-import { containerSpec, dockerAvailable, openStdio, type Session, type SpawnSpec } from "@thanks/runner";
+import { canonicalize, diffManifests, toolManifestHash, type McpTool, type ManifestDiff } from "@proofmark/core";
+import { containerSpec, dockerAvailable, openStdio, type Session, type SpawnSpec } from "@proofmark/runner";
 import { decodePaymentResponseHeader } from "@x402/fetch";
 import type { Identity } from "./identity";
 
@@ -47,11 +47,11 @@ const describeDiff = (d: ManifestDiff) => {
 /** Resolve, pay, verify both hashes, spawn, and compare the manifest the server actually sent. */
 export async function connect(id: Identity, o: ConnectOptions): Promise<Decision> {
   const ts = String(Date.now());
-  const sig = await id.sign(`thanks-connect:${o.server}:${ts}`);
+  const sig = await id.sign(`proofmark-connect:${o.server}:${ts}`);
   const url = `${o.gateway}/attest?server=${encodeURIComponent(o.server)}${o.version ? `&version=${encodeURIComponent(o.version)}` : ""}`;
 
   const res = await id.payFetch(url, {
-    headers: { "x-thanks-agent-evm": id.evmAddress, "x-thanks-agent": id.ensName, "x-thanks-ts": ts, "x-thanks-sig": sig },
+    headers: { "x-proofmark-agent-evm": id.evmAddress, "x-proofmark-agent": id.ensName, "x-proofmark-ts": ts, "x-proofmark-sig": sig },
   });
 
   let payment: { tx: string; payer?: string } | undefined;

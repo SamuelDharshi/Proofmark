@@ -1,16 +1,16 @@
 <p align="center">
-  <img src="apps/web/public/logo.svg" width="72" alt="THANKS" />
+  <img src="apps/web/public/logo.svg" width="72" alt="Proofmark" />
 </p>
 
-<h1 align="center">THANKS</h1>
+<h1 align="center">Proofmark</h1>
 
 <p align="center"><strong>A human still backs this server. x402 on Hedera.</strong></p>
 
-THANKS is an MCP trust gate. Before an agent connects to an MCP server, which gets shell, filesystem and credential access, it pays $0.002 over x402 on Hedera for a fresh attestation that a verified human still stands behind this exact build and these exact tools. If the server later advertises a tool it did not have when it was attested, the hashes diverge and the connection is refused before the model sees the tool list. If a maintainer's key is revoked, running agents block on their next check.
+Proofmark is an MCP trust gate. Before an agent connects to an MCP server, which gets shell, filesystem and credential access, it pays $0.002 over x402 on Hedera for a fresh attestation that a verified human still stands behind this exact build and these exact tools. If the server later advertises a tool it did not have when it was attested, the hashes diverge and the connection is refused before the model sees the tool list. If a maintainer's key is revoked, running agents block on their next check.
 
 It is an MCP proxy, a Hono gateway that is an x402 merchant, an attestation worker, and a Next.js app with a marketplace, a public `/check` page and a fleet view.
 
-<p align="center"><img src="docs/architecture.svg" alt="THANKS architecture" /></p>
+<p align="center"><img src="docs/architecture.svg" alt="Proofmark architecture" /></p>
 
 ## Proof it runs
 
@@ -20,7 +20,7 @@ Everything below is reproducible from a clean clone.
 
 | What | Link |
 | --- | --- |
-| x402 settlement, agent `0.0.11331191` pays maintainer `0.0.8149406` $0.002 (0.02 HBAR), no human approving | [HashScan transaction](https://hashscan.io/testnet/transaction/0.0.7162784-1793919934-059482907) |
+| x402 settlement, agent `0.0.11331191` pays maintainer `0.0.8149406` $0.002 (0.02 HBAR), no human approving | [HashScan transaction](https://hashscan.io/testnet/transaction/0.0.7162784-1793920335-633360630) |
 | HCS topic holding every attestation and payment | [Topic 0.0.11331162](https://hashscan.io/testnet/topic/0.0.11331162) |
 | Maintainer account | [0.0.8149406](https://hashscan.io/testnet/account/0.0.8149406) |
 | Paying agent account | [0.0.11331191](https://hashscan.io/testnet/account/0.0.11331191) |
@@ -36,7 +36,7 @@ Everything below is reproducible from a clean clone.
 
 ## Track requirements
 
-| Partner | Requirement | How THANKS meets it | Code |
+| Partner | Requirement | How Proofmark meets it | Code |
 | --- | --- | --- | --- |
 | Hedera | x402-protected endpoint settling on Hedera testnet through a listed facilitator | `GET /attest` uses `@x402/hedera` exact scheme with the Blocky402 facilitator | [x402.ts:33](apps/gateway/src/x402.ts#L33), [x402.ts:69](apps/gateway/src/x402.ts#L69) |
 | Hedera | A paid request with no human approving | The proxy signs and pays on its own. The Agent Pass gates authority to spend, not each payment | [connect.ts:48](apps/proxy/src/connect.ts#L48), [attest.ts:31](apps/gateway/src/routes/attest.ts#L31) |
@@ -58,7 +58,7 @@ Everything below is reproducible from a clean clone.
 ```mermaid
 sequenceDiagram
   participant A as Agent client
-  participant P as THANKS proxy
+  participant P as Proofmark proxy
   participant G as Gateway
   participant H as Hedera
   participant E as ENS
@@ -107,11 +107,11 @@ There is no amber tier. Pinning to the last attested version would let an attack
 ### ENS tree
 
 ```
-thanks.eth                     Permissioned Registry, administered by THANKS
-  acme.thanks.eth              maintainer org, owned by the claiming human
+proofmark.eth                     Permissioned Registry, administered by Proofmark
+  acme.proofmark.eth              maintainer org, owned by the claiming human
       status, payto, x402.price, world.verified
-    alice.acme.thanks.eth      co-maintainer: attest.key, expires
-    bob.acme.thanks.eth        co-maintainer: attest.key, expires
+    alice.acme.proofmark.eth      co-maintainer: attest.key, expires
+    bob.acme.proofmark.eth        co-maintainer: attest.key, expires
 ```
 
 One resolver instance per org, because argument-scoped grants apply to every name an instance serves. Claim and revoke are one write each. Nothing is written per attestation.
@@ -139,15 +139,15 @@ Name ownership uses the official registry's own verification: `mcpName` in packa
 | [Official MCP registry](https://modelcontextprotocol.io/registry/about) | Verifies name ownership | No signing, no revocation, no identity |
 | [A trustworthy MCP registry](https://www.mdpi.com/1999-5903/18/5/243) | Sigstore signing plus runtime JWS | No revocation, no human identity, no payments |
 
-THANKS adds three narrow things: revocation that reaches a running fleet, one human instead of one account, and a recurring payment that makes the freshness check sustainable.
+Proofmark adds three narrow things: revocation that reaches a running fleet, one human instead of one account, and a recurring payment that makes the freshness check sustainable.
 
 ## Run it
 
 ```bash
 npm install
 cp .env.example .env          # fill in the values
-npm run keys -w @thanks/gateway          # prints fresh signing and agent keys
-npm run hcs:create -w @thanks/gateway    # prints HCS_TOPIC_ID
+npm run keys -w @proofmark/gateway          # prints fresh signing and agent keys
+npm run hcs:create -w @proofmark/gateway    # prints HCS_TOPIC_ID
 npm run gateway               # http://localhost:8787
 npm run web                   # http://localhost:3000
 npm test                      # core and proxy suites
@@ -156,9 +156,9 @@ npm test                      # core and proxy suites
 Try the whole flow before World and ENS are set up. The seed claims the bundled demo servers in the local store, marked not human-verified, and anchors their attestations on HCS:
 
 ```bash
-npm run seed:demo -w @thanks/gateway      # claim and attest the demo servers
-npm run agents:create -w @thanks/gateway -- 2   # funded testnet agents, with the gateway running
-npm run connect:demo -w @thanks/proxy     # one paid connect through the real proxy code
+npm run seed:demo -w @proofmark/gateway      # claim and attest the demo servers
+npm run agents:create -w @proofmark/gateway -- 2   # funded testnet agents, with the gateway running
+npm run connect:demo -w @proofmark/proxy     # one paid connect through the real proxy code
 ```
 
 Point an agent client at the proxy instead of the server:
@@ -168,7 +168,7 @@ Point an agent client at the proxy instead of the server:
   "mcpServers": {
     "filesystem": {
       "command": "npx",
-      "args": ["tsx", "apps/proxy/src/cli.ts", "--server", "io.thanks.demo/filesystem",
+      "args": ["tsx", "apps/proxy/src/cli.ts", "--server", "io.proofmark.demo/filesystem",
                "--gateway", "http://localhost:8787", "--artifact", "apps/demo-server/src/server.ts",
                "--", "npx", "tsx", "apps/demo-server/src/server.ts"]
     }
@@ -190,4 +190,4 @@ docs               architecture diagram
 
 ## Credits
 
-Marks for Hedera, ENS, World and the Model Context Protocol belong to their owners and appear here only to show the technology THANKS is built with.
+Marks for Hedera, ENS, World and the Model Context Protocol belong to their owners and appear here only to show the technology Proofmark is built with.

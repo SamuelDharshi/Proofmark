@@ -2,12 +2,12 @@
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { CallToolRequestSchema, ListToolsRequestSchema } from "@modelcontextprotocol/sdk/types.js";
-import { diffManifests, hederaTxUrl, toolManifestHash, type McpTool } from "@thanks/core";
+import { diffManifests, hederaTxUrl, toolManifestHash, type McpTool } from "@proofmark/core";
 import { loadIdentity } from "./identity";
 import { connect, type Connected } from "./connect";
 
 // stdout belongs to the MCP stream. Everything human-readable goes to stderr.
-const log = (msg: string, extra?: Record<string, unknown>) => console.error(`[thanks] ${msg}${extra ? " " + JSON.stringify(extra) : ""}`);
+const log = (msg: string, extra?: Record<string, unknown>) => console.error(`[proofmark] ${msg}${extra ? " " + JSON.stringify(extra) : ""}`);
 
 function parseArgs(argv: string[]) {
   const dash = argv.indexOf("--");
@@ -19,13 +19,13 @@ function parseArgs(argv: string[]) {
   };
   const server = get("server");
   if (!server) {
-    console.error("usage: thanks-proxy --server <registry name> [--version v] [--gateway url] [--artifact file] -- <command> [args]");
+    console.error("usage: proofmark-proxy --server <registry name> [--version v] [--gateway url] [--artifact file] -- <command> [args]");
     process.exit(2);
   }
   return {
     server,
     version: get("version"),
-    gateway: get("gateway") ?? process.env.THANKS_GATEWAY_URL ?? "http://localhost:8787",
+    gateway: get("gateway") ?? process.env.PROOFMARK_GATEWAY_URL ?? "http://localhost:8787",
     artifactPath: get("artifact"),
     launch: launch.length ? { command: launch[0], args: launch.slice(1) } : undefined,
   };
@@ -37,11 +37,11 @@ const id = loadIdentity();
 type State = { status: "connecting" } | { status: "connected"; c: Connected } | { status: "blocked"; reason: string; message: string };
 let state: State = { status: "connecting" };
 
-const mcp = new Server({ name: "thanks-proxy", version: "0.1.0" }, { capabilities: { tools: { listChanged: true } } });
+const mcp = new Server({ name: "proofmark-proxy", version: "0.1.0" }, { capabilities: { tools: { listChanged: true } } });
 
 const meta: McpTool[] = [
-  { name: "thanks_explain", description: "Explain why this server got its tier.", inputSchema: { type: "object", properties: {} } },
-  { name: "thanks_budget", description: "Remaining spend and Agent Pass status for this agent.", inputSchema: { type: "object", properties: {} } },
+  { name: "proofmark_explain", description: "Explain why this server got its tier.", inputSchema: { type: "object", properties: {} } },
+  { name: "proofmark_budget", description: "Remaining spend and Agent Pass status for this agent.", inputSchema: { type: "object", properties: {} } },
 ];
 
 const visibleTools = (): McpTool[] => (state.status === "connected" ? [...state.c.tools, ...meta] : meta);
@@ -50,7 +50,7 @@ mcp.setRequestHandler(ListToolsRequestSchema, async () => ({ tools: visibleTools
 
 mcp.setRequestHandler(CallToolRequestSchema, async (req) => {
   const { name, arguments: args } = req.params;
-  if (name === "thanks_explain") {
+  if (name === "proofmark_explain") {
     const text =
       state.status === "connected"
         ? `Connected to ${opts.server} (${state.c.tier}). Attested version ${state.c.attested.version}. Manifest ${state.c.attested.manifestHash.slice(0, 12)}…${state.c.payment ? ` Paid: ${hederaTxUrl(state.c.payment.tx)}` : ""}`
@@ -59,7 +59,7 @@ mcp.setRequestHandler(CallToolRequestSchema, async (req) => {
           : "Connecting…";
     return { content: [{ type: "text", text }] };
   }
-  if (name === "thanks_budget") {
+  if (name === "proofmark_budget") {
     const r = await fetch(`${opts.gateway}/agents/${encodeURIComponent(id.ensName)}`).then((x) => x.json()).catch(() => null);
     return { content: [{ type: "text", text: r ? JSON.stringify(r) : "Budget unavailable." }] };
   }
@@ -115,7 +115,7 @@ async function main() {
   });
 
   // Liveness: revocation reaches a running session on the next check.
-  const every = Number(process.env.THANKS_RECHECK_MS ?? 15000);
+  const every = Number(process.env.PROOFMARK_RECHECK_MS ?? 15000);
   setInterval(async () => {
     if (state.status !== "connected" || state.c.tier !== "green") return;
     const r = (await fetch(`${opts.gateway}/check?server=${encodeURIComponent(opts.server)}`).then((x) => x.json()).catch(() => null)) as any;

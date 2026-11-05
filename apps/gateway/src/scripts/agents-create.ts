@@ -4,7 +4,7 @@ import { env, caps } from "../config";
 
 /**
  * Creates N funded Hedera testnet accounts from the gateway account and registers each as an agent.
- * Usage: npm run agents:create -w @thanks/gateway -- 3 [hbar-each]
+ * Usage: npm run agents:create -w @proofmark/gateway -- 3 [hbar-each]
  */
 if (!caps.hedera) throw new Error("Set HEDERA_GATEWAY_ACCOUNT_ID and HEDERA_GATEWAY_PRIVATE_KEY first");
 const n = Number(process.argv[2] ?? 3);

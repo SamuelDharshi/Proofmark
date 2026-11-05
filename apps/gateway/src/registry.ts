@@ -1,4 +1,4 @@
-import type { RegistryType } from "@thanks/core";
+import type { RegistryType } from "@proofmark/core";
 
 const REGISTRY = "https://registry.modelcontextprotocol.io/v0";
 

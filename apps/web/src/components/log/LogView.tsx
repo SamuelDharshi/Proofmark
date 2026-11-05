@@ -25,7 +25,7 @@ export function LogView() {
         ) : !data ? (
           <div className="h-40 animate-pulse rounded-[var(--radius-card)] bg-surface" />
         ) : !data.topic ? (
-          <div className="card p-10 text-center text-muted">No HCS topic configured. Run <span className="num">npm run hcs:create -w @thanks/gateway</span> and set <span className="num">HCS_TOPIC_ID</span>.</div>
+          <div className="card p-10 text-center text-muted">No HCS topic configured. Run <span className="num">npm run hcs:create -w @proofmark/gateway</span> and set <span className="num">HCS_TOPIC_ID</span>.</div>
         ) : data.messages.length === 0 ? (
           <div className="card p-10 text-center text-muted">No messages yet.</div>
         ) : (
