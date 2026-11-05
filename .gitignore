@@ -5,6 +5,7 @@ dist
 .env.*
 !.env.example
 .ref
+THANKS v3*.md
 Proofmark v3*.md
 *.log
 .turbo
