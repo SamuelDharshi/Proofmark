@@ -1,13 +1,31 @@
+# dependencies and build output
 node_modules
 .next
 dist
+coverage
+.turbo
+.vercel
+*.tsbuildinfo
+next-env.d.ts
+
+# secrets and local config
 .env
 .env.*
 !.env.example
+.mcp.json
+*.pem
+*.key
+
+# local state and working files
+data/
 .ref
 *Trust Gate*.md
-*.log
-.turbo
-.DS_Store
-data/
 apps/web/sponsers_logo
+*.log
+
+# editors, tools and OS
+.claude/
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
