@@ -7,6 +7,6 @@
   "scripts": {
     "gateway": "npm run dev -w @thanks/gateway",
     "web": "npm run dev -w @thanks/web",
-    "test": "npm test -w @thanks/core"
+    "test": "npm test -w @thanks/core && npm test -w @thanks/proxy"
   }
 }
