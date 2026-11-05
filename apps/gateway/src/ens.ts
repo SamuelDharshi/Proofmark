@@ -180,6 +180,27 @@ export const invalidateEns = (prefix?: string) => {
   for (const k of cache.keys()) if (!prefix || k.includes(prefix)) cache.delete(k);
 };
 
+/**
+ * Invalidate the read cache the moment the chain says a record or role changed, so a revocation
+ * made from any wallet reaches running agents within a block or two instead of waiting out the TTL.
+ */
+const watched = new Set<string>();
+export function watchResolver(resolver: Address) {
+  if (!caps.ens || watched.has(resolver.toLowerCase())) return;
+  watched.add(resolver.toLowerCase());
+  for (const eventName of ["TextUpdated", "EACRolesChanged"]) {
+    publicClient().watchContractEvent({
+      address: resolver,
+      abi: C.PermissionedResolverImpl.abi,
+      eventName,
+      poll: true,
+      pollingInterval: 4_000,
+      onLogs: () => invalidateEns(),
+      onError: (e) => console.warn(`[ens] watch ${eventName} ${resolver}: ${e.message}`),
+    });
+  }
+}
+
 export async function getText(name: string, key: string): Promise<string | null> {
   const ck = `${name}|${key}`;
   const hit = cache.get(ck);

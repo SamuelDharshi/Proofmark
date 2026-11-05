@@ -71,6 +71,7 @@ claimRoutes.post("/claim", async (c) => {
         org.ensTx = chain.txs.at(-1)?.hash;
         org.resolver = chain.resolver;
         org.registry = chain.registry;
+        ens.watchResolver(chain.resolver);
         logEvent({ kind: "ens", server: b.server, detail: `Registered ${org.ensName}`, tx: org.ensTx ? { chain: "sepolia", id: org.ensTx } : undefined });
       } catch (e) {
         return c.json({ error: "ens-failed", message: (e as Error).message }, 502);
