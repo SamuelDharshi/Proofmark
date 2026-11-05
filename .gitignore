@@ -5,8 +5,7 @@ dist
 .env.*
 !.env.example
 .ref
-THANKS v3*.md
-Proofmark v3*.md
+*Trust Gate*.md
 *.log
 .turbo
 .DS_Store
