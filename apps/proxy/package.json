@@ -1,0 +1,20 @@
+{
+  "name": "@thanks/proxy",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "bin": { "thanks-proxy": "src/cli.ts" },
+  "scripts": { "start": "tsx src/cli.ts", "typecheck": "tsc --noEmit" },
+  "dependencies": {
+    "@thanks/core": "*",
+    "@thanks/runner": "*",
+    "@modelcontextprotocol/sdk": "^1.32.0",
+    "@x402/core": "^2.30.0",
+    "@x402/fetch": "^2.30.0",
+    "@x402/hedera": "^2.30.0",
+    "@hiero-ledger/sdk": "^2.90.1",
+    "viem": "^2.57.0",
+    "dotenv": "^16.4.0"
+  },
+  "devDependencies": { "tsx": "^4.23.0", "typescript": "^5.6.0", "@types/node": "^22.0.0" }
+}
