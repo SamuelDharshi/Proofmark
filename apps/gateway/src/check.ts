@@ -49,7 +49,12 @@ export async function evaluate(server: string, version?: string): Promise<CheckR
 
   const org = db.orgs.find((o) => o.name === claim.org)!;
   const att = latestAttestation(server, version);
-  const key = att && db.keys.find((k) => k.address.toLowerCase() === att.pair.attestKey.toLowerCase() && k.org === org.name);
+  // Match the co-maintainer the attestation names, so revoking one subname never affects another
+  // that happens to share an address. Fall back to the address for older records.
+  const sub = att?.pair.attestSubname;
+  const key =
+    att &&
+    db.keys.find((k) => k.org === org.name && (sub ? k.subname === sub || `${k.label}.${k.org}` === sub : k.address.toLowerCase() === att.pair.attestKey.toLowerCase()));
   const ks = key ? await keyState(key, org) : undefined;
   const div = att ? divergence(server, att.pair.version, att.pair.toolManifestHash) : { count: 0, clients: 0 };
 

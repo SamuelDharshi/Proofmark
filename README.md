@@ -20,10 +20,20 @@ Everything below is reproducible from a clean clone.
 
 | What | Link |
 | --- | --- |
-| x402 settlement, agent `0.0.11331191` pays maintainer `0.0.8149406` $0.002 (0.02 HBAR), no human approving | [HashScan transaction](https://hashscan.io/testnet/transaction/0.0.7162784-1793920335-633360630) |
-| HCS topic holding every attestation and payment | [Topic 0.0.11331162](https://hashscan.io/testnet/topic/0.0.11331162) |
+| x402 settlement, agent `0.0.11331191` pays maintainer `0.0.8149406` $0.002 (0.02 HBAR), no human approving | [HashScan transaction](https://hashscan.io/testnet/transaction/0.0.7162784-1793921712-374513238) |
+| HCS topic holding every attestation and payment | [Topic 0.0.11331506](https://hashscan.io/testnet/topic/0.0.11331506) |
 | Maintainer account | [0.0.8149406](https://hashscan.io/testnet/account/0.0.8149406) |
 | Paying agent account | [0.0.11331191](https://hashscan.io/testnet/account/0.0.11331191) |
+
+**Live on Sepolia (ENSv2)**
+
+| What | Link |
+| --- | --- |
+| Root name | [proofmark.eth](https://sepolia.app.ens.domains/proofmark.eth) |
+| Org registry proxy and org resolver proxy for `demo.proofmark.eth` | [resolver](https://sepolia.etherscan.io/tx/0xc5b8d89f42498ee44f3d51a839b26e54f729ba73b699b7cb685bc5c9dc169783), [registry](https://sepolia.etherscan.io/tx/0x8a2251888028671212db07806cdf7e1c05c6654436c356721ad5a05a0fbc763e) |
+| Org name registered and records written | [register](https://sepolia.etherscan.io/tx/0x9a0fd456eefa59c56bd888420a4186115336b3346fda339319d7f4cdf771b84a), [records](https://sepolia.etherscan.io/tx/0x9ba046f0910a20a344bd2d05ae1b4c54d2f44ed0dcf0fa1bffe01f832d6a2541) |
+| Co-maintainer `gateway.demo.proofmark.eth` with an expiring key | [subname](https://sepolia.etherscan.io/tx/0xb2a8e03a59f1db1912e458d1159636b8fc0fdc1d935dc864ef1c4614c3cd24f4), [attest.key role](https://sepolia.etherscan.io/tx/0xc0993ea3172d74d94d42ba5c7e7582286e77896d560b76f3dfbfe04e11f90fb2), [attest.key record](https://sepolia.etherscan.io/tx/0x676bf728d8ceb8f81c2938de9722c08aff6f9a82e8e85dfaf72f564dea81e0ef) |
+| Unauthorised write to `status` by that co-maintainer | Reverts with `EACUnauthorizedAccountRoles`. Reproduce with `npm run ens:spike -w @proofmark/gateway` |
 
 | What | How to see it |
 | --- | --- |
