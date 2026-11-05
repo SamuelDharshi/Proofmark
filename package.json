@@ -1,0 +1,12 @@
+{
+  "name": "thanks",
+  "private": true,
+  "version": "0.1.0",
+  "license": "MIT",
+  "workspaces": ["packages/*", "apps/*"],
+  "scripts": {
+    "gateway": "npm run dev -w @thanks/gateway",
+    "web": "npm run dev -w @thanks/web",
+    "test": "npm test -w @thanks/core"
+  }
+}
