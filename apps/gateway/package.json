@@ -10,7 +10,8 @@
     "hcs:create": "tsx src/scripts/hcs-create.ts",
     "keys": "tsx src/scripts/keys.ts",
     "agents:create": "tsx src/scripts/agents-create.ts",
-    "seed:demo": "tsx src/scripts/seed-demo.ts"
+    "seed:demo": "tsx src/scripts/seed-demo.ts",
+    "ens:status": "tsx src/scripts/ens-status.ts"
   },
   "dependencies": {
     "@hiero-ledger/sdk": "^2.90.1",
