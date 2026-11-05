@@ -1,5 +1,9 @@
-import "dotenv/config";
-import { resolve } from "node:path";
+import { config as loadEnv } from "dotenv";
+import { resolve, dirname } from "node:path";
+import { fileURLToPath } from "node:url";
+
+// Always read the repo-root .env, whichever folder npm runs the script from.
+loadEnv({ path: resolve(dirname(fileURLToPath(import.meta.url)), "../../../.env") });
 import { z } from "zod";
 
 const emptyToUndef = (v: unknown) => (v === "" ? undefined : v);
