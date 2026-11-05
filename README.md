@@ -16,6 +16,15 @@ It is an MCP proxy, a Hono gateway that is an x402 merchant, an attestation work
 
 Everything below is reproducible from a clean clone.
 
+**Live on Hedera testnet**
+
+| What | Link |
+| --- | --- |
+| x402 settlement, agent `0.0.11331191` pays maintainer `0.0.8149406` $0.002 (0.02 HBAR), no human approving | [HashScan transaction](https://hashscan.io/testnet/transaction/0.0.7162784-1793919934-059482907) |
+| HCS topic holding every attestation and payment | [Topic 0.0.11331162](https://hashscan.io/testnet/topic/0.0.11331162) |
+| Maintainer account | [0.0.8149406](https://hashscan.io/testnet/account/0.0.8149406) |
+| Paying agent account | [0.0.11331191](https://hashscan.io/testnet/account/0.0.11331191) |
+
 | What | How to see it |
 | --- | --- |
 | Derived manifest hash and mismatch refusal | `npm test`. The proxy suite runs the real demo MCP server clean, then mutated, and asserts the refusal names `read_env` |
@@ -142,6 +151,14 @@ npm run hcs:create -w @thanks/gateway    # prints HCS_TOPIC_ID
 npm run gateway               # http://localhost:8787
 npm run web                   # http://localhost:3000
 npm test                      # core and proxy suites
+```
+
+Try the whole flow before World and ENS are set up. The seed claims the bundled demo servers in the local store, marked not human-verified, and anchors their attestations on HCS:
+
+```bash
+npm run seed:demo -w @thanks/gateway      # claim and attest the demo servers
+npm run agents:create -w @thanks/gateway -- 2   # funded testnet agents, with the gateway running
+npm run connect:demo -w @thanks/proxy     # one paid connect through the real proxy code
 ```
 
 Point an agent client at the proxy instead of the server:
