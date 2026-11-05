@@ -89,6 +89,13 @@ publicRoutes.post("/agents", async (c) => {
   return c.json(upsertAgent({ ...b, evmAddress: getAddress(b.evmAddress) }));
 });
 
+publicRoutes.get("/agents/:name", async (c) => {
+  const a = getAgentByName(c.req.param("name"));
+  if (!a) return c.json({ error: "unknown agent" }, 404);
+  const pass = await agentPass(a.evmAddress).catch(() => null);
+  return c.json({ ensName: a.ensName, budgetUsd: a.budgetUsd, spentUsd: a.spentUsd, budgetLeft: budgetLeft(a), maxRisk: a.maxRisk, pass });
+});
+
 /** Demo control: expire or restore an agent's pass to show the denied path. */
 publicRoutes.post("/agents/:name/pass", async (c) => {
   const a = getAgentByName(c.req.param("name"));
