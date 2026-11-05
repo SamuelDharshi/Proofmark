@@ -28,7 +28,16 @@ export function loadIdentity(): Identity {
   const hk = PrivateKey.fromStringECDSA(key);
   const evm = privateKeyToAccount(`0x${hk.toStringRaw()}`);
   const signer = createClientHederaSigner(account, hk, { network: "hedera:testnet" });
-  const client = new x402Client().register("hedera:*", new ExactHederaScheme(signer));
+  // Spend controls: allow exactly the configured asset on Hedera testnet, capped per payment at the
+  // gateway's maximum price. This is what lets an agent pay with no human in the loop safely.
+  const asset = process.env.X402_ASSET ?? "0.0.0";
+  const hbarUsd = Number(process.env.HBAR_USD ?? 0.1);
+  const maxUsd = Number(process.env.MAX_PRICE_USD ?? 0.05);
+  const decimals = asset === "0.0.0" ? 1e8 : 1e6;
+  const cap = String(Math.ceil((maxUsd / (asset === "0.0.0" ? hbarUsd : 1)) * decimals));
+  const client = new x402Client()
+    .register("hedera:*", new ExactHederaScheme(signer))
+    .setSpendControls({ allowedAssets: [{ network: "hedera:testnet", asset, maxAmountPerPayment: cap }] });
   return {
     ensName: process.env.AGENT_ENS_NAME ?? "claude-1.team.eth",
     hederaAccount: account,
