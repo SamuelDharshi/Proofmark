@@ -9,13 +9,21 @@ import { z } from "zod";
 const emptyToUndef = (v: unknown) => (v === "" ? undefined : v);
 const opt = z.preprocess(emptyToUndef, z.string().optional());
 
+/** EVM keys: wallets export 64 hex characters, viem wants the 0x prefix. Accept both. */
+const evmKey = z.preprocess(
+  (v) => (v === "" ? undefined : typeof v === "string" && /^[0-9a-fA-F]{64}$/.test(v.trim()) ? `0x${v.trim()}` : v),
+  z.string().regex(/^0x[0-9a-fA-F]{64}$/, "must be a 32-byte hex private key").optional(),
+);
+/** Hedera ECDSA keys: the SDK wants raw hex, so drop a leading 0x. */
+const hederaKey = z.preprocess((v) => (v === "" ? undefined : typeof v === "string" ? v.trim().replace(/^0x/, "") : v), z.string().optional());
+
 const schema = z.object({
   PORT: z.coerce.number().default(8787),
   PUBLIC_GATEWAY_URL: z.string().default("http://localhost:8787"),
   DATA_DIR: z.string().default("./data"),
 
   HEDERA_GATEWAY_ACCOUNT_ID: opt,
-  HEDERA_GATEWAY_PRIVATE_KEY: opt,
+  HEDERA_GATEWAY_PRIVATE_KEY: hederaKey,
   HCS_TOPIC_ID: opt,
   X402_FACILITATOR_URL: z.string().default("https://api.testnet.blocky402.com"),
   X402_ASSET: z.string().default("0.0.0"),
@@ -27,10 +35,10 @@ const schema = z.object({
   AGENT_HEDERA_PRIVATE_KEY: opt,
   AGENT_ENS_NAME: z.string().default("claude-1.team.eth"),
 
-  ATTEST_PRIVATE_KEY: opt,
+  ATTEST_PRIVATE_KEY: evmKey,
 
   SEPOLIA_RPC_URL: opt,
-  ENS_ADMIN_PRIVATE_KEY: opt,
+  ENS_ADMIN_PRIVATE_KEY: evmKey,
   ENS_ROOT_NAME: z.string().default("proofmark.eth"),
 
   WORLD_APP_ID: opt,
