@@ -13,6 +13,8 @@ export interface Org {
   nullifier: string;
   createdAt: number;
   ensTx?: string;
+  resolver?: string;
+  registry?: string;
 }
 export interface ServerClaim {
   server: string; // registry name
@@ -22,6 +24,8 @@ export interface ServerClaim {
 }
 export interface MaintainerKey {
   subname: string; // alice.acme.thanks.eth
+  label: string; // alice
+  registry?: string; // org subname registry address
   org: string;
   address: string;
   expiresAt: number;
