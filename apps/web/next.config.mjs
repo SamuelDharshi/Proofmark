@@ -2,4 +2,5 @@
 export default {
   transpilePackages: ["@thanks/core"],
   reactStrictMode: true,
+  agentRules: false,
 };
