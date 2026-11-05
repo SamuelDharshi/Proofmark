@@ -1,7 +1,7 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 260 64" fill="none">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 330 64" fill="none">
   <g transform="translate(0 0)" color="currentColor">
     <path d="M10 57V21L32 8l22 13v36" stroke="currentColor" stroke-width="6" stroke-linejoin="miter" stroke-linecap="square"/>
     <path d="M32 25l9 9-9 9-9-9z" fill="currentColor"/>
   </g>
-  <text x="72" y="45" fill="currentColor" font-family="'Bricolage Grotesque', 'Space Grotesk', system-ui, sans-serif" font-weight="700" font-size="36" letter-spacing="2">THANKS</text>
+  <text x="72" y="45" fill="currentColor" font-family="'Bricolage Grotesque', 'Space Grotesk', system-ui, sans-serif" font-weight="700" font-size="36" letter-spacing="2">PROOFMARK</text>
 </svg>

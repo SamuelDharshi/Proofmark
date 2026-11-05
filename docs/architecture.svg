@@ -4,14 +4,14 @@
 <rect x="30" y="40" width="230" height="460" rx="0" fill="none" stroke="#2A2A2A" stroke-width="1.5" stroke-dasharray="5 4"/>
 <text x="42" y="58" font-family="'JetBrains Mono','IBM Plex Mono','Geist Mono',ui-monospace,SFMono-Regular,Menlo,monospace" font-size="10.5" fill="#777777" letter-spacing="1">AGENT HOST</text>
 <rect x="300" y="40" width="380" height="460" rx="0" fill="none" stroke="#2A2A2A" stroke-width="1.5" stroke-dasharray="5 4"/>
-<text x="312" y="58" font-family="'JetBrains Mono','IBM Plex Mono','Geist Mono',ui-monospace,SFMono-Regular,Menlo,monospace" font-size="10.5" fill="#777777" letter-spacing="1">THANKS GATEWAY  ·  HONO</text>
+<text x="312" y="58" font-family="'JetBrains Mono','IBM Plex Mono','Geist Mono',ui-monospace,SFMono-Regular,Menlo,monospace" font-size="10.5" fill="#777777" letter-spacing="1">PROOFMARK GATEWAY  ·  HONO</text>
 <rect x="720" y="40" width="450" height="460" rx="0" fill="none" stroke="#2A2A2A" stroke-width="1.5" stroke-dasharray="5 4"/>
 <text x="732" y="58" font-family="'JetBrains Mono','IBM Plex Mono','Geist Mono',ui-monospace,SFMono-Regular,Menlo,monospace" font-size="10.5" fill="#777777" letter-spacing="1">ANCHORS AND IDENTITY</text>
 <rect x="50" y="70" width="190" height="70" rx="0" fill="none" stroke="#2A2A2A" stroke-width="1.5" />
 <text x="64" y="103.0" font-family="'JetBrains Mono','IBM Plex Mono','Geist Mono',ui-monospace,SFMono-Regular,Menlo,monospace" font-size="13" fill="#111111">Agent client</text>
 <text x="64" y="120.0" font-family="'JetBrains Mono','IBM Plex Mono','Geist Mono',ui-monospace,SFMono-Regular,Menlo,monospace" font-size="10.5" fill="#777777">Claude Code / Cursor</text>
 <rect x="50" y="200" width="190" height="90" rx="0" fill="none" stroke="#12B76A" stroke-width="1.5" />
-<text x="64" y="243.0" font-family="'JetBrains Mono','IBM Plex Mono','Geist Mono',ui-monospace,SFMono-Regular,Menlo,monospace" font-size="13" fill="#111111">THANKS proxy</text>
+<text x="64" y="243.0" font-family="'JetBrains Mono','IBM Plex Mono','Geist Mono',ui-monospace,SFMono-Regular,Menlo,monospace" font-size="13" fill="#111111">PROOFMARK proxy</text>
 <text x="64" y="260.0" font-family="'JetBrains Mono','IBM Plex Mono','Geist Mono',ui-monospace,SFMono-Regular,Menlo,monospace" font-size="10.5" fill="#777777">pay · verify · spawn</text>
 <rect x="50" y="350" width="190" height="110" rx="0" fill="none" stroke="#2A2A2A" stroke-width="1.5" />
 <text x="64" y="403.0" font-family="'JetBrains Mono','IBM Plex Mono','Geist Mono',ui-monospace,SFMono-Regular,Menlo,monospace" font-size="13" fill="#111111">MCP server</text>
