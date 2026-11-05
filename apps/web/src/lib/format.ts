@@ -1,6 +1,6 @@
 export const short = (s: string, a = 6, b = 4) => (s.length > a + b + 1 ? `${s.slice(0, a)}…${s.slice(-b)}` : s);
 
-export const usd = (n: number) => (n < 0.01 ? `$${n.toPrecision(2)}` : `$${n.toFixed(2)}`);
+export const usd = (n: number) => (n < 0.01 ? `${Number(n.toPrecision(2))}` : `${n.toFixed(2)}`);
 
 export const ago = (ts: number) => {
   const s = Math.max(1, Math.round((Date.now() - ts) / 1000));
