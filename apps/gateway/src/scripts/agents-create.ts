@@ -28,3 +28,4 @@ for (let i = 1; i <= n; i++) {
   console.log(`AGENT_ENS_NAME=${ensName}`);
   console.log(`# EVM address for AgentBook: ${evm}`);
 }
+process.exit(0);

@@ -9,7 +9,8 @@
     "typecheck": "tsc --noEmit",
     "hcs:create": "tsx src/scripts/hcs-create.ts",
     "keys": "tsx src/scripts/keys.ts",
-    "agents:create": "tsx src/scripts/agents-create.ts"
+    "agents:create": "tsx src/scripts/agents-create.ts",
+    "seed:demo": "tsx src/scripts/seed-demo.ts"
   },
   "dependencies": {
     "@hiero-ledger/sdk": "^2.90.1",
