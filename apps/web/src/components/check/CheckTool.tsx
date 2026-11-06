@@ -1,5 +1,6 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
 import { ArrowRight, Loader2, Search } from "lucide-react";
@@ -34,6 +35,17 @@ export function CheckTool({ initial = "" }: { initial?: string }) {
       setBusy(false);
     }
   };
+
+  // A link like /check?server=<name> runs the check straight away.
+  const params = useSearchParams();
+  useEffect(() => {
+    const s = params.get("server");
+    if (s) {
+      setQ(s);
+      void run(s);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [params]);
 
   return (
     <div className="wrap pb-10 pt-32">
