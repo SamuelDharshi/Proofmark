@@ -69,3 +69,13 @@ export function recordNullifier(nullifier: string, org: string, action = env.WOR
     d.nullifiers.push({ nullifier, action, org, ts: Date.now() });
   });
 }
+
+/** The nullifier carried by an IDKit result, read locally with no network call. */
+export function proofNullifier(idkitResponse: unknown): string | null {
+  const hex = findNullifier(idkitResponse);
+  try {
+    return hex ? toDecimal(hex) : null;
+  } catch {
+    return null;
+  }
+}

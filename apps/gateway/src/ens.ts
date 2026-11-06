@@ -101,32 +101,42 @@ export interface OrgChain {
 
 /** One-time write set for a claimed maintainer org. Nothing is written per attestation. */
 export async function registerOrg(p: {
-  org: string; owner: Address; payTo: string; price: number; worldVerified: boolean; expiresAt: number;
+  org: string; owner: Address; payTo: string; price: number; worldVerified: boolean; expiresAt: number; onStep?: (s: string) => void;
 }): Promise<OrgChain> {
   const txs: OrgChain["txs"] = [];
+  const step = (s: string) => p.onStep?.(s);
+  step("Preparing the root registry");
   const root = await ensureRootRegistry();
   if (root.tx) txs.push({ label: "root registry", hash: root.tx });
 
   // One resolver instance per org so one org can never write another's payto.
+  step("Deploying the org resolver (1 of 4)");
   const resolver = await deployProxy(C.PermissionedResolverImpl.address, resolverInit([{ account: adminAddress(), roleBitmap: resolverRoles }]));
   txs.push({ label: "org resolver", hash: resolver.tx });
+  step("Deploying the org registry (2 of 4)");
   const orgReg = await deployProxy(C.UserRegistryImpl.address, registryInit([{ account: adminAddress(), roleBitmap: registrarRoles }]));
   txs.push({ label: "org registry", hash: orgReg.tx });
 
+  step("Registering the name on ENS (3 of 4)");
   // The claimant owns the name and may only renew it. Resolver and subregistry stay with the gateway.
   txs.push({
     label: "register name",
     hash: await send(root.registry, C.UserRegistryImpl.abi, "register", [p.org, p.owner, orgReg.address, resolver.address, R.RENEW, BigInt(p.expiresAt)]),
   });
 
+  step("Writing the org records (4 of 4)");
+  const name = orgName(p.org);
+  txs.push({ label: "records", hash: await writeOrgRecords({ org: p.org, resolver: resolver.address, owner: p.owner, payTo: p.payTo, price: p.price, worldVerified: p.worldVerified }) });
+  return { org: p.org, name, resolver: resolver.address, registry: orgReg.address, txs };
+}
+
+/** The org's records in one multicall. Also used to finish an org whose earlier attempt stopped before this step. */
+export async function writeOrgRecords(p: { org: string; resolver: Address; owner: Address; payTo: string; price: number; worldVerified: boolean }) {
   const name = orgName(p.org);
   const records = { status: "claimed", payto: p.payTo, "x402.price": String(p.price), "world.verified": String(p.worldVerified), owner: p.owner };
-  txs.push({
-    label: "records",
-    hash: await send(resolver.address, C.PermissionedResolverImpl.abi, "multicall", [Object.entries(records).map(([k, v]) => setTextCall(name, k, v))]),
-  });
+  const hash = await send(p.resolver, C.PermissionedResolverImpl.abi, "multicall", [Object.entries(records).map(([k, v]) => setTextCall(name, k, v))]);
   invalidateEns(name);
-  return { org: p.org, name, resolver: resolver.address, registry: orgReg.address, txs };
+  return hash;
 }
 
 /** Co-maintainer subname with its own expiring key. Its role is scoped to the attest.key record only. */

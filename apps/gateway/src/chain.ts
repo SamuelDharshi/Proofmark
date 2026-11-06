@@ -194,3 +194,11 @@ export async function writeAgentIdentity(label: string, p: { uaid: string; erc80
   ens.invalidateEns(name);
   return hash;
 }
+
+/** Who the root registry says owns an org's name. Used to decide whether an unfinished org may be resumed. */
+export async function orgNameOwner(org: string): Promise<Address | null> {
+  const root = await rootRegistry();
+  if (!root) return null;
+  const st = (await ens.publicClient().readContract({ address: root, abi: C.UserRegistryImpl.abi, functionName: "getState", args: [ens.anyId(org)] })) as { latestOwner: Address };
+  return st.latestOwner === zeroAddress ? null : st.latestOwner;
+}
