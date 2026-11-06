@@ -34,7 +34,20 @@ export type Connected = {
 };
 export type Decision = Refusal | Connected;
 
-const sha256File = (p: string) => "0x" + createHash("sha256").update(readFileSync(p)).digest("hex");
+/** Compare a file with the attested hash in the format the registry publishes it: npm sha512 integrity, or sha256 hex. */
+function digestMatches(path: string, expected: string): { ok: boolean; actual: string } {
+  const bytes = readFileSync(path);
+  if (expected.startsWith("sha512-")) {
+    const actual = "sha512-" + createHash("sha512").update(bytes).digest("base64");
+    return { ok: actual === expected, actual };
+  }
+  const actual = "0x" + createHash("sha256").update(bytes).digest("hex");
+  const want = "0x" + expected.replace(/^(0x|sha256:)/i, "").toLowerCase();
+  return { ok: actual === want, actual };
+}
+
+/** The agent's allowed.tools record on ENS. Empty means every tool. */
+const allowed = (tools: McpTool[], list?: string[]) => (list && list.length ? tools.filter((t) => list.includes(t.name)) : tools);
 
 const describeDiff = (d: ManifestDiff) => {
   const parts: string[] = [];
@@ -84,9 +97,13 @@ export async function connect(id: Identity, o: ConnectOptions): Promise<Decision
   // Artefact hash: what we are about to run must be what was attested.
   let artifactVerified = false;
   if (o.artifactPath) {
-    const actual = sha256File(o.artifactPath);
-    if (actual.toLowerCase() !== String(pair.artifactHash).toLowerCase())
-      return { ok: false, reason: "hash-mismatch", message: `Artefact hash ${actual.slice(0, 12)}… does not match the attested ${String(pair.artifactHash).slice(0, 12)}….`, payment };
+    const m = digestMatches(o.artifactPath, String(pair.artifactHash));
+    if (!m.ok) return { ok: false, reason: "hash-mismatch", message: `Artefact hash ${m.actual.slice(0, 14)}… does not match the attested ${String(pair.artifactHash).slice(0, 14)}….`, payment };
+    artifactVerified = true;
+  } else if (pair.registryType === "oci") {
+    // An OCI image is pinned by digest, so the launch command must name exactly the attested digest.
+    const want = String(pair.artifactHash).replace(/^0x/, "");
+    if (!o.launch?.args.some((a) => a.includes(want))) return { ok: false, reason: "artifact-unverified", message: "The launch command must pin the attested image digest.", payment };
     artifactVerified = true;
   } else if (pair.registryType === "local") {
     return { ok: false, reason: "artifact-unverified", message: "Pass --artifact so the build can be hashed. Refusing to run an unverified local build.", payment };
@@ -105,7 +122,7 @@ export async function connect(id: Identity, o: ConnectOptions): Promise<Decision
     return { ok: false, reason: "manifest-mismatch", message: `Refused before the model saw the tool list. The server ${describeDiff(diff) || "advertises a different tool manifest"}.`, diff, payment };
   }
 
-  return { ok: true, tier: "green", session, tools: session.tools, attested: { manifestHash: pair.toolManifestHash, tools: att.tools ?? [], version: pair.version }, payment, free: !!body.free, artifactVerified };
+  return { ok: true, tier: "green", session, tools: allowed(session.tools, body.policy?.allowedTools), attested: { manifestHash: pair.toolManifestHash, tools: att.tools ?? [], version: pair.version }, payment, free: !!body.free, artifactVerified };
 }
 
 /** Unclaimed servers run in a container we control, with read-only tools only. */
