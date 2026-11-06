@@ -7,6 +7,6 @@
   "scripts": {
     "gateway": "npm run dev -w @proofmark/gateway",
     "web": "npm run dev -w @proofmark/web",
-    "test": "npm test -w @proofmark/core && npm test -w @proofmark/proxy"
+    "test": "npm test -w @proofmark/core && npm test -w @proofmark/proxy && npm test -w @proofmark/gateway"
   }
 }
