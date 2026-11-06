@@ -82,10 +82,13 @@ export interface OrgRecords {
   price: number | null;
   worldVerified: boolean;
   owner: string | null;
+  bondTx: string | null;
+  bondStatus: string | null;
+  domainVerified: string | null;
 }
 export async function readOrg(orgEns: string): Promise<OrgRecords> {
-  const [status, payto, price, world, owner] = await Promise.all(["status", "payto", "x402.price", "world.verified", "owner"].map((k) => ens.getText(orgEns, k)));
-  return { ensName: orgEns, status, payto, price: price ? Number(price) : null, worldVerified: world === "true", owner };
+  const [status, payto, price, world, owner, bondTx, bondStatus, domain] = await Promise.all(["status", "payto", "x402.price", "world.verified", "owner", "bond.tx", "bond.status", "domain.verified"].map((k) => ens.getText(orgEns, k)));
+  return { ensName: orgEns, status, payto, price: price ? Number(price) : null, worldVerified: world === "true", owner, bondTx, bondStatus, domainVerified: domain };
 }
 
 export interface KeyRecord {
@@ -201,4 +204,14 @@ export async function orgNameOwner(org: string): Promise<Address | null> {
   if (!root) return null;
   const st = (await ens.publicClient().readContract({ address: root, abi: C.UserRegistryImpl.abi, functionName: "getState", args: [ens.anyId(org)] })) as { latestOwner: Address };
   return st.latestOwner === zeroAddress ? null : st.latestOwner;
+}
+
+/** Extra text records on an org's own resolver, such as the bond and the verified namespace. */
+export async function writeOrgTexts(org: string, entries: Record<string, string>) {
+  const infra = await orgInfra(org);
+  if (!infra) throw new Error(`org ${org} is not on-chain`);
+  const name = ens.orgName(org);
+  const hash = await ens.send(infra.resolver, C.PermissionedResolverImpl.abi, "multicall", [Object.entries(entries).map(([k, v]) => ens.setTextCall(name, k, v))]);
+  ens.invalidateEns(name);
+  return hash;
 }

@@ -90,3 +90,9 @@ export async function verifyControl(server: string, owner: string): Promise<Cont
     return { ok: false, method: "error", challenge, where, detail: (e as Error).message };
   }
 }
+
+/** A readable label for the namespace that was proven, stored on the org as `domain.verified`. */
+export function namespaceOf(server: string): string {
+  const ns = server.split("/")[0] ?? "";
+  return ns.startsWith("io.github.") ? `github.com/${ns.slice("io.github.".length)}` : ns.split(".").reverse().join(".");
+}
