@@ -17,7 +17,7 @@ const dep = JSON.parse(readFileSync(resolve(here, "../ens/deployments.sepolia.js
   universalResolverProxy: Address;
   contracts: Record<string, { address: Address; abi: any[] }>;
 };
-const C = dep.contracts;
+export const C = dep.contracts;
 export const ensAddresses = Object.fromEntries(Object.entries(C).map(([k, v]) => [k, v.address])) as Record<string, Address>;
 
 // Roles, from the ENSv2 docs. Admin role = role << 128.
@@ -39,13 +39,13 @@ const account = () => {
 const wallet = () => createWalletClient({ account: account(), chain: sepolia, transport: transport() });
 export const adminAddress = () => account().address;
 
-const dns = (name: string) => toHex(packetToBytes(name));
-const anyId = (label: string) => BigInt(labelhash(label));
+export const dns = (name: string) => toHex(packetToBytes(name));
+export const anyId = (label: string) => BigInt(labelhash(label));
 export const textResource = (key: string) => BigInt(keccak256(toHex(key)));
-const rootLabel = () => env.ENS_ROOT_NAME.split(".")[0];
+export const rootLabel = () => env.ENS_ROOT_NAME.split(".")[0];
 export const orgName = (org: string) => `${org}.${env.ENS_ROOT_NAME}`;
 
-async function send(address: Address, abi: any[], functionName: string, args: any[]): Promise<Hex> {
+export async function send(address: Address, abi: any[], functionName: string, args: any[]): Promise<Hex> {
   const pc = publicClient();
   const { request } = await pc.simulateContract({ account: account(), address, abi, functionName, args } as any);
   const hash = await wallet().writeContract(request as any);
@@ -76,7 +76,7 @@ const resolverInit = (grants: { account: Address; roleBitmap: bigint }[]) =>
 const registrarRoles = R.REGISTRAR | admin(R.REGISTRAR) | R.UNREGISTER | admin(R.UNREGISTER) | R.RENEW | admin(R.RENEW);
 const resolverRoles = R.SET_TEXT | admin(R.SET_TEXT) | R.SET_ADDRESS | admin(R.SET_ADDRESS);
 
-const setTextCall = (name: string, key: string, value: string) =>
+export const setTextCall = (name: string, key: string, value: string) =>
   encodeFunctionData({ abi: C.PermissionedResolverImpl.abi, functionName: "setText", args: [dns(name), key, value] });
 
 /** Make sure <root>.eth points at a subname registry the gateway can register into. */
