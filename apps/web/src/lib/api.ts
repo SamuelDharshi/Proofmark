@@ -1,4 +1,4 @@
-import type { CheckResult } from "@proofmark/core";
+import type { CheckResult, ServerInfo } from "@proofmark/core";
 
 export const GATEWAY = process.env.NEXT_PUBLIC_GATEWAY_URL ?? "http://localhost:8787";
 
@@ -25,33 +25,48 @@ export interface ServerRow extends CheckResult {
   priceUsd: number;
 }
 export interface Config {
-  caps: Record<"hedera" | "hcs" | "signing" | "ens" | "world" | "agent", boolean>;
+  caps: Record<"hedera" | "hcs" | "signing" | "ens" | "world" | "agentPass", boolean>;
   asset: string;
   defaultPriceUsd: number;
   maxPriceUsd: number;
-  agentPassMode: "live" | "mock";
+  agentPass: { configured: boolean; issuer: string; maxAgeSeconds: number; acceptedAcr: string[] };
   world: { environment: string; appId: string | null; action: string };
   ens: { root: string; chainId: number; contracts: Record<string, string>; admin: string | null };
   hedera: { gatewayAccount: string | null; gatewayAccountUrl: string | null; topic: string | null; topicUrl: string | null };
 }
+export interface PassStatus {
+  valid: boolean;
+  reason?: "not-bound" | "expired" | "weak-credential";
+  message: string;
+  acr?: string;
+  authTime?: number;
+  expiresAt?: number;
+  maxAgeSec: number;
+}
 export interface FleetAgent {
   ensName: string; hederaAccount: string; evmAddress: string; budgetUsd: number; spentUsd: number; budgetLeft: number;
-  maxRisk: string; passValid: boolean; pass: { valid: boolean; message: string; mode: string; reason?: string };
+  maxRisk: string; allowedTools: string[]; pass: PassStatus;
   last?: { kind: string; detail: string; ts: number };
 }
+export interface PassStart { attemptId: string; userCode: string; verificationUri: string; verificationUriComplete?: string; expiresIn: number; interval: number }
+export type PassPoll =
+  | { status: "pending"; interval: number }
+  | { status: "denied" | "expired" | "error"; message: string }
+  | { status: "approved"; sub: string; acr: string; authTime: number; tx: string };
 export interface EventRow { id: string; ts: number; kind: string; server?: string; agent?: string; detail: string; tx?: { chain: "hedera" | "sepolia"; id: string } }
 export interface Payment { id: string; txId: string; buyer: string; server: string; usd: number; payTo: string; ts: number; hcs?: { topic: string; sequence: number; tx: string } }
 export interface Fleet {
   agents: FleetAgent[]; events: EventRow[]; payments: Payment[];
   orgs: { name: string; ensName: string; owner: string; payTo: string; price: number; worldVerified: boolean; ensTx?: string }[];
-  keys: { subname: string; label: string; org: string; address: string; expiresAt: number; revoked: boolean; ensTx?: string }[];
+  keys: { subname: string; label: string; org: string; address: string; expiresAt: number; revoked: boolean; live: boolean; ensTx?: string }[];
   claims: { server: string; org: string; claimedAt: number }[];
 }
 
 export const api = {
   config: () => req<Config>("/config"),
   servers: (search?: string) => req<{ servers: ServerRow[] }>(`/servers${search ? `?search=${encodeURIComponent(search)}` : ""}`),
-  check: (server: string) => req<CheckResult & { keySource: string | null; divergent?: number }>(`/check?server=${encodeURIComponent(server)}`),
+  check: (server: string, details = false) =>
+    req<CheckResult & { keySource: string | null; divergent?: number; info?: ServerInfo }>(`/check?server=${encodeURIComponent(server)}${details ? "&details=1" : ""}`),
   fleet: () => req<Fleet>("/fleet"),
   hcs: () => req<{ topic: string | null; topicUrl: string | null; messages: { sequence: number; consensusTimestamp: string; body: any }[] }>("/hcs"),
   rpSignature: () => post<any>("/world/rp-signature", {}),
@@ -62,7 +77,7 @@ export const api = {
   unauthorized: (b: unknown) => post<{ reverted: boolean; error?: string; key: string }>("/ens/unauthorized-demo", b),
   runAttest: (b: unknown) => post<any>("/attest/run", b),
   approveAttest: (b: unknown) => post<any>("/attest/approve", b),
-  setPass: (name: string, valid: boolean) => post<any>(`/agents/${encodeURIComponent(name)}/pass`, { valid }),
-  mutation: () => req<{ mutated: boolean }>("/demo/mutation"),
-  setMutation: (on: boolean) => post<{ mutated: boolean }>("/demo/mutation", { on }),
+  startPass: (name: string, ts: string, sig: string) => post<PassStart>(`/agents/${encodeURIComponent(name)}/pass/start`, { ts, sig }),
+  pollPass: (attemptId: string) => post<PassPoll>("/agent-pass/poll", { attemptId }),
+  revokePass: (name: string, ts: string, sig: string) => post<{ ok: boolean; tx: string }>(`/agents/${encodeURIComponent(name)}/pass/revoke`, { ts, sig }),
 };
