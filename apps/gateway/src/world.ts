@@ -73,7 +73,7 @@ export async function verifyHumanProof(idkitResponse: any, action = env.WORLD_AC
   const nullifier = toDecimal(hex);
 
   const used = store.get().nullifiers.find((n) => n.nullifier === nullifier && n.action === action);
-  if (used) return { ok: false, reason: "duplicate", nullifier, message: "This person has already claimed a server. One human, one identity." };
+  if (used) return { ok: false, reason: "duplicate", nullifier, message: "This World identity has already claimed a server." };
   return { ok: true, nullifier };
 }
 

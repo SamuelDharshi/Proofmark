@@ -3,7 +3,7 @@ import { z } from "zod";
 
 /**
  * Proofmark for the Hedera Agent Kit. It gives an Agent Kit agent two read-only tools so it can ask,
- * before it connects to an MCP server, whether a verified human still stands behind it, and read
+ * before it connects to an MCP server, whether a unique, domain-verified, bonded maintainer still stands behind it, and read
  * an agent's identity (ENS name, World Agent Pass, budget) from the gateway.
  *
  *   new HederaLangchainToolkit({ client, configuration: { plugins: [proofmarkPlugin()], context: { mode: AgentMode.AUTONOMOUS } } })
@@ -52,7 +52,7 @@ export function proofmarkPlugin(gateway = process.env.PROOFMARK_GATEWAY_URL ?? D
   return {
     name: "proofmark",
     version: "0.1.0",
-    description: "Check that a verified human backs an MCP server, and read an agent's on-chain identity.",
+    description: "Check that a unique, domain-verified, bonded maintainer backs an MCP server, and read an agent's on-chain identity.",
     tools: (ctx) => [checkServer(ctx), agentIdentity(ctx)],
   };
 }

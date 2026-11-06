@@ -17,7 +17,7 @@ export async function createAttestationCollection() {
     .setSupplyType(TokenSupplyType.Infinite)
     .setTreasuryAccountId(env.HEDERA_GATEWAY_ACCOUNT_ID!)
     .setSupplyKey(key.publicKey)
-    .setTokenMemo("Certificate that a verified human attested an MCP server's tool manifest")
+    .setTokenMemo("Certificate that a unique, domain-verified, bonded maintainer attested an MCP server's tool manifest")
     .execute(c);
   const receipt = await tx.getReceipt(c);
   return { tokenId: receipt.tokenId!.toString(), tx: tx.transactionId.toString() };

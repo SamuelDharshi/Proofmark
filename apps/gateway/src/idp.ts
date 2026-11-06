@@ -129,7 +129,7 @@ export async function pollAgentPass(attemptId: string): Promise<PollResult> {
     const hash = await writePass(a.agent, { iss: claims.iss, sub: claims.sub, authTime: claims.authTime, acr: claims.acr });
     const subHash = "0x" + createHash("sha256").update(`${claims.iss}|${claims.sub}`).digest("hex");
     const hcs = await anchor({ type: "agent-pass", agent: a.agent, subHash, acr: claims.acr, authTime: claims.authTime, ensTx: hash }).catch(() => null);
-    logEvent({ kind: "pass", agent: a.agent, detail: `Agent Pass bound to ${a.agent}: ${claims.acr.split("/").pop()} verified human`, tx: { chain: "sepolia", id: hash } });
+    logEvent({ kind: "pass", agent: a.agent, detail: `Agent Pass bound to ${a.agent}: ${claims.acr.split("/").pop()} Agent Pass`, tx: { chain: "sepolia", id: hash } });
     void hcs;
     return { status: "approved", sub: claims.sub, acr: claims.acr, authTime: claims.authTime, tx: hash };
   } catch (e) {

@@ -4,9 +4,9 @@
 
 <h1 align="center">Proofmark</h1>
 
-<p align="center"><strong>A human still backs this server. x402 on Hedera.</strong></p>
+<p align="center"><strong>A bonded maintainer still backs this server. x402 on Hedera.</strong></p>
 
-Proofmark is an MCP trust gate. Before an agent connects to an MCP server, which gets shell, filesystem and credential access, it pays $0.002 over x402 on Hedera for a fresh attestation that a verified human still stands behind this exact build and these exact tools. If the server later advertises a tool it did not have when it was attested, the hashes diverge and the connection is refused before the model sees the tool list. If a maintainer's key is revoked, running agents block on their next check.
+Proofmark is an MCP trust gate. Before an agent connects to an MCP server, which gets shell, filesystem and credential access, it pays $0.002 over x402 on Hedera for a fresh attestation that a unique, domain-verified, bonded maintainer still stands behind this exact build and these exact tools. If the server later advertises a tool it did not have when it was attested, the hashes diverge and the connection is refused before the model sees the tool list. If a maintainer's key is revoked, running agents block on their next check.
 
 It is an MCP proxy, a Hono gateway that is an x402 merchant, an attestation worker, and a Next.js app with a marketplace, a public `/check` page and a fleet view.
 
@@ -110,7 +110,7 @@ The proxy checks at connect, again on every `notifications/tools/list_changed` (
 stateDiagram-v2
   [*] --> Sandboxed: name unclaimed
   [*] --> Blocked: one or two edits from a claimed name
-  Sandboxed --> Green: a verified human claims it
+  Sandboxed --> Green: a maintainer claims it, proves the namespace and posts a bond
   Green --> Blocked: hash mismatch
   Green --> Blocked: key revoked or expired
   Blocked --> Green: fresh attestation by a live key
@@ -141,7 +141,7 @@ Beyond x402 and HCS: each approved attestation is minted as an **HTS NFT certifi
 Agents are also registered in the ERC-8004 Identity Registry on Sepolia, and the reference is stored back on the agent's ENS name (`erc8004` record) next to its `hcs14.uaid`. ENSv2 on Sepolia: Permissioned Registry subname registries, a Permissioned Resolver per org, Enhanced Access Control roles scoped to `attest.key`, expiring co-maintainer subnames and wildcard resolution to the sandboxed tier ([ens.ts](apps/gateway/src/ens.ts)).
 
 ### World
-Agent Pass, through the official World IdP (OpenID Connect), proves a verified human operates the paying agent. The gateway runs the Device Authorization Grant, validates the ID token and records the pass on the agent's ENS name. Spend authority lapses when the authentication is older than the allowed age, so an expired pass is refused with no override. IDKit Proof of Human gates the maintainer claim, one nullifier to one identity. For a maintainer, uniqueness is the property needed: the claim accepts any one credential that proves one real person (Proof of Human, passport or national ID, set by `WORLD_CREDENTIALS`) and the gateway rejects a proof that used none of them. For the agent, the pass only has to show that some verified human is accountable for it ([world.ts](apps/gateway/src/world.ts), [agents.ts](apps/gateway/src/agents.ts)).
+Agent Pass, through the official World IdP (OpenID Connect), is spend authority for the paying agent, not maintainer identity. The gateway runs the Device Authorization Grant, validates the ID token and records the pass on the agent's ENS name. Spend authority lapses when the authentication is older than the allowed age, so an expired pass is refused with no override. IDKit Proof of Human gates the maintainer claim, one nullifier to one identity. For a maintainer, uniqueness is the property needed: the claim accepts any one credential that proves one real person (Proof of Human, passport or national ID, set by `WORLD_CREDENTIALS`) and the gateway rejects a proof that used none of them. For the agent, the pass only has to show that a verified person authorized it to spend ([world.ts](apps/gateway/src/world.ts), [agents.ts](apps/gateway/src/agents.ts)).
 
 ### MCP
 Name ownership uses the official registry's own verification: `mcpName` in package.json, an `mcp-name:` README line or an OCI label ([registry.ts](apps/gateway/src/registry.ts)).
@@ -155,7 +155,7 @@ Name ownership uses the official registry's own verification: `mcpName` in packa
 | [Official MCP registry](https://modelcontextprotocol.io/registry/about) | Verifies name ownership | No signing, no revocation, no identity |
 | [A trustworthy MCP registry](https://www.mdpi.com/1999-5903/18/5/243) | Sigstore signing plus runtime JWS | No revocation, no human identity, no payments |
 
-Proofmark adds three narrow things: revocation that reaches a running fleet, one human instead of one account, and a recurring payment that makes the freshness check sustainable.
+Proofmark adds three narrow things: revocation that reaches a running fleet, a unique, domain-verified, bonded maintainer instead of one account, and a recurring payment that makes the freshness check sustainable.
 
 ## Run it
 
@@ -182,7 +182,7 @@ npm test                                      # core and proxy suites
 | World Agent Pass | An OIDC client from the [World IdP portal](https://auth.world.org/portal): client id and secret in `WORLD_IDP_CLIENT_ID` and `WORLD_IDP_CLIENT_SECRET` |
 | World IDKit | An app, RP id and signing key from the [Developer Portal](https://developer.world.org) for the maintainer claim |
 
-**Using it.** A maintainer opens `/claim`, proves ownership through the registry and a World Proof of Human, and the gateway registers the org and the server name on ENS. Each agent gets an Agent Pass from the Fleet page: the gateway starts World's device flow, a human approves in World, the gateway validates the ID token and writes the pass to the agent's ENS name. Point an agent client at the proxy instead of the server:
+**Using it.** A maintainer opens `/claim`, proves ownership through the registry, a GitHub or domain proof and a World credential, and the gateway registers the org and the server name on ENS. Each agent gets an Agent Pass from the Fleet page: the gateway starts World's device flow, a person approves in World, the gateway validates the ID token and writes the pass to the agent's ENS name. Point an agent client at the proxy instead of the server:
 
 ```json
 {

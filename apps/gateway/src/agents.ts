@@ -30,13 +30,13 @@ const acceptedAcr = () => env.WORLD_IDP_ACR.split(",").map((s) => s.trim()).filt
 export function passStatus(a: AgentRecord): PassStatus {
   const maxAgeSec = a.pass.maxAgeSec ?? env.PASS_MAX_AGE_SECONDS;
   if (!a.pass.sub || !a.pass.authTime)
-    return { valid: false, reason: "not-bound", maxAgeSec, message: "No verified human is bound to this agent. Spending is refused." };
+    return { valid: false, reason: "not-bound", maxAgeSec, message: "No World Agent Pass is bound to this agent. Spending is refused." };
   const expiresAt = a.pass.authTime + maxAgeSec;
   if (Date.now() / 1000 > expiresAt)
-    return { valid: false, reason: "expired", maxAgeSec, acr: a.pass.acr, authTime: a.pass.authTime, expiresAt, message: "Agent Pass has expired. Spending is refused until a human approves again." };
+    return { valid: false, reason: "expired", maxAgeSec, acr: a.pass.acr, authTime: a.pass.authTime, expiresAt, message: "Agent Pass has expired. Spending is refused until the Agent Pass is renewed in World." };
   if (!a.pass.acr || !acceptedAcr().includes(a.pass.acr))
     return { valid: false, reason: "weak-credential", maxAgeSec, acr: a.pass.acr, message: "The bound credential is not one this gateway accepts." };
-  return { valid: true, maxAgeSec, acr: a.pass.acr, authTime: a.pass.authTime, expiresAt, message: "A verified human operates this agent." };
+  return { valid: true, maxAgeSec, acr: a.pass.acr, authTime: a.pass.authTime, expiresAt, message: "A World Agent Pass authorizes this agent to spend." };
 }
 
 export const budgetLeft = async (a: AgentRecord) => Math.max(0, +(a.budgetUsd - (await spentUsd(a.hedera))).toFixed(6));
