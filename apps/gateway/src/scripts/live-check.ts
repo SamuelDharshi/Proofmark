@@ -70,6 +70,22 @@ if (agent?.erc8004) {
   row(!!ownerOf && file?.name === agentEns && file?.registrations?.[0]?.agentId === Number(id), "agent is registered in the ERC-8004 Identity Registry", `agentId ${id}`);
 }
 
+// ---- v4.1 layers
+row(!!cfg.revocations?.topic, "the gateway publishes its revocation topic", cfg.revocations?.topic ?? "");
+if (cfg.revocations?.topic) {
+  const rv = await j(`${MIRROR}/topics/${cfg.revocations.topic}/messages?limit=5&order=desc`);
+  row(Array.isArray(rv.body.messages), "the revocation topic is readable on the mirror node", `${(rv.body.messages ?? []).length} recent message(s)`);
+}
+row(!!cfg.bond?.account, "the gateway publishes its bond account and minimum", `${cfg.bond?.account} min ${cfg.bond?.minHbar} HBAR`);
+if (cfg.bond?.account) {
+  const b = await j(`${MIRROR}/accounts/${cfg.bond.account}`);
+  row(b.status === 200 && b.body.key?._type === "ProtobufEncoded", "the bond account exists and is held by a key list, not a single key");
+}
+if (agent?.operator) {
+  const al = (await j(`${G}/agents/${encodeURIComponent(agentEns)}`)).body.allowance;
+  row(al?.required === true, "the agent's operator allowance is read by the gateway", al?.message ?? "");
+}
+
 // ---- gateway decisions come from chain
 const unclaimed = (await j(`${G}/check?server=ai.adeu/adeu`)).body;
 row(unclaimed.tier === "sandboxed" && unclaimed.reason === "unclaimed", "an unclaimed registry server is sandboxed");
