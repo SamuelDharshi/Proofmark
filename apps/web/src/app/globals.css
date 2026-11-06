@@ -131,6 +131,7 @@ a.card:hover, .card-hover:hover { transform: translateY(-3px); border-color: var
 
 :focus-visible { outline: 2px solid var(--color-text); outline-offset: 3px; }
 
+@keyframes fade { from { opacity: 0; } to { opacity: 1; } }
 @keyframes drift { from { transform: translateX(0); } to { transform: translateX(-50%); } }
 .marquee { display: flex; width: max-content; animation: drift 38s linear infinite; }
 
