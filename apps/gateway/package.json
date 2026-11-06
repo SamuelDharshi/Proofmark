@@ -12,7 +12,8 @@
     "agents:create": "tsx src/scripts/agents-create.ts",
     "hts:create": "tsx src/scripts/hts-create.ts",
     "agents:identity": "tsx src/scripts/agents-identity.ts",
-    "ens:status": "tsx src/scripts/ens-status.ts"
+    "ens:status": "tsx src/scripts/ens-status.ts",
+    "live:check": "tsx src/scripts/live-check.ts"
   },
   "dependencies": {
     "@hiero-ledger/sdk": "^2.90.1",
