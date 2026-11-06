@@ -9,6 +9,7 @@ import { evaluate, latestAttestation } from "../check";
 import { loadAgent, passStatus, budgetLeft, verifyAgentRequest } from "../agents";
 import { paywall, priceFor } from "../x402";
 import { buildPair, deriveAttestation, registryArtifactHash, type Derived } from "../attest";
+import { allowanceStatus, hbarFor } from "../allowance";
 import { recordAttestation, syncAttestationsFromHcs } from "../attestations";
 import { anchor, paidRecently } from "../hcs";
 import { readServerClaim, readKey } from "../chain";
@@ -68,6 +69,12 @@ attestRoutes.use("/", async (c, next) => {
   if (left < usd) {
     logEvent({ kind: "denied", server, agent: name, detail: `Payment refused: budget left $${left}, price $${usd}` });
     return deny(c, 403, { reason: "budget-exceeded", message: `${name} has $${left} left of its budget.` });
+  }
+  // The operator's on-chain allowance is the second spend gate, next to the Agent Pass.
+  const allowance = await allowanceStatus(agent, hbarFor(usd));
+  if (!allowance.valid) {
+    logEvent({ kind: "denied", server, agent: name, detail: `Payment refused: ${allowance.message}` });
+    return deny(c, 403, { reason: "allowance-invalid", message: allowance.message });
   }
 
   const att = latestAttestation(server, c.req.query("version"));
