@@ -19,3 +19,16 @@ test("typosquat detection", () => {
   assert.equal(findTyposquat("io.acme/filesystem", ["io.acme/filesystem"]), null);
   assert.equal(findTyposquat("io.x/postgres", ["io.acme/filesystem"]), null);
 });
+
+test("a forfeited bond blocks even when everything else holds", () => {
+  const r = decideTier({ ...ok, bond: "forfeited" });
+  assert.equal(r.tier, "blocked");
+  assert.equal(r.reason, "bond-forfeited");
+});
+test("with layers required, a missing bond or namespace keeps a server out of green", () => {
+  assert.equal(decideTier({ ...ok, layersRequired: true, bond: "missing", domainVerified: true }).tier, "sandboxed");
+  assert.equal(decideTier({ ...ok, layersRequired: true, bond: "live", domainVerified: false }).tier, "sandboxed");
+  assert.equal(decideTier({ ...ok, layersRequired: true, bond: "live", domainVerified: true }).tier, "green");
+});
+test("without layers required, the v3 rules still apply", () => assert.equal(decideTier({ ...ok, bond: "missing" }).tier, "green"));
+test("a hash mismatch still blocks before the layers are considered", () => assert.equal(decideTier({ ...ok, manifestMatch: false, layersRequired: true, bond: "missing" }).tier, "blocked"));

@@ -38,6 +38,9 @@ export interface CheckResult {
   tools?: McpTool[];
   hcsTopic?: string;
   hcsSequence?: number;
+  bond?: "live" | "missing" | "forfeited";
+  bondTx?: string;
+  domainVerified?: string;
   nftToken?: string;
   nftSerial?: number;
   checkedAt: number;
