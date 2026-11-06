@@ -16,6 +16,7 @@
     "allowance": "tsx src/scripts/allowance.ts",
     "bond:pay": "tsx src/scripts/bond-pay.ts",
     "e2e": "tsx src/scripts/e2e.ts",
+    "worker": "tsx src/scripts/worker.ts",
     "fund": "tsx src/scripts/fund.ts",
     "agents:identity": "tsx src/scripts/agents-identity.ts",
     "ens:status": "tsx src/scripts/ens-status.ts",
