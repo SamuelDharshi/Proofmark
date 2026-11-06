@@ -1,6 +1,7 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
+import { api } from "@/lib/api";
 import { Layers } from "./Layers";
 import { Maintainers } from "./Maintainers";
 
@@ -12,6 +13,15 @@ export function MaintainPage() {
   const [server, setServer] = useState(params.get("server") ?? "io.github.SamuelDharshi/proofmark-files");
   const [org, setOrg] = useState(params.get("org") ?? "");
   const ready = server.trim() && org.trim();
+
+  // Fill the org from ENS when the server is already claimed, so the owner never has to remember it.
+  useEffect(() => {
+    if (org || !server.trim()) return;
+    const t = setTimeout(() => {
+      api.check(server.trim()).then((r) => { if (r.org) setOrg(r.org.split(".")[0]); }).catch(() => {});
+    }, 400);
+    return () => clearTimeout(t);
+  }, [server, org]);
 
   return (
     <div className="mx-auto max-w-[760px]">

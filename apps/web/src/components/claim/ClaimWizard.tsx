@@ -58,7 +58,7 @@ export function ClaimWizard() {
     try {
       await fn();
     } catch (e) {
-      setErr(e instanceof ApiError ? (e.body?.message ?? e.body?.error ?? e.message) : (e as Error).message);
+      setErr(e instanceof ApiError ? (e.body?.message ?? e.body?.detail ?? e.body?.error ?? e.message) : (e as Error).message);
     } finally {
       setBusy(false);
     }
@@ -136,7 +136,7 @@ export function ClaimWizard() {
           {step === 1 && (
             <div className="space-y-5">
               <Field label="Registry name" hint="The name exactly as the official MCP registry lists it.">
-                <input className={input} value={server} onChange={(e) => setServer(e.target.value)} placeholder="io.github.acme/filesystem" />
+                <input className={input} value={server} onChange={(e) => { setServer(e.target.value); setOwn(null); setErr(null); }} placeholder="io.github.acme/filesystem" />
               </Field>
               <Field label="Your wallet" hint="Bound to the proof below. It will own the ENS name and approve co-maintainers.">
                 {wallet.address ? <p className="num flex h-11 items-center border border-line bg-bg px-3.5 text-[14px]">{wallet.address}</p> : <button className="btn btn-ghost" onClick={wallet.connect}>Connect wallet</button>}
@@ -147,6 +147,11 @@ export function ClaimWizard() {
                   {own.ok ? <BadgeCheck className="mt-0.5 h-4 w-4 shrink-0" aria-hidden /> : <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />}
                   <span>{own.detail} <span className="opacity-70">({own.method})</span></span>
                 </p>
+              )}
+              {own?.claimed?.yours && (
+                <a href={`/maintain?server=${encodeURIComponent(server.trim())}&org=${own.claimed.org}`} className="btn btn-primary">
+                  Open Maintain for {own.claimed.ens}
+                </a>
               )}
               {own?.control && !own.control.ok && (
                 <div className="space-y-3 border border-line-strong bg-surface-2 px-4 py-4 text-[14px]">
