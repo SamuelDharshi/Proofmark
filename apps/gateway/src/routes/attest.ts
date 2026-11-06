@@ -1,14 +1,15 @@
 import { Hono } from "hono";
 import { verifyMessage, getAddress } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
-import { canonicalize, sha256, type AttestationPair } from "@proofmark/core";
+import { canonicalize, sha256, toolManifestHash, type AttestationPair, type McpTool } from "@proofmark/core";
+import { orgName as orgNameOf } from "../ens";
 import { caps, env } from "../config";
 import { store, logEvent, uid, type AttestationRecord } from "../store";
 import { evaluate, latestAttestation } from "../check";
 import { loadAgent, passStatus, budgetLeft, verifyAgentRequest } from "../agents";
 import { paywall, priceFor } from "../x402";
-import { buildPair, deriveAttestation, type Derived } from "../attest";
-import { mintAttestation } from "../hts";
+import { buildPair, deriveAttestation, registryArtifactHash, type Derived } from "../attest";
+import { recordAttestation, syncAttestationsFromHcs } from "../attestations";
 import { anchor, paidRecently } from "../hcs";
 import { readServerClaim, readKey } from "../chain";
 
@@ -134,11 +135,35 @@ attestRoutes.post("/approve", async (c) => {
   const ok = await verifyMessage({ address: getAddress(p.pair.attestKey), message: canonicalize(p.pair), signature }).catch(() => false);
   if (!ok) return c.json({ error: "signature does not match the attest.key recorded on ENS" }, 403);
 
-  const hcs = await anchor({ type: "attestation", server: p.pair.server, version: p.pair.version, artifactHash: p.pair.artifactHash, toolManifestHash: p.pair.toolManifestHash, attestKey: p.pair.attestKey, subname: p.pair.attestSubname }).catch(() => null);
-  const nft = await mintAttestation({ server: p.pair.server, version: p.pair.version, manifestHash: p.pair.toolManifestHash }).catch(() => null);
-  const rec: AttestationRecord = { pair: p.pair, signature, signer: p.pair.attestKey, tools: p.derived.tools, createdAt: Date.now(), hcs: hcs ?? undefined, nft: nft ?? undefined };
-  store.update((d) => void d.attestations.push(rec));
+  const rec = await recordAttestation({ pair: p.pair, signature, tools: p.derived.tools });
   pending.delete(id);
-  logEvent({ kind: "attestation", server: p.pair.server, detail: `Attested ${p.pair.version}, signed by ${p.pair.attestSubname}`, tx: hcs ? { chain: "hedera", id: hcs.tx } : undefined });
+  return c.json({ status: "attested", attestation: rec });
+});
+
+/**
+ * Publish an attestation derived elsewhere, for example on a laptop with Docker. Render cannot run containers,
+ * so the derivation happens at the maintainer's side. The gateway does not take the manifest on trust:
+ * the artefact hash is recomputed from the registry, the manifest hash must match the tool list, the signature
+ * must be from the key recorded on ENS, and that key must be live.
+ */
+attestRoutes.post("/submit", async (c) => {
+  const b = (await c.req.json()) as { pair: AttestationPair; signature: `0x${string}`; tools: McpTool[] };
+  const pair = b.pair;
+  if (!pair?.server || !pair.attestSubname || !b.signature || !Array.isArray(b.tools)) return c.json({ error: "pair, signature and tools are required" }, 400);
+
+  const claim = await readServerClaim(pair.server);
+  if (!claim) return c.json({ error: "this server is not claimed on ENS" }, 403);
+  if (!pair.attestSubname.endsWith(`.${orgNameOf(claim.org)}`)) return c.json({ error: "the signing key does not belong to the org that claimed this server" }, 403);
+  const key = await readKey(pair.attestSubname);
+  if (!key.live || key.address?.toLowerCase() !== pair.attestKey.toLowerCase()) return c.json({ error: "that key is not live on ENS" }, 403);
+  if (!(await verifyMessage({ address: getAddress(pair.attestKey), message: canonicalize(pair), signature: b.signature }).catch(() => false))) return c.json({ error: "signature does not match the attest.key recorded on ENS" }, 403);
+
+  const reg = await registryArtifactHash(pair.server, pair.version).catch((e) => ({ error: (e as Error).message }));
+  if ("error" in reg) return c.json({ error: reg.error }, 502);
+  if (reg.hash !== pair.artifactHash) return c.json({ error: "artefact hash does not match what the registry publishes for this version" }, 409);
+  if (toolManifestHash(b.tools) !== pair.toolManifestHash) return c.json({ error: "tool manifest hash does not match the submitted tool list" }, 409);
+
+  const rec = await recordAttestation({ pair, signature: b.signature, tools: b.tools });
+  await syncAttestationsFromHcs(true).catch(() => {});
   return c.json({ status: "attested", attestation: rec });
 });

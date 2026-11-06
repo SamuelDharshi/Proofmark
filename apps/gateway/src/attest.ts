@@ -106,3 +106,11 @@ export function buildPair(d: Derived, attestKey: string, buyer: string, attestSu
     validUntil: Date.now() + 24 * 60 * 60 * 1000,
   };
 }
+
+/** The artefact hash the registry itself publishes, with no container needed. Used to check a submitted attestation. */
+export async function registryArtifactHash(name: string, version = "latest") {
+  const s = await resolveServer(name, version);
+  if (!s) throw new Error(`server ${name} not found in the registry`);
+  const a = await artefactHash(s);
+  return { version: s.version, registryType: a.type, hash: a.hash };
+}

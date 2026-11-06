@@ -8,6 +8,7 @@ import { attestRoutes } from "./routes/attest";
 import { store } from "./store";
 import * as ens from "./ens";
 import { orgInfra } from "./chain";
+import { syncAttestationsFromHcs } from "./attestations";
 
 const app = new Hono();
 app.use("*", cors({ origin: "*", allowHeaders: ["*"], exposeHeaders: ["*"] }));
@@ -21,6 +22,10 @@ app.onError((e, c) => {
 
 // Resume chain watchers for every org this gateway knows, found through the root registry.
 if (caps.ens) for (const o of store.get().orgs) orgInfra(o.name).then((x) => x && ens.watchResolver(x.resolver)).catch(() => {});
+
+// The local attestation index is a cache of the HCS topic. Rebuild it at start and keep it fresh.
+syncAttestationsFromHcs(true).then((n) => n && console.log(`[hcs] restored ${n} attestation(s) from the topic`)).catch(() => {});
+setInterval(() => syncAttestationsFromHcs().catch(() => {}), 30_000).unref?.();
 
 serve({ fetch: app.fetch, port: env.PORT }, (i) => {
   console.log(`Proofmark gateway on http://localhost:${i.port}`);
