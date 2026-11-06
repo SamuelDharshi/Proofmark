@@ -5,6 +5,7 @@ import { store, logEvent, uid } from "../store";
 import { getServer, verifyNameOwnership } from "../registry";
 import { rpSignature, verifyHumanProof, recordNullifier, proofNullifier, worldStatus } from "../world";
 import * as ens from "../ens";
+import { verifyControl } from "../control";
 import { orgInfra, orgNameOwner, readOrg, readKey, readServerClaim, registerServer } from "../chain";
 
 export const claimRoutes = new Hono();
@@ -32,12 +33,17 @@ claimRoutes.post("/world/rp-signature", (c) => {
 
 /** Step 1: registry-verified name ownership. No challenge file. */
 claimRoutes.post("/claim/ownership", async (c) => {
-  const { server } = (await c.req.json()) as { server: string };
+  const { server, owner } = (await c.req.json()) as { server: string; owner?: string };
   if (!server) return c.json({ error: "server is required" }, 400);
   if (await readServerClaim(server).catch(() => null)) return c.json({ ok: false, method: "claimed", detail: "This server is already claimed on ENS." }, 409);
   const o = await ownership(server).catch((e) => ({ ok: false, method: "error", detail: (e as Error).message }));
   const meta = await getServer(server).catch(() => null);
-  return c.json({ ...o, title: meta?.title ?? meta?.name, version: meta?.version, description: meta?.description });
+  const base = { title: meta?.title ?? meta?.name, version: meta?.version, description: meta?.description };
+  if (!o.ok) return c.json({ ...o, ...base });
+  // The registry listing is real, but that does not say who is asking. The claimer must prove control of the namespace.
+  if (!owner || !isAddress(owner)) return c.json({ ok: false, method: "wallet", detail: "Connect your wallet first. It is bound to the proof.", needsWallet: true, ...base });
+  const control = await verifyControl(server, getAddress(owner));
+  return c.json({ ok: control.ok, method: control.ok ? `${o.method} + ${control.method}` : control.method, detail: control.ok ? control.detail : `${control.detail}.`, control, ...base });
 });
 
 /**
@@ -80,6 +86,8 @@ claimRoutes.post("/claim", async (c) => {
 
   const own = await ownership(b.server).catch(() => ({ ok: false, method: "error", detail: "registry lookup failed" }));
   if (!own.ok) return c.json({ error: "ownership-failed", ...own }, 403);
+  const control = await verifyControl(b.server, owner);
+  if (!control.ok) return c.json({ error: "control-not-proven", message: `${control.detail}. Publish ${control.where}: ${control.challenge}`, ...control }, 403);
 
   // Validate on the backend. The client result is never trusted. A proof already accepted for this same org
   // (an earlier attempt that did not finish) is not sent to World a second time.
