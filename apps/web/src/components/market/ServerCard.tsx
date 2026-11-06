@@ -2,7 +2,7 @@
 import Link from "next/link";
 import { useRef } from "react";
 import { motion } from "framer-motion";
-import { BadgeCheck, Boxes, Package, Server as ServerIcon, Zap } from "lucide-react";
+import { BadgeCheck, Boxes, Package, Server as ServerIcon } from "lucide-react";
 import { TierBadge, tierColor } from "../TierBadge";
 import { usd } from "@/lib/format";
 import type { ServerRow } from "@/lib/api";
@@ -10,32 +10,42 @@ import type { ServerRow } from "@/lib/api";
 const KIND: Record<string, string> = { local: "Local", mcpb: "MCPB", oci: "OCI", npm: "npm", pypi: "PyPI", remote: "Remote" };
 
 /**
- * A linked card lifts 2px and a soft spotlight follows the cursor. No tilt.
- * The top edge carries the tier colour.
+ * Cards flip up into place in 3D, then lean a few degrees toward the cursor with a spotlight under it.
+ * The top edge carries the tier colour. Under reduced motion they simply appear.
  */
-export function ServerCard({ s, i }: { s: ServerRow; i: number }) {
+export function ServerCard({ s, i, hbarUsd = 0.1 }: { s: ServerRow; i: number; hbarUsd?: number }) {
   const ref = useRef<HTMLDivElement>(null);
   const color = tierColor[s.tier];
   const name = s.title ?? s.server.split("/").pop() ?? s.server;
 
   const move = (e: React.MouseEvent) => {
-    const r = ref.current!.getBoundingClientRect();
-    ref.current!.style.setProperty("--mx", `${e.clientX - r.left}px`);
-    ref.current!.style.setProperty("--my", `${e.clientY - r.top}px`);
+    const el = ref.current!;
+    const r = el.getBoundingClientRect();
+    const px = (e.clientX - r.left) / r.width - 0.5;
+    const py = (e.clientY - r.top) / r.height - 0.5;
+    el.style.setProperty("--mx", `${e.clientX - r.left}px`);
+    el.style.setProperty("--my", `${e.clientY - r.top}px`);
+    el.style.transform = `rotateX(${(-py * 7).toFixed(2)}deg) rotateY(${(px * 9).toFixed(2)}deg) translateZ(6px)`;
+  };
+  const leave = () => {
+    if (ref.current) ref.current.style.transform = "";
   };
 
   return (
     <motion.div
       layout
-      initial={{ opacity: 0, y: 24 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, scale: 0.96 }}
-      transition={{ duration: 0.4, delay: Math.min(i, 8) * 0.04, ease: [0.22, 1, 0.36, 1] }}
+      initial={{ opacity: 0, y: 40, rotateX: -24 }}
+      animate={{ opacity: 1, y: 0, rotateX: 0 }}
+      exit={{ opacity: 0, scale: 0.94, rotateX: 12 }}
+      transition={{ duration: 0.6, delay: Math.min(i, 9) * 0.05, ease: [0.22, 1, 0.36, 1] }}
+      style={{ transformPerspective: 1100, transformOrigin: "50% 100%" }}
+      className="[perspective:1100px]"
     >
       <div
         ref={ref}
         onMouseMove={move}
-        className="group card card-hover relative h-full overflow-hidden"
+        onMouseLeave={leave}
+        className="group card relative h-full overflow-hidden transition-[transform,border-color,box-shadow] duration-300 ease-out [transform-style:preserve-3d] hover:border-line-strong hover:shadow-[0_24px_48px_-24px_rgba(0,0,0,0.35)] motion-reduce:!transform-none"
         style={{ ["--tier" as string]: color }}
       >
         {/* tier edge */}
@@ -62,9 +72,11 @@ export function ServerCard({ s, i }: { s: ServerRow; i: number }) {
           </div>
 
           <div className="mt-auto flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-line pt-4 text-[13px] text-muted">
-            <span className="inline-flex items-center gap-1.5" title="Price per connect">
-              <Zap className="h-3.5 w-3.5" aria-hidden />
-              <span className="num">{usd(s.priceUsd)}</span>
+            <span className="inline-flex items-center gap-1.5" title="Price per connect, settled on Hedera over x402">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/brands/hedera-dark.png" alt="Hedera" width={16} height={16} className="h-4 w-4 rounded-full object-contain" />
+              <span className="num text-text">{(s.priceUsd / hbarUsd).toFixed(3).replace(/0+$/, "").replace(/\.$/, "")} ℏ</span>
+              <span className="num text-faint">{usd(s.priceUsd)}</span>
             </span>
             {s.toolCount !== null && (
               <span className="inline-flex items-center gap-1.5">

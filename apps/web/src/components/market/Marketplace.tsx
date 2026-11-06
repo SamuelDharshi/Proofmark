@@ -2,7 +2,9 @@
 import { useEffect, useMemo, useState } from "react";
 import { AnimatePresence, LayoutGroup, motion } from "framer-motion";
 import { RefreshCw, Search, WifiOff } from "lucide-react";
+import Link from "next/link";
 import { api, type ServerRow } from "@/lib/api";
+import { hederaTotals } from "@/lib/mirror";
 import { CardSkeleton, ServerCard } from "./ServerCard";
 
 const TABS = [
@@ -19,6 +21,13 @@ export function Marketplace() {
   const [q, setQ] = useState("");
   const [tab, setTab] = useState<Tab>("all");
   const [tick, setTick] = useState(0);
+  const [hbarUsd, setHbarUsd] = useState(0.1);
+  const [totals, setTotals] = useState<{ hcs: number; certificates: number } | null>(null);
+
+  useEffect(() => {
+    api.config().then((c) => c.hbarUsd && setHbarUsd(c.hbarUsd)).catch(() => {});
+    hederaTotals().then(setTotals).catch(() => {});
+  }, []);
 
   // Debounced search against the gateway, which merges claimed, demo and registry servers.
   useEffect(() => {
@@ -49,6 +58,17 @@ export function Marketplace() {
         <p className="font-pixel text-[13px] tracking-widest text-accent">MARKETPLACE</p>
         <h1 className="mt-3 font-hero font-medium tracking-[-0.03em] text-[clamp(44px,6vw,84px)] leading-[0.98]">MCP servers, graded.</h1>
       </div>
+
+      <Link href="/log" className="group mt-8 flex flex-wrap items-center gap-x-6 gap-y-2 border border-line bg-[#272727] px-5 py-4 text-[14px] text-[#c9c6c2] transition-colors hover:bg-[#1f1f1f]">
+        <span className="inline-flex items-center gap-2.5 text-[#f4f3f1]">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/brands/hedera.png" alt="" width={20} height={20} className="h-5 w-5 rounded-full" />
+          Every connect is paid in HBAR over x402 on Hedera
+        </span>
+        <span className="num">{totals ? totals.hcs : "…"} <span className="text-[#8a8683]">HCS messages</span></span>
+        <span className="num">{totals ? totals.certificates : "…"} <span className="text-[#8a8683]">HTS certificates</span></span>
+        <span className="ml-auto inline-flex items-center gap-2 text-[#38f997]"><span className="h-2 w-2 animate-pulse bg-[#38f997]" /> Live on-chain</span>
+      </Link>
 
       <div className="mt-10 flex flex-wrap items-center justify-between gap-4">
         <LayoutGroup id="tabs">
@@ -105,7 +125,7 @@ export function Marketplace() {
           <motion.div layout className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             <AnimatePresence mode="popLayout">
               {shown.map((s, i) => (
-                <ServerCard key={s.server} s={s} i={i} />
+                <ServerCard key={s.server} s={s} i={i} hbarUsd={hbarUsd} />
               ))}
             </AnimatePresence>
           </motion.div>

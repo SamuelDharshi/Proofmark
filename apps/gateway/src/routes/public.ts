@@ -27,6 +27,7 @@ publicRoutes.get("/config", (c) =>
     asset: env.X402_ASSET,
     defaultPriceUsd: env.CONNECT_PRICE_USD,
     maxPriceUsd: env.MAX_PRICE_USD,
+    hbarUsd: env.HBAR_USD,
     agentPass: idpStatus(),
     world: { environment: env.WORLD_ENVIRONMENT, appId: env.WORLD_APP_ID ?? null, action: env.WORLD_ACTION },
     ens: { root: env.ENS_ROOT_NAME, chainId: 11155111, contracts: ensAddresses, admin: caps.ens ? adminAddress() : null },

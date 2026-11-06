@@ -30,6 +30,7 @@ export interface Config {
   asset: string;
   defaultPriceUsd: number;
   maxPriceUsd: number;
+  hbarUsd?: number;
   agentPass: { configured: boolean; issuer: string; maxAgeSeconds: number; acceptedAcr: string[] };
   world: { environment: string; appId: string | null; action: string };
   ens: { root: string; chainId: number; contracts: Record<string, string>; admin: string | null };
