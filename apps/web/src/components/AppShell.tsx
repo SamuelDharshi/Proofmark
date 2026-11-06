@@ -1,13 +1,14 @@
 "use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Activity, ArrowUpRight, FileClock, ShieldPlus, Store } from "lucide-react";
+import { Activity, ArrowUpRight, FileClock, ShieldPlus, Store, Wrench } from "lucide-react";
 import { Wordmark } from "./Logo";
 import { DECKS } from "@/lib/pitch";
 
 const NAV = [
   { href: "/fleet", label: "Fleet", Icon: Activity },
   { href: "/claim", label: "Claim", Icon: ShieldPlus },
+  { href: "/maintain", label: "Maintain", Icon: Wrench },
   { href: "/log", label: "HCS log", Icon: FileClock },
   { href: "/marketplace", label: "Marketplace", Icon: Store },
 ];
