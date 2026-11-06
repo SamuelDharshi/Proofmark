@@ -98,6 +98,11 @@ export function AgentCard({ a, onChange }: { a: FleetAgent; onChange: () => void
       </div>
 
       <p className="mt-4 text-[13px] text-muted">{a.pass.message}</p>
+      {a.allowance?.required && (
+        <p className={`mt-3 border px-3 py-2 text-[12px] ${a.allowance.valid ? "border-line text-muted" : "border-danger/30 bg-danger/10 text-danger"}`}>
+          Operator allowance: {a.allowance.valid ? `${a.allowance.remainingHbar} of ${a.allowance.grantedHbar} HBAR left` : a.allowance.message}
+        </p>
+      )}
       {(a.erc8004 || a.uaid) && (
         <dl className="mt-3 space-y-1 border-t border-line pt-3 text-[12px] text-muted">
           {a.erc8004 && (

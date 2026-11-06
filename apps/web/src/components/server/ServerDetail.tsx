@@ -10,6 +10,7 @@ import { usd } from "@/lib/format";
 import { TierBadge, tierColor } from "../TierBadge";
 import { ExplorerLink } from "../ExplorerLink";
 import { CopyText } from "../CopyText";
+import { LayerRows } from "../claim/Layers";
 
 type Detail = CheckResult & { keySource: string | null; divergent?: number; info?: ServerInfo };
 const TABS = [
@@ -100,6 +101,7 @@ export function ServerDetail({ name }: { name: string }) {
               {tab === "overview" && (
                 <div className="space-y-5">
                 {d.info && <div className="card p-6"><ServerFacts info={d.info} claimed={d.claimed} /></div>}
+                {d.claimed && <LayerRows c={d} />}
                 <dl className="card px-6">
                   <Row k="Maintainer">{d.org ? <ExplorerLink k={{ type: "ens", id: d.org }} /> : <span className="text-muted">Unclaimed</span>}</Row>
                   <Row k="Human verified">
