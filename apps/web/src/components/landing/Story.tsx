@@ -1,12 +1,16 @@
 "use client";
 import Link from "next/link";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import dynamic from "next/dynamic";
+import { hederaTotals } from "@/lib/mirror";
 import { motion, useMotionValueEvent, useScroll, useTransform, type MotionValue } from "framer-motion";
 import { ArrowRight } from "lucide-react";
 import { Sponsors } from "../Sponsors";
 import { HeroArt } from "../deco/HeroArt";
 import { LogoMark } from "../Logo";
 import { GradBars, PixelArrow, PixelMark } from "../deco/Pixels";
+
+const PCanvas = dynamic(() => import("../three/PCanvas"), { ssr: false });
 
 const ease = [0.22, 1, 0.36, 1] as const;
 const rise = (delay = 0) => ({
@@ -181,9 +185,66 @@ function Tiers() {
         <div className="wrap mt-12">
           <div className="relative h-[3px] bg-line">
             <motion.div style={{ width: bar }} className="absolute left-0 top-1/2 flex h-5 -translate-y-1/2">
-              <span className="h-full flex-1" style={{ background: "linear-gradient(90deg,#4f46e5,#c026d3,#ea580c)" }} />
+              <span className="h-full flex-1" style={{ background: "linear-gradient(90deg,#272727,#5298ff,#38f997)" }} />
               <span className="h-full w-4 bg-accent" />
             </motion.div>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ------------------------------------------------- the 3D P, on-chain steps */
+const STEPS3D = [
+  { n: "01", tag: "ENSv2 · Sepolia", title: "Resolve the name", body: "sam.proofmark.eth holds the price, the payout account and the live attest key. Nothing is read from a database." },
+  { n: "02", tag: "World ID", title: "Check the human", body: "One person, one claim. An Agent Pass shows a person allowed this agent to spend." },
+  { n: "03", tag: "Hedera", title: "Pay and log it", body: "$0.002 settles over x402 and the attestation lands on an HCS topic anyone can replay." },
+];
+
+function OnChain() {
+  const ref = useRef<HTMLElement>(null);
+  const { scrollYProgress } = useScroll({ target: ref, offset: ["start start", "end end"] });
+  const [stage, setStage] = useState(0);
+  const [near, setNear] = useState(false);
+  const [totals, setTotals] = useState<{ hcs: number; certificates: number } | null>(null);
+  useMotionValueEvent(scrollYProgress, "change", (v) => setStage(Math.min(3, Math.floor(v * 3.2))));
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const io = new IntersectionObserver(([e]) => setNear(e.isIntersecting), { rootMargin: "300px 0px" });
+    io.observe(el);
+    hederaTotals().then(setTotals).catch(() => {});
+    return () => io.disconnect();
+  }, []);
+
+  return (
+    <section ref={ref} className="dark-zone relative h-[300vh] border-t border-line">
+      <div className="sticky top-0 grid h-screen items-center overflow-hidden">
+        <div className="wrap grid items-center gap-10 md:grid-cols-[1fr_1.1fr]">
+          <div>
+            <p className="eyebrow">One connect, three checks</p>
+            <ol className="mt-10 space-y-3">
+              {STEPS3D.map((s, i) => {
+                const on = stage > i;
+                return (
+                  <li key={s.n} className={`border-l-2 py-4 pl-6 transition-all duration-500 ${on ? "border-accent opacity-100" : "border-line opacity-40"}`}>
+                    <p className="num text-[12px] text-faint">{s.n} · {s.tag}</p>
+                    <h3 className={`mt-1 text-[clamp(24px,2.6vw,34px)] font-medium tracking-[-0.02em] ${on ? "text-text" : ""}`}>{s.title}</h3>
+                    <p className={`mt-2 max-w-[440px] text-[15px] text-muted transition-[max-height] duration-500 ${on ? "max-h-40" : "max-h-0 overflow-hidden"}`}>{s.body}</p>
+                  </li>
+                );
+              })}
+            </ol>
+            <Link href="/log" className="mt-8 inline-flex items-center gap-2 text-[14px] text-muted hover:text-text">
+              <span className="h-2 w-2 animate-pulse bg-accent" />
+              {totals ? <><span className="num text-text">{totals.hcs}</span> HCS messages · <span className="num text-text">{totals.certificates}</span> HTS certificates, live from Hedera</> : "Live from the Hedera mirror node"}
+              <ArrowRight className="h-4 w-4" aria-hidden />
+            </Link>
+          </div>
+          <div className="relative aspect-square w-full max-w-[620px] justify-self-center">
+            {near ? <PCanvas progress={scrollYProgress} /> : <LogoMark className="absolute inset-[22%] h-auto w-auto text-text" />}
           </div>
         </div>
       </div>
@@ -266,6 +327,7 @@ export function Story() {
     <>
       <Hero />
       <Gate />
+      <OnChain />
       <Beats />
       <Band />
       <Vision />
