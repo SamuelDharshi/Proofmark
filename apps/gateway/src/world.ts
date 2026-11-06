@@ -51,9 +51,13 @@ export async function verifyHumanProof(idkitResponse: any, action = env.WORLD_AC
     headers: { "content-type": "application/json" },
     body: JSON.stringify({ ...idkitResponse, environment: env.WORLD_ENVIRONMENT }),
   });
-  const body = (await r.json().catch(() => ({}))) as { success?: boolean; environment?: string };
-  if (!r.ok || body.success !== true || body.environment !== env.WORLD_ENVIRONMENT)
-    return { ok: false, reason: "invalid-proof", message: "World could not verify this proof." };
+  const body = (await r.json().catch(() => ({}))) as { success?: boolean; environment?: string; code?: string; detail?: string; attribute?: string; results?: { code?: string; detail?: string; attribute?: string }[] };
+  if (!r.ok || body.success !== true || body.environment !== env.WORLD_ENVIRONMENT) {
+    // Pass World's own reason through, so a wrong action, a spent verification limit or a bad signer is not a mystery.
+    const why = [body.code ?? body.results?.[0]?.code, body.detail ?? body.results?.[0]?.detail, body.attribute ?? body.results?.[0]?.attribute].filter(Boolean).join(": ");
+    console.warn(`[world] verify rejected (${r.status}): ${JSON.stringify(body).slice(0, 400)}`);
+    return { ok: false, reason: "invalid-proof", message: `World could not verify this proof${why ? ` (${why})` : ` (HTTP ${r.status})`}.` };
+  }
 
   const hex = findNullifier(idkitResponse);
   if (!hex) return { ok: false, reason: "no-nullifier", message: "Proof carried no nullifier." };
