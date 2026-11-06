@@ -119,6 +119,7 @@ export const agentEns = (label: string) => `${label}.agents.${env.ENS_ROOT_NAME}
 export interface AgentRecord {
   ensName: string;
   uaid?: string;
+  operator?: string;
   erc8004?: string;
   hedera: string;
   evm: string;
@@ -129,12 +130,13 @@ export interface AgentRecord {
 }
 
 export async function readAgent(ensName: string): Promise<AgentRecord | null> {
-  const keys = ["hedera", "evm", "budget", "maxrisk", "allowed.tools", "pass.iss", "pass.sub", "pass.auth_time", "pass.acr", "pass.maxage", "hcs14.uaid", "erc8004"];
-  const [hedera, evm, budget, maxrisk, tools, iss, sub, auth, acr, maxage, uaid, erc8004] = await Promise.all(keys.map((k) => ens.getText(ensName, k)));
+  const keys = ["hedera", "evm", "budget", "maxrisk", "allowed.tools", "pass.iss", "pass.sub", "pass.auth_time", "pass.acr", "pass.maxage", "hcs14.uaid", "erc8004", "operator"];
+  const [hedera, evm, budget, maxrisk, tools, iss, sub, auth, acr, maxage, uaid, erc8004, operator] = await Promise.all(keys.map((k) => ens.getText(ensName, k)));
   if (!evm || !hedera) return null;
   return {
     ensName, hedera, evm,
     uaid: uaid ?? undefined,
+    operator: operator ?? undefined,
     erc8004: erc8004 ?? undefined,
     budgetUsd: budget ? Number(budget) : 0,
     maxRisk: maxrisk === "sandboxed" ? "sandboxed" : "green",
@@ -211,6 +213,15 @@ export async function writeOrgTexts(org: string, entries: Record<string, string>
   const infra = await orgInfra(org);
   if (!infra) throw new Error(`org ${org} is not on-chain`);
   const name = ens.orgName(org);
+  const hash = await ens.send(infra.resolver, C.PermissionedResolverImpl.abi, "multicall", [Object.entries(entries).map(([k, v]) => ens.setTextCall(name, k, v))]);
+  ens.invalidateEns(name);
+  return hash;
+}
+
+/** Extra text records on an agent's ENS name. */
+export async function writeAgentTexts(label: string, entries: Record<string, string>) {
+  const infra = await agentsInfra();
+  const name = agentEns(label);
   const hash = await ens.send(infra.resolver, C.PermissionedResolverImpl.abi, "multicall", [Object.entries(entries).map(([k, v]) => ens.setTextCall(name, k, v))]);
   ens.invalidateEns(name);
   return hash;
