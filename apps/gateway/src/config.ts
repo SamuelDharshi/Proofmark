@@ -46,7 +46,15 @@ const schema = z.object({
   WORLD_RP_SIGNING_KEY: opt,
   WORLD_ENVIRONMENT: z.enum(["staging", "production"]).default("staging"),
   WORLD_ACTION: z.string().default("claim-mcp-server"),
-  AGENT_PASS_MODE: z.enum(["live", "mock"]).default("live"),
+  // World ID Agent Pass: the official World IdP (OpenID Connect). Use https://sandbox.auth.world.org for the sandbox.
+  WORLD_IDP_ISSUER: z.string().default("https://auth.world.org"),
+  WORLD_IDP_CLIENT_ID: opt,
+  WORLD_IDP_CLIENT_SECRET: opt,
+  WORLD_IDP_AUTH_METHOD: z.enum(["basic", "post"]).default("basic"),
+  /** How old a World ID authentication may be before spend authority lapses. */
+  PASS_MAX_AGE_SECONDS: z.coerce.number().default(86400),
+  /** Credential classes accepted for an agent's human, comma separated. */
+  WORLD_IDP_ACR: z.string().default("https://world.org/oidc/acr/orb,https://world.org/oidc/acr/orb-face"),
   WORLD_CHAIN_RPC_URL: z.string().default("https://worldchain-mainnet.g.alchemy.com/public"),
 });
 
@@ -60,7 +68,7 @@ export const caps = {
   signing: !!env.ATTEST_PRIVATE_KEY,
   ens: !!(env.SEPOLIA_RPC_URL && env.ENS_ADMIN_PRIVATE_KEY),
   world: !!(env.WORLD_APP_ID && env.WORLD_RP_ID && env.WORLD_RP_SIGNING_KEY),
-  agent: !!(env.AGENT_HEDERA_ACCOUNT_ID && env.AGENT_HEDERA_PRIVATE_KEY),
+  agentPass: !!(env.WORLD_IDP_CLIENT_ID && env.WORLD_IDP_CLIENT_SECRET),
 };
 
 export const usdToTinybars = (usd: number) => BigInt(Math.max(1, Math.round((usd / env.HBAR_USD) * 1e8)));
