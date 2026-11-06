@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 import { BadgeCheck, Check, Fingerprint, Loader2, Server, Users, Building2, AlertCircle } from "lucide-react";
-import { IDKitRequestWidget, proofOfHuman, type RpContext } from "@worldcoin/idkit";
+import { IDKitRequestWidget, CredentialRequest, any, type CredentialType, type RpContext } from "@worldcoin/idkit";
 import { ApiError, api } from "@/lib/api";
 import { useWallet } from "@/lib/useWallet";
 import { ExplorerLink } from "../ExplorerLink";
@@ -26,7 +26,7 @@ const Field = ({ label, children, hint }: { label: string; children: React.React
 const input = "num h-11 w-full border border-line bg-bg px-3.5 text-[14px] outline-none transition-colors placeholder:text-faint focus:border-accent/60";
 
 type Own = Awaited<ReturnType<typeof api.ownership>>;
-type World = { rp_context: RpContext; app_id: `app_${string}`; action: string; environment: "staging" | "production" };
+type World = { rp_context: RpContext; app_id: `app_${string}`; action: string; environment: "staging" | "production"; credentials: CredentialType[] };
 
 export function ClaimWizard() {
   const wallet = useWallet();
@@ -77,6 +77,7 @@ export function ClaimWizard() {
         app_id: s.app_id,
         action: s.action,
         environment: s.environment,
+        credentials: (s.credentials?.length ? s.credentials : ["proof_of_human"]) as CredentialType[],
       });
       setOpen(true);
     });
@@ -176,7 +177,7 @@ export function ClaimWizard() {
                   rp_context={world.rp_context}
                   allow_legacy_proofs={true}
                   environment={world.environment}
-                  preset={proofOfHuman({ signal: wallet.address ?? undefined })}
+                  constraints={any(...world.credentials.map((c) => CredentialRequest(c, { signal: wallet.address ?? undefined })))}
                   handleVerify={async (result) => setProof(result)}
                   onSuccess={() => setStep(3)}
                 />
