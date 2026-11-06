@@ -9,7 +9,12 @@ export function worldStatus() {
 /** RP signature is generated on the backend only. The signing key never leaves it. */
 export function rpSignature(action = env.WORLD_ACTION) {
   if (!caps.world) throw new Error("World is not configured");
-  const { sig, nonce, createdAt, expiresAt } = signRequest({ signingKeyHex: env.WORLD_RP_SIGNING_KEY!, action });
+  const raw = (env.WORLD_RP_SIGNING_KEY ?? "").trim().replace(/^0x/i, "");
+  if (!/^[0-9a-fA-F]{64}$/.test(raw))
+    throw new Error(
+      `WORLD_RP_SIGNING_KEY must be the 32-byte signing key (64 hex characters) from the World developer portal, not an address. The configured value is ${raw.length / 2} bytes.`,
+    );
+  const { sig, nonce, createdAt, expiresAt } = signRequest({ signingKeyHex: raw, action });
   return { sig, nonce, created_at: createdAt, expires_at: expiresAt, rp_id: env.WORLD_RP_ID!, app_id: env.WORLD_APP_ID!, action, environment: env.WORLD_ENVIRONMENT };
 }
 
