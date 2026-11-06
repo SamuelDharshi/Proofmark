@@ -66,6 +66,8 @@ Everything below is reproducible from a clean clone.
 | World | Denied path | Expired or revoked pass: payment refused, no connection | [attest.ts:31](apps/gateway/src/routes/attest.ts#L31) |
 | World | IDKit Proof of Human on the claim, duplicate nullifier rejected | Backend verification, nullifier stored per action | [world.ts:39](apps/gateway/src/world.ts#L39) |
 | World | Validation on a secure backend | RP signing and proof verification run only on the gateway | [world.ts:10](apps/gateway/src/world.ts#L10) |
+| World | Integration debrief | Time to first success, friction, missing docs, the one improvement | [docs/WORLD_DEBRIEF.md](docs/WORLD_DEBRIEF.md) |
+| Hedera, No Solidity | Hedera SDK only, at least two native services | HCS (audit and revocation topics), HTS (certificate NFTs), crypto allowances, a 2-of-2 KeyList bond account, Mirror Node reads and the Agent Kit. There are no smart contracts in this repo | [hcs.ts](apps/gateway/src/hcs.ts), [hts.ts](apps/gateway/src/hts.ts), [allowance.ts](apps/gateway/src/allowance.ts), [bond.ts](apps/gateway/src/bond.ts) |
 
 ## How it works
 
@@ -227,6 +229,10 @@ publish/files-server   proofmark-files, a read-only folder server published to n
 apps/web           Next.js app: landing, marketplace, inspector, check, fleet, claim, docs
 docs               architecture diagram
 ```
+
+## How AI was used
+
+Following ETHGlobal's rules: an AI coding assistant (Claude Code) was used throughout, to write and refactor code, tests and documentation, to run the on-chain test scripts, and to draft the pitch decks. The architecture, the product decisions and every on-chain approval were made by the team. Every transaction listed above was checked on HashScan or Etherscan.
 
 ## Credits
 
