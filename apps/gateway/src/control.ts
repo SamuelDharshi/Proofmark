@@ -23,7 +23,34 @@ export interface Control {
 
 const gh = () => ({ "user-agent": "proofmark", accept: "application/vnd.github+json", ...(env.GITHUB_TOKEN ? { authorization: `Bearer ${env.GITHUB_TOKEN}` } : {}) });
 
+/**
+ * Primary check: the user's public gist page. Only gists listed on that user's own page belong to them, and reading
+ * the page and the raw files does not use GitHub's API, whose anonymous limit is shared by every app on a host.
+ */
+async function viaGistPage(user: string, challenge: string): Promise<boolean> {
+  const page = await fetch(`https://gist.github.com/${encodeURIComponent(user)}`, { headers: { "user-agent": "proofmark" }, signal: AbortSignal.timeout(15_000) });
+  if (!page.ok) throw new Error(`GitHub returned ${page.status} for the gist page of ${user}`);
+  const html = await page.text();
+  if (!/^[A-Za-z0-9-]+$/.test(user)) throw new Error(`${user} is not a valid GitHub username`);
+  const ids = [...new Set([...html.matchAll(new RegExp(`href="/${user}/([0-9a-f]{20,40})"`, "gi"))].map((m) => m[1]))].slice(0, 15);
+  for (const id of ids) {
+    const t = await fetch(`https://gist.githubusercontent.com/${encodeURIComponent(user)}/${id}/raw`, { signal: AbortSignal.timeout(10_000) }).then((x) => (x.ok ? x.text() : "")).catch(() => "");
+    if (t.length < 4000 && t.split(/\r?\n/).some((line) => line.trim() === challenge)) return true;
+  }
+  return false;
+}
+
 async function viaGist(user: string, challenge: string): Promise<boolean> {
+  try {
+    return await viaGistPage(user, challenge);
+  } catch (pageError) {
+    return viaGistApi(user, challenge).catch((apiError) => {
+      throw new Error(`${(pageError as Error).message}; ${(apiError as Error).message}`);
+    });
+  }
+}
+
+async function viaGistApi(user: string, challenge: string): Promise<boolean> {
   const r = await fetch(`https://api.github.com/users/${encodeURIComponent(user)}/gists?per_page=30`, { headers: gh(), signal: AbortSignal.timeout(15_000) });
   if (!r.ok) throw new Error(`GitHub returned ${r.status} when listing gists for ${user}`);
   const gists = (await r.json()) as { files: Record<string, { raw_url: string; size: number }> }[];
@@ -59,6 +86,7 @@ export async function verifyControl(server: string, owner: string): Promise<Cont
     const ok = await viaDomain(domain, challenge);
     return { ok, method: "domain proof", challenge, where, detail: ok ? `${domain} publishes the proof for ${owner}` : `${domain} does not publish the line below yet` };
   } catch (e) {
-    return { ok: false, method: "error", challenge, where: "", detail: (e as Error).message };
+    const where = ns.startsWith("io.github.") ? `a public gist on github.com/${ns.slice("io.github.".length)}` : `https://${ns.split(".").reverse().join(".")}/.well-known/proofmark.txt`;
+    return { ok: false, method: "error", challenge, where, detail: (e as Error).message };
   }
 }
