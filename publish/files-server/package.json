@@ -1,0 +1,13 @@
+{
+  "name": "proofmark-files",
+  "version": "1.0.0",
+  "mcpName": "io.github.SamuelDharshi/proofmark-files",
+  "description": "A read-only MCP server for one folder. List directories and read text files, confined to a root you choose.",
+  "type": "module",
+  "bin": { "proofmark-files": "server.js" },
+  "files": ["server.js", "README.md"],
+  "keywords": ["mcp", "model-context-protocol", "filesystem", "files", "read-only"],
+  "license": "MIT",
+  "repository": { "type": "git", "url": "git+https://github.com/SamuelDharshi/Proofmark.git", "directory": "publish/files-server" },
+  "dependencies": { "@modelcontextprotocol/sdk": "^1.32.0" }
+}
