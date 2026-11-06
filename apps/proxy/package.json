@@ -9,8 +9,7 @@
   "scripts": {
     "start": "tsx src/cli.ts",
     "typecheck": "tsc --noEmit",
-    "test": "tsx --test src/*.test.ts",
-    "connect:demo": "tsx src/connect-demo.ts"
+    "test": "tsx --test src/*.test.ts"
   },
   "dependencies": {
     "@proofmark/core": "*",

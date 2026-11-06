@@ -10,22 +10,20 @@
     "hcs:create": "tsx src/scripts/hcs-create.ts",
     "keys": "tsx src/scripts/keys.ts",
     "agents:create": "tsx src/scripts/agents-create.ts",
-    "seed:demo": "tsx src/scripts/seed-demo.ts",
-    "ens:status": "tsx src/scripts/ens-status.ts",
-    "ens:spike": "tsx src/scripts/ens-spike.ts"
+    "ens:status": "tsx src/scripts/ens-status.ts"
   },
   "dependencies": {
     "@hiero-ledger/sdk": "^2.90.1",
     "@hono/node-server": "^2.1.0",
     "@modelcontextprotocol/sdk": "^1.32.0",
     "@proofmark/core": "*",
-    "@worldcoin/agentkit": "^0.2.1",
     "@worldcoin/idkit-core": "^4.6.0",
     "@x402/core": "^2.30.0",
     "@x402/hedera": "^2.30.0",
     "@x402/hono": "^2.30.0",
     "dotenv": "^16.4.0",
     "hono": "^4.13.0",
+    "jose": "^6.2.15",
     "viem": "^2.57.0",
     "zod": "^3.25.0"
   },
