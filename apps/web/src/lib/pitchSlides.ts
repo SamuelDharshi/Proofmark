@@ -309,7 +309,7 @@ export const DECK_DATA: Deck[] = [
           ["Secure backend validation", "Keys and token checks stay server-side"],
           ["IDKit verified on the server", "Accepted credentials enforced, nullifier stored"],
           ["Alternative paths", "Closed dialog, rejected, duplicate, not accepted"],
-          ["Complete journey", "[add after the live approval is recorded]"],
+          ["Complete journey", "IDKit claim: proof, gateway check, org written on ENS"],
         ],
         side: [
           {
@@ -320,11 +320,11 @@ export const DECK_DATA: Deck[] = [
               "One verification per action by default, so a claim that failed after verifying could not retry.",
               "In staging, the QR links to a host the normal World App does not open.",
             ],
-            callout: "Time to first success: [__ hours]",
+            callout: "Time to first success: about 1 hour to working code, about 19 hours to the first accepted proof.",
           },
         ],
         links: "proofmark-web.vercel.app · github.com/SamuelDharshi/Proofmark",
-        notes: "Evidence first. The denied path is tested live: a signed agent request with no pass is refused with a 403 before any payment, and a forged signature gets a 401. The two bracketed items are yours to fill: the complete journey needs the live approval recorded, and the time to first success is a number only you know. Then the debrief the track asks for. Four real points of friction we hit: the redirect URI requirement for device-only clients, the signer address shown next to the signing key, the single verification per action that blocks a retry, and the staging QR link. The one improvement with the greatest impact would be to make a failed or interrupted claim not consume the verification. Close with the repo and live demo.",
+        notes: "Evidence first. The denied path is tested live: a signed agent request with no pass is refused with a 403 before any payment, and a forged signature gets a 401. The IDKit journey ran end to end: the proof was checked on the gateway, then the org sam.proofmark.eth was written on ENS. Then the debrief the track asks for, written up in full in docs/WORLD_DEBRIEF.md. Four real points of friction: the redirect URI that device-only clients still need, the signer address shown next to the signing key, one verification per action blocking a retry, and the staging QR link. Code took about an hour, and the first accepted proof came about 19 hours in. The one improvement with the greatest impact would be specific, actionable errors across the whole flow. Close with the repo and live demo.",
       },
     ],
   },
