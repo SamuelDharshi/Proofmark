@@ -69,7 +69,7 @@ export function Drill({ fleet, onChange }: { fleet: Fleet; onChange: () => void 
                 Revoke with owner wallet
               </button>
             ) : (
-              <button className="btn btn-ghost mt-3 w-full" onClick={wallet.connect}>Connect owner wallet</button>
+              <p className="mt-3 text-[13px] text-muted">Connect the owner wallet, top right.</p>
             )}
           </>
         )}

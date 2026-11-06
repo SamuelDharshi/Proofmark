@@ -3,6 +3,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Activity, ArrowUpRight, FileClock, ShieldPlus, Store, Wrench } from "lucide-react";
 import { Wordmark } from "./Logo";
+import { WalletButton } from "./WalletButton";
 import { DECKS } from "@/lib/pitch";
 
 const NAV = [
@@ -51,7 +52,12 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           Docs <ArrowUpRight className="h-3.5 w-3.5" aria-hidden />
         </Link>
       </aside>
-      <main className="grid-lines min-w-0 px-4 py-8 md:px-10 md:py-10">{children}</main>
+      <main className="grid-lines min-w-0 px-4 py-6 md:px-10 md:py-8">
+        <div className="relative z-30 mb-4 flex justify-end">
+          <WalletButton />
+        </div>
+        {children}
+      </main>
     </div>
   );
 }

@@ -81,7 +81,7 @@ export function Maintainers({ server, org }: { server: string; org: string }) {
             {busy === "add" && <Loader2 className="h-4 w-4 animate-spin" aria-hidden />} Add with owner signature
           </button>
         ) : (
-          <button className="btn btn-ghost" onClick={wallet.connect}>Connect owner wallet</button>
+          <p className="text-[13px] text-muted">Connect the owner wallet with the button at the top right.</p>
         )}
       </div>
 
@@ -106,7 +106,7 @@ export function Maintainers({ server, org }: { server: string; org: string }) {
             {busy === "att" + existing && <Loader2 className="h-4 w-4 animate-spin" aria-hidden />} Derive, sign and publish
           </button>
         </div>
-        {!wallet.address && <button className="btn btn-ghost" onClick={wallet.connect}>Connect owner wallet</button>}
+        {!wallet.address && <p className="text-[13px] text-muted">Connect the owner wallet with the button at the top right.</p>}
       </div>
 
       {pending && (

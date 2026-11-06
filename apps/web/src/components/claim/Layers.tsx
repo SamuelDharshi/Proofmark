@@ -84,7 +84,7 @@ export function Layers({ server, org }: { server: string; org: string }) {
               {busy && <Loader2 className="h-4 w-4 animate-spin" aria-hidden />} Record with owner signature
             </button>
           </div>
-          {!wallet.address && <button className="btn btn-ghost" onClick={wallet.connect}>Connect wallet</button>}
+          {!wallet.address && <span className="self-center text-[13px] text-muted">Connect your wallet, top right.</span>}
           {msg && <p className="text-[13px] text-muted">{msg}</p>}
         </div>
       )}

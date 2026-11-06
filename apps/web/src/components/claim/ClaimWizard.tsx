@@ -139,8 +139,7 @@ export function ClaimWizard() {
                 <input className={input} value={server} onChange={(e) => { setServer(e.target.value); setOwn(null); setErr(null); }} placeholder="io.github.acme/filesystem" />
               </Field>
               <Field label="Your wallet" hint="Bound to the proof below. It will own the ENS name and approve co-maintainers.">
-                {wallet.address ? <p className="num flex h-11 items-center border border-line bg-bg px-3.5 text-[14px]">{wallet.address}</p> : <button className="btn btn-ghost" onClick={wallet.connect}>Connect wallet</button>}
-                {wallet.error && <span className="mt-1.5 block text-[12px] text-danger">{wallet.error}</span>}
+                {wallet.address ? <p className="num flex h-11 items-center border border-line bg-bg px-3.5 text-[14px]">{wallet.address}</p> : <p className="flex h-11 items-center gap-2 border border-dashed border-line-strong px-3.5 text-[13px] text-muted">Connect your wallet with the button at the top right.</p>}
               </Field>
               {own && (
                 <p className={`flex items-start gap-2 border px-4 py-3 text-[14px] ${own.ok ? "border-accent/30 bg-accent/10 text-accent" : "border-danger/30 bg-danger/10 text-danger"}`}>
@@ -210,8 +209,7 @@ export function ClaimWizard() {
                 <input className={input} value={org} onChange={(e) => setOrg(e.target.value.toLowerCase())} placeholder="acme" />
               </Field>
               <Field label="Owner wallet" hint="Owns the ENS name and approves co-maintainers.">
-                {wallet.address ? <p className="num flex h-11 items-center border border-line bg-bg px-3.5 text-[14px]">{wallet.address}</p> : <button className="btn btn-ghost" onClick={wallet.connect}>Connect wallet</button>}
-                {wallet.error && <span className="mt-1.5 block text-[12px] text-danger">{wallet.error}</span>}
+                {wallet.address ? <p className="num flex h-11 items-center border border-line bg-bg px-3.5 text-[14px]">{wallet.address}</p> : <p className="flex h-11 items-center gap-2 border border-dashed border-line-strong px-3.5 text-[13px] text-muted">Connect your wallet with the button at the top right.</p>}
               </Field>
               <div className="grid gap-5 sm:grid-cols-2">
                 <Field label="Hedera account for payouts" hint="Receives each $0.002 connect fee.">
