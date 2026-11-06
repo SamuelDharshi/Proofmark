@@ -39,10 +39,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           <div className="mt-6 hidden flex-col gap-1 border-t border-line pt-5 md:flex">
             <p className="px-3 font-label text-[11px] uppercase tracking-[0.12em] text-faint">Pitch decks</p>
             {DECKS.map((d) => (
-              <a key={d.id} href={d.url} target="_blank" rel="noreferrer" className="group flex min-h-10 items-center justify-between gap-2 px-3 text-[13px] text-muted transition-colors hover:bg-surface hover:text-text">
+              <Link key={d.id} href={`/pitch?deck=${d.id}`} className="group flex min-h-10 items-center justify-between gap-2 px-3 text-[13px] text-muted transition-colors hover:bg-surface hover:text-text">
                 <span><span className="text-text">{d.sponsor}</span> · {d.track.split(":")[0].replace("Best Use of ", "")}</span>
                 <ArrowUpRight className="h-3.5 w-3.5 shrink-0 opacity-0 transition-opacity group-hover:opacity-100" aria-hidden />
-              </a>
+              </Link>
             ))}
             <Link href="/pitch" className="link px-3 pt-1 text-[12px] text-muted hover:text-text">All three decks</Link>
           </div>
