@@ -9,10 +9,17 @@ export interface SpawnSpec {
   env?: Record<string, string>;
 }
 
+/** DOCKER_BIN lets the engine live elsewhere, e.g. "wsl -u root docker" for Docker Engine inside WSL2. */
+function dockerBin(): { command: string; prefix: string[] } {
+  const [command, ...prefix] = (process.env.DOCKER_BIN?.trim() || "docker").split(/\s+/);
+  return { command, prefix };
+}
+
 let dockerOk: boolean | undefined;
 export function dockerAvailable(): boolean {
   if (dockerOk === undefined) {
-    const r = spawnSync("docker", ["version", "--format", "{{.Server.Version}}"], { encoding: "utf8", timeout: 8000 });
+    const d = dockerBin();
+    const r = spawnSync(d.command, [...d.prefix, "version", "--format", "{{.Server.Version}}"], { encoding: "utf8", timeout: 15000 });
     dockerOk = r.status === 0 && !!r.stdout.trim();
   }
   return dockerOk;
@@ -20,9 +27,11 @@ export function dockerAvailable(): boolean {
 
 /** Hermetic container wrapper: no network, read-only root, no capabilities. */
 export function containerSpec(image: string, extraArgs: string[] = []): SpawnSpec {
+  const d = dockerBin();
   return {
-    command: "docker",
+    command: d.command,
     args: [
+      ...d.prefix,
       "run", "--rm", "-i",
       "--network", "none",
       "--read-only",
