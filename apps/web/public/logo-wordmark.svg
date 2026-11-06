@@ -1,7 +1,1 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 330 64" fill="none">
-  <g transform="translate(0 0)" color="currentColor">
-    <path d="M10 57V21L32 8l22 13v36" stroke="currentColor" stroke-width="6" stroke-linejoin="miter" stroke-linecap="square"/>
-    <path d="M32 25l9 9-9 9-9-9z" fill="currentColor"/>
-  </g>
-  <text x="72" y="45" fill="currentColor" font-family="'Bricolage Grotesque', 'Space Grotesk', system-ui, sans-serif" font-weight="700" font-size="36" letter-spacing="2">PROOFMARK</text>
-</svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 330 64"><path d="M10 4H40L54 18V32L40 46H24V60H10Z M24 17H35L40 22V28L35 33H24Z" fill="#272727" fill-rule="evenodd"/><rect x="27" y="21" width="8" height="8" fill="#38f997"/><text x="72" y="44" fill="#272727" font-family="'Space Grotesk', system-ui, sans-serif" font-weight="600" font-size="36" letter-spacing="-0.5">proofmark</text></svg>
