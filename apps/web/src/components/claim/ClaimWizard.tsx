@@ -81,11 +81,31 @@ export function ClaimWizard() {
       setOpen(true);
     });
 
+  const [progress, setProgress] = useState<{ step: string; txs: { label: string; hash: string }[] } | null>(null);
   const submitClaim = () =>
     guard(async () => {
-      const r = await api.claim({ server: server.trim(), org, owner: wallet.address, payTo, price: Number(price), idkitResponse: proof });
-      setClaimed(r);
-      setStep(4);
+      const { jobId } = await api.claim({ server: server.trim(), org, owner: wallet.address, payTo, price: Number(price), idkitResponse: proof });
+      setProgress({ step: "Starting", txs: [] });
+      // The ENS writes take about a minute, so the gateway runs them as a job and we poll it.
+      for (let misses = 0; ; ) {
+        await new Promise((r) => setTimeout(r, 2500));
+        let j;
+        try {
+          j = await api.claimJob(jobId);
+          misses = 0;
+        } catch (e) {
+          if (++misses > 8) throw e;
+          continue;
+        }
+        setProgress({ step: j.step, txs: j.txs });
+        if (j.status === "failed") throw new Error(`${j.error ?? "The claim stopped"}. Click Claim again to resume where it stopped.`);
+        if (j.status === "done") {
+          setClaimed(j.result);
+          setStep(4);
+          setProgress(null);
+          return;
+        }
+      }
     });
 
   return (
@@ -185,6 +205,19 @@ export function ClaimWizard() {
               <button className="btn btn-primary" disabled={busy || !org || !wallet.address || !payTo || !proof} onClick={submitClaim}>
                 {busy && <Loader2 className="h-4 w-4 animate-spin" aria-hidden />} Claim {server.split("/").pop() || "server"}
               </button>
+              {progress && (
+                <div className="border border-line-strong bg-surface-2 px-4 py-3 text-[14px]">
+                  <p className="flex items-center gap-2"><Loader2 className="h-4 w-4 animate-spin" aria-hidden /> {progress.step}</p>
+                  <p className="mt-1 text-[12px] text-muted">Writing to Sepolia takes about a minute. Keep this page open.</p>
+                  {progress.txs.length > 0 && (
+                    <ul className="num mt-2 space-y-1 text-[12px]">
+                      {progress.txs.map((t) => (
+                        <li key={t.hash}><a className="link text-accent" target="_blank" rel="noreferrer" href={`https://sepolia.etherscan.io/tx/${t.hash}`}>{t.label}</a></li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              )}
             </div>
           )}
 
