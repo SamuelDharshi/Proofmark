@@ -128,11 +128,21 @@ async function main() {
   }
 
   // Liveness: revocation reaches a running session on the next check.
+  // Fail closed: if liveness cannot be confirmed for a few checks in a row, the session is not trusted any more.
   const every = Number(process.env.PROOFMARK_RECHECK_MS ?? 15000);
+  const maxMissed = Number(process.env.PROOFMARK_MAX_MISSED_CHECKS ?? 3);
+  let missed = 0;
   setInterval(async () => {
     if (state.status !== "connected" || state.c.tier !== "green") return;
-    const r = (await fetch(`${opts.gateway}/check?server=${encodeURIComponent(opts.server)}`).then((x) => x.json()).catch(() => null)) as any;
-    if (r && r.tier !== "green") await block(r.reason, r.explain);
+    const r = (await fetch(`${opts.gateway}/check?server=${encodeURIComponent(opts.server)}`, { signal: AbortSignal.timeout(10_000) })
+      .then((x) => (x.ok ? x.json() : null))
+      .catch(() => null)) as any;
+    if (!r) {
+      if (++missed >= maxMissed) await block("liveness-unknown", `could not confirm the maintainer's key is still live for ${Math.round((missed * every) / 1000)}s`);
+      return;
+    }
+    missed = 0;
+    if (r.tier !== "green") await block(r.reason, r.explain);
   }, every).unref?.();
 }
 

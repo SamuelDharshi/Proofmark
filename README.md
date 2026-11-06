@@ -462,6 +462,7 @@ Canonicalisation sorts keys, normalises whitespace and strips volatile fields, s
 - **On every `tools/list_changed`:** re-hash mid-session ([cli.ts](apps/proxy/src/cli.ts)).
 - **Revocation topic:** a subscription through the mirror node drops a session within seconds ([revocations.ts](apps/proxy/src/revocations.ts)).
 - **Every 15 seconds:** liveness re-read from ENS through the gateway. A missed HCS message only delays a block; it never allows one.
+- **Fail closed:** if liveness cannot be confirmed for 3 checks in a row (45 s), the session blocks with `liveness-unknown`. A gateway outage never keeps a session trusted.
 - Each attestation carries `revocationCheckedAt` and a 24-hour `validUntil`, so it goes stale rather than becoming a free pass.
 
 ### The ENS tree
