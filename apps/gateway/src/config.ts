@@ -25,6 +25,7 @@ const schema = z.object({
   HEDERA_GATEWAY_ACCOUNT_ID: opt,
   HEDERA_GATEWAY_PRIVATE_KEY: hederaKey,
   HCS_TOPIC_ID: opt,
+  GITHUB_TOKEN: opt,
   HTS_TOKEN_ID: opt,
   X402_FACILITATOR_URL: z.string().default("https://api.testnet.blocky402.com"),
   X402_ASSET: z.string().default("0.0.0"),
