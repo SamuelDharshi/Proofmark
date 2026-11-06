@@ -58,7 +58,7 @@ Everything below is reproducible from a clean clone.
 | ENS | An unauthorised write reverts | `eth_call` as the co-maintainer writing `status` returns `EACUnauthorizedAccountRoles` | [ens.ts:159](apps/gateway/src/ens.ts#L159) |
 | ENS | Wildcard resolution, public read-only page | Any unclaimed name resolves to sandboxed on `/check` | [check.ts](apps/gateway/src/check.ts) |
 | ENS | Reads cached 15s, invalidated on `TextUpdated` and `EACRolesChanged` | Cache plus chain event watchers | [ens.ts:188](apps/gateway/src/ens.ts#L188) |
-| World | Agent Pass integrated, spend authority depends on it | AgentBook lookup gates every payment | [agents.ts:37](apps/gateway/src/agents.ts#L37) |
+| World | Official World ID Agent Pass integrated, spend authority depends on it | The official World IdP over OIDC: a headless device grant, the ID token validated on the gateway (signature, issuer, audience, expiry, `auth_time`, `acr`, `amr`), and the validated pass written to the agent's ENS name | [idp.ts](apps/gateway/src/idp.ts), [agents.ts](apps/gateway/src/agents.ts) |
 | World | Denied path | Expired or revoked pass: payment refused, no connection | [attest.ts:31](apps/gateway/src/routes/attest.ts#L31) |
 | World | IDKit Proof of Human on the claim, duplicate nullifier rejected | Backend verification, nullifier stored per action | [world.ts:39](apps/gateway/src/world.ts#L39) |
 | World | Validation on a secure backend | RP signing and proof verification run only on the gateway | [world.ts:10](apps/gateway/src/world.ts#L10) |
@@ -135,7 +135,7 @@ One resolver instance per org, because argument-scoped grants apply to every nam
 ENSv2 on Sepolia: Permissioned Registry subname registries, a Permissioned Resolver per org, Enhanced Access Control roles scoped to `attest.key`, expiring co-maintainer subnames and wildcard resolution to the sandboxed tier ([ens.ts](apps/gateway/src/ens.ts)).
 
 ### World
-Agent Pass (AgentKit and AgentBook) proves a verified human operates the paying agent. IDKit Proof of Human gates the maintainer claim, one nullifier to one identity. For a maintainer, uniqueness is the property needed, and a passport-grade credential would break the pseudonymity open source relies on. For the agent, the pass only has to show that some verified human is accountable for it ([world.ts](apps/gateway/src/world.ts), [agents.ts](apps/gateway/src/agents.ts)).
+Agent Pass, through the official World IdP (OpenID Connect), proves a verified human operates the paying agent. The gateway runs the Device Authorization Grant, validates the ID token and records the pass on the agent's ENS name. Spend authority lapses when the authentication is older than the allowed age, so an expired pass is refused with no override. IDKit Proof of Human gates the maintainer claim, one nullifier to one identity. For a maintainer, uniqueness is the property needed, and a passport-grade credential would break the pseudonymity open source relies on. For the agent, the pass only has to show that some verified human is accountable for it ([world.ts](apps/gateway/src/world.ts), [agents.ts](apps/gateway/src/agents.ts)).
 
 ### MCP
 Name ownership uses the official registry's own verification: `mcpName` in package.json, an `mcp-name:` README line or an OCI label ([registry.ts](apps/gateway/src/registry.ts)).
@@ -153,34 +153,39 @@ Proofmark adds three narrow things: revocation that reaches a running fleet, one
 
 ## Run it
 
+Nothing here is simulated. Claims, prices, payees, agent budgets and co-maintainer keys live on ENS, spend lives in the HCS log, and settlement happens on Hedera testnet.
+
 ```bash
 npm install
-cp .env.example .env          # fill in the values
-npm run keys -w @proofmark/gateway          # prints fresh signing and agent keys
-npm run hcs:create -w @proofmark/gateway    # prints HCS_TOPIC_ID
-npm run gateway               # http://localhost:8787
-npm run web                   # http://localhost:3000
-npm test                      # core and proxy suites
+cp .env.example .env                          # fill in the values, see below
+npm run keys -w @proofmark/gateway            # fresh signing key for ATTEST_PRIVATE_KEY
+npm run hcs:create -w @proofmark/gateway      # prints HCS_TOPIC_ID
+npm run ens:status -w @proofmark/gateway      # confirms the admin wallet owns the root name
+npm run agents:create -w @proofmark/gateway -- 2 5 1   # 2 agents as ENS names, 5 HBAR each, 1 USD budget
+npm run gateway                               # http://localhost:8787
+npm run web                                   # http://localhost:3000
+npm test                                      # core and proxy suites
 ```
 
-Try the whole flow before World and ENS are set up. The seed claims the bundled demo servers in the local store, marked not human-verified, and anchors their attestations on HCS:
+**Accounts you need**
 
-```bash
-npm run seed:demo -w @proofmark/gateway      # claim and attest the demo servers
-npm run agents:create -w @proofmark/gateway -- 2   # funded testnet agents, with the gateway running
-npm run connect:demo -w @proofmark/proxy     # one paid connect through the real proxy code
-```
+| For | What |
+| --- | --- |
+| Hedera | A testnet account with an ECDSA key. It is the maintainer payee, the HCS submitter and the funder of agent accounts |
+| ENS | A Sepolia wallet that owns the root name, with Sepolia ETH |
+| World Agent Pass | An OIDC client from the [World IdP portal](https://auth.world.org/portal): client id and secret in `WORLD_IDP_CLIENT_ID` and `WORLD_IDP_CLIENT_SECRET` |
+| World IDKit | An app, RP id and signing key from the [Developer Portal](https://developer.world.org) for the maintainer claim |
 
-Point an agent client at the proxy instead of the server:
+**Using it.** A maintainer opens `/claim`, proves ownership through the registry and a World Proof of Human, and the gateway registers the org and the server name on ENS. Each agent gets an Agent Pass from the Fleet page: the gateway starts World's device flow, a human approves in World, the gateway validates the ID token and writes the pass to the agent's ENS name. Point an agent client at the proxy instead of the server:
 
 ```json
 {
   "mcpServers": {
-    "filesystem": {
+    "server": {
       "command": "npx",
-      "args": ["tsx", "apps/proxy/src/cli.ts", "--server", "io.proofmark.demo/filesystem",
-               "--gateway", "http://localhost:8787", "--artifact", "apps/demo-server/src/server.ts",
-               "--", "npx", "tsx", "apps/demo-server/src/server.ts"]
+      "args": ["tsx", "apps/proxy/src/cli.ts", "--server", "<registry name>", "--gateway", "http://localhost:8787",
+               "--artifact", "<tarball or file to hash>", "--", "<command that starts the server>"],
+      "env": { "AGENT_ENS_NAME": "claude-1.agents.proofmark.eth" }
     }
   }
 }
@@ -193,7 +198,7 @@ packages/core      canonical manifest hash, tier policy, typosquat check, explor
 packages/runner    spawn an MCP server, in a hermetic container when one is available
 apps/gateway       Hono gateway: x402, attestation worker, HCS, ENS, World, claim, revoke
 apps/proxy         the MCP proxy agents connect through
-apps/demo-server   a filesystem MCP server with a live tool-mutation toggle
+apps/demo-server   a small MCP server the proxy test suite runs, clean and mutated
 apps/web           Next.js app: landing, marketplace, inspector, check, fleet, claim, docs
 docs               architecture diagram
 ```

@@ -137,7 +137,7 @@ export function Docs() {
           </Section>
 
           <Section id="world" title="World" mark={{ src: "/brands/world-wordmark-light.png", alt: "World", h: 22 }}>
-            <p><strong>Agent Pass.</strong> The paying agent&apos;s EVM identity must be registered in AgentBook, which proves a verified human operates it. The check runs on the gateway before any payment. An expired or revoked pass means the payment is refused and the connection never happens.</p>
+            <p><strong>Agent Pass.</strong> The official World ID Agent Pass is the World IdP, an OpenID Connect issuer. An agent has no browser, so the gateway runs the Device Authorization Grant for it: a human approves in World, the gateway validates the ID token (signature, issuer, audience, expiry, <code>auth_time</code>, <code>acr</code> and <code>amr</code>) and records the validated pass on the agent&apos;s ENS name. The pass is a pure function of that record and the clock, so when the authentication is older than the allowed age the payment is refused and the connection never happens. Nothing can override it.</p>
             <p><strong>IDKit Proof of Human.</strong> Claiming a server needs a Proof of Human. The gateway signs the request context, forwards the proof to the World Developer Portal and stores the nullifier. A second claim with the same nullifier is rejected. The client result is never trusted.</p>
             <p><strong>Minimum sufficient assurance.</strong> For a maintainer, uniqueness is the property needed. A passport-grade identity would break the pseudonymity open source relies on, so Proof of Human is the strongest credential this flow asks for. For the agent, the pass only has to show that some verified human is accountable for it.</p>
           </Section>
@@ -177,9 +177,11 @@ export function Docs() {
 
           <Section id="run" title="Run it">
             <pre className="num overflow-x-auto rounded-xl border border-line bg-surface p-4 text-[12.5px] leading-relaxed text-text">{`npm install
-cp .env.example .env     # fill in the values
-npm run gateway          # http://localhost:8787
-npm run web              # http://localhost:3000`}</pre>
+cp .env.example .env      # fill in the values
+npm run hcs:create -w @proofmark/gateway
+npm run agents:create -w @proofmark/gateway -- 2 5 1
+npm run gateway           # http://localhost:8787
+npm run web               # http://localhost:3000`}</pre>
           </Section>
         </article>
       </div>
