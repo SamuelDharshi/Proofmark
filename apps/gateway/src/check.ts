@@ -1,3 +1,4 @@
+import { canonicalName } from "./registry";
 import { decideTier, findTyposquat, type CheckResult } from "@proofmark/core";
 import { store, type AttestationRecord } from "./store";
 import { caps } from "./config";
@@ -19,7 +20,8 @@ export function divergence(server: string, version: string, attestedHash: string
  * key is live are all read from ENS. An unclaimed name has no on-chain record, which is the
  * wildcard answer: sandboxed.
  */
-export async function evaluate(server: string, version?: string): Promise<CheckResult & { key?: KeyRecord; divergent?: number }> {
+export async function evaluate(input: string, version?: string): Promise<CheckResult & { key?: KeyRecord; divergent?: number }> {
+  const server = await canonicalName(input);
   const base = { server, checkedAt: Date.now() };
   const claim = await readServerClaim(server).catch(() => null);
 

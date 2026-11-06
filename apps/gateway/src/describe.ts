@@ -1,6 +1,6 @@
 import { findTyposquat, type ServerInfo, type ServerPackageInfo, type Signal } from "@proofmark/core";
 import { dockerAvailable } from "@proofmark/runner";
-import { getServer, packageKind, searchRegistry, verifyNameOwnership, type RegistryPackage, type RegistryServer } from "./registry";
+import { canonicalName, getServer, packageKind, searchRegistry, verifyNameOwnership, type RegistryPackage, type RegistryServer } from "./registry";
 import { store } from "./store";
 
 const TTL = 5 * 60 * 1000;
@@ -51,7 +51,8 @@ function signalsFor(name: string, s: RegistryServer, kind: string, pkgs: ServerP
 
 const empty = (name: string): ServerInfo => ({ found: false, source: "none", name, packages: [], remotes: [], signals: [], launch: { mode: "refused", detail: "" }, suggestions: [] });
 
-export async function describeServer(name: string): Promise<ServerInfo> {
+export async function describeServer(input: string): Promise<ServerInfo> {
+  const name = await canonicalName(input);
   const hit = cache.get(name);
   if (hit && Date.now() - hit.t < TTL) return hit.v;
   const v = await build(name);

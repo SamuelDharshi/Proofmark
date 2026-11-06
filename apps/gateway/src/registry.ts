@@ -50,6 +50,24 @@ export async function getServer(name: string, version = "latest"): Promise<Regis
   return shape(await r.json());
 }
 
+/**
+ * The registry's own spelling of a name. GitHub namespaces are case-insensitive, so
+ * io.github.samueldharshi/x and io.github.SamuelDharshi/x are the same server and must resolve the same way.
+ */
+const canon = new Map<string, string>();
+export async function canonicalName(name: string): Promise<string> {
+  const n = name.trim();
+  if (canon.has(n.toLowerCase())) return canon.get(n.toLowerCase())!;
+  let out = n;
+  if (!(await getServer(n).catch(() => null))) {
+    const tail = n.split("/").pop() ?? n;
+    const hit = (await searchRegistry(tail, 50).catch(() => [])).find((s) => s.name.toLowerCase() === n.toLowerCase());
+    if (hit) out = hit.name;
+  }
+  canon.set(n.toLowerCase(), out);
+  return out;
+}
+
 /** Registry type of the first artefact-backed package, or remote. */
 export function packageKind(s: RegistryServer): { type: RegistryType; pkg?: RegistryPackage } {
   const order: RegistryType[] = ["mcpb", "oci", "npm", "pypi"];

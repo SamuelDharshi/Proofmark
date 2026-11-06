@@ -2,7 +2,7 @@ import { Hono } from "hono";
 import { verifyMessage, getAddress, isAddress } from "viem";
 import { caps, env } from "../config";
 import { store, logEvent, uid } from "../store";
-import { getServer, verifyNameOwnership } from "../registry";
+import { canonicalName, getServer, verifyNameOwnership } from "../registry";
 import { rpSignature, verifyHumanProof, recordNullifier, proofNullifier, worldStatus } from "../world";
 import * as ens from "../ens";
 import { verifyControl, namespaceOf } from "../control";
@@ -35,8 +35,10 @@ claimRoutes.post("/world/rp-signature", (c) => {
 
 /** Step 1: registry-verified name ownership. No challenge file. */
 claimRoutes.post("/claim/ownership", async (c) => {
-  const { server, owner } = (await c.req.json()) as { server: string; owner?: string };
-  if (!server) return c.json({ error: "server is required" }, 400);
+  const body = (await c.req.json()) as { server: string; owner?: string };
+  if (!body.server) return c.json({ error: "server is required" }, 400);
+  const server = await canonicalName(body.server);
+  const owner = body.owner;
   const existing = await readServerClaim(server).catch(() => null);
   if (existing) {
     // Already on ENS. Tell the owner where to go instead of failing.
