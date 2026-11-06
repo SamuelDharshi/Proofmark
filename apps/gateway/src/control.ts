@@ -34,7 +34,8 @@ async function viaGistPage(user: string, challenge: string): Promise<boolean> {
   if (!/^[A-Za-z0-9-]+$/.test(user)) throw new Error(`${user} is not a valid GitHub username`);
   const ids = [...new Set([...html.matchAll(new RegExp(`href="/${user}/([0-9a-f]{20,40})"`, "gi"))].map((m) => m[1]))].slice(0, 15);
   for (const id of ids) {
-    const t = await fetch(`https://gist.githubusercontent.com/${encodeURIComponent(user)}/${id}/raw`, { signal: AbortSignal.timeout(10_000) }).then((x) => (x.ok ? x.text() : "")).catch(() => "");
+    // GitHub caches raw files for five minutes. A throwaway query string reads the current text, so an edit counts at once.
+    const t = await fetch(`https://gist.githubusercontent.com/${encodeURIComponent(user)}/${id}/raw?cb=${Date.now()}`, { headers: { "cache-control": "no-cache" }, signal: AbortSignal.timeout(10_000) }).then((x) => (x.ok ? x.text() : "")).catch(() => "");
     if (t.length < 4000 && t.split(/\r?\n/).some((line) => line.trim() === challenge)) return true;
   }
   return false;

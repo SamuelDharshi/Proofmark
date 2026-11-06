@@ -13,7 +13,7 @@ function withGists(raw: Record<string, string>, fn: () => Promise<void>) {
   globalThis.fetch = (async (u: string | URL | Request) => {
     const url = String(u);
     if (url === "https://gist.github.com/SamuelDharshi") return new Response(Object.keys(raw).map((id) => `<a href="/SamuelDharshi/${id}"></a>`).join(""));
-    const id = Object.keys(raw).find((k) => url.endsWith(`/${k}/raw`));
+    const id = Object.keys(raw).find((k) => url.includes(`/${k}/raw`));
     return id ? new Response(raw[id]) : new Response("", { status: 404 });
   }) as typeof fetch;
   return fn().finally(() => void (globalThis.fetch = real));
