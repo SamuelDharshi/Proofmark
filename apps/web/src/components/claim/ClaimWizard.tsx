@@ -162,7 +162,7 @@ export function ClaimWizard() {
 
           {step === 2 && (
             <div className="space-y-5">
-              <p className="text-[15px] text-muted">One claim per human. World ID Proof of Human is verified on the gateway, never on this page.</p>
+              <p className="text-[15px] text-muted">World limits each identity to one claim, so one person cannot register unlimited orgs. That is a uniqueness gate, not proof of who you are: the namespace proof and the bond carry that. It is verified on the gateway, never on this page.</p>
               {staging && (
                 <p className="border border-line-strong bg-surface-2 px-4 py-3 text-[13px] text-muted">
                   This gateway runs World ID in <strong className="text-text">staging</strong>. A phone camera and the regular World App only open production links, so the QR will not open it. In the dialog choose <strong className="text-text">Use the simulator</strong>, or scan with the World sandbox app:{" "}

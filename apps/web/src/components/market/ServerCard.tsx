@@ -79,7 +79,7 @@ export function ServerCard({ s, i }: { s: ServerRow; i: number }) {
               </span>
             )}
             {s.worldVerified && (
-              <span className="ml-auto inline-flex items-center gap-1.5 text-accent" title="One verified human">
+              <span className="ml-auto inline-flex items-center gap-1.5 text-accent" title="Unique, domain-verified, bonded">
                 <BadgeCheck className="h-4 w-4" aria-hidden />
                 Human
               </span>

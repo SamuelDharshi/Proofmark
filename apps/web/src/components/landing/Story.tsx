@@ -27,7 +27,7 @@ function Hero() {
           <motion.div {...rise(0.12)} className="mt-9"><PixelMark /></motion.div>
           <h1 className="mt-8 text-[clamp(42px,6.4vw,96px)] font-medium leading-[1.04] tracking-[-0.035em]">
             <motion.span {...rise(0.18)} className="block"><span className="hl">Verifying</span></motion.span>
-            <motion.span {...rise(0.26)} className="block text-[#767270]">the human behind</motion.span>
+            <motion.span {...rise(0.26)} className="block text-[#767270]">the maintainer behind</motion.span>
             <motion.span {...rise(0.34)} className="block font-pixel tracking-[-0.02em]">every MCP server</motion.span>
           </h1>
           <motion.p {...rise(0.42)} className="mt-8 max-w-[520px] text-[19px] text-muted">
@@ -50,7 +50,7 @@ function Hero() {
 const CHECKS = [
   { n: "01", title: "Pay over x402", body: "The proxy pays $0.002 in HBAR through a Hedera facilitator. A server that cannot be paid cannot be reached.", to: "/docs#hedera", tag: "Hedera" },
   { n: "02", title: "Read ENS, not a database", body: "Maintainer, price and the live attest key are records on proofmark.eth. Revoking is one on-chain write.", to: "/docs#ens", tag: "ENSv2" },
-  { n: "03", title: "One human, one claim", body: "World ID proves a person stands behind the server. Agents carry a World Agent Pass bound to their ENS name.", to: "/docs#world", tag: "World" },
+  { n: "03", title: "Unique, verified, bonded", body: "World gives each identity one claim. A GitHub or domain proof ties the name to its owner, and a Hedera bond puts money behind it.", to: "/docs#world", tag: "World" },
   { n: "04", title: "Hash the tools themselves", body: "The tool manifest is derived inside a no-network sandbox and compared on every connect and every list change.", to: "/docs#mcp", tag: "MCP" },
 ];
 const CHIPS = ["x402", "ENSv2", "World ID", "HCS", "Sandbox", "Typosquats"];
@@ -122,7 +122,7 @@ function Word({ w, p, a, b }: { w: string; p: MotionValue<number>; a: number; b:
   return <motion.span style={{ color }} className="mr-[0.22em] inline-block">{w}</motion.span>;
 }
 
-const VISION = "A human still backs this server. Not a database, not a badge. A name, a key, a hash.".split(" ");
+const VISION = "A bonded maintainer still backs this server. Not a database, not a badge. A name, a key, a hash.".split(" ");
 
 function Vision() {
   const ref = useRef<HTMLElement>(null);
@@ -218,7 +218,7 @@ function Band() {
 const PARTNERS = [
   { name: "Hedera", href: "/docs#hedera", src: "/brands/hedera-wordmark-dark.png", w: 220, h: 45, note: "x402 payments and the HCS log" },
   { name: "ENS", href: "/docs#ens", src: "/brands/ens-wordmark-dark.png", w: 150, h: 45, note: "ENSv2 names and per-org resolvers" },
-  { name: "World", href: "/docs#world", src: "/brands/world-wordmark-dark.png", w: 180, h: 47, note: "Proof of Human and Agent Pass" },
+  { name: "World", href: "/docs#world", src: "/brands/world-wordmark-dark.png", w: 180, h: 47, note: "Uniqueness at claim, Agent Pass for spend" },
   { name: "Model Context Protocol", href: "/docs#mcp", src: "/brands/mcp-black.svg", w: 64, h: 64, note: "The registry and the wire protocol" },
 ];
 

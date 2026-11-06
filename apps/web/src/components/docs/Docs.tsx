@@ -74,8 +74,8 @@ export function Docs() {
 
         <article className="min-w-0 max-w-[760px]">
           <Section id="overview" title="Overview">
-            <p>Before an agent connects to an MCP server, which gets shell, filesystem and credential access, it pays <strong>$0.002 over x402 on Hedera</strong> for proof that a verified human still stands behind this exact build and these exact tools. The connection is refused when the tools change underneath it.</p>
-            <p>Proofmark sells <strong>liveness, not provenance</strong>. Signatures prove an account built something. Proofmark proves one human still backs it this minute, and lets that human take it back. It does not prove the code is safe, and nothing here claims it does.</p>
+            <p>Before an agent connects to an MCP server, which gets shell, filesystem and credential access, it pays <strong>$0.002 over x402 on Hedera</strong> for proof that a unique, domain-verified, bonded maintainer still stands behind this exact build and these exact tools. The connection is refused when the tools change underneath it.</p>
+            <p>Proofmark sells <strong>liveness, not provenance</strong>. Signatures prove an account built something. Proofmark proves a unique, domain-verified, bonded maintainer still backs it this minute, and lets them take it back. It does not prove the code is safe, and nothing here claims it does.</p>
           </Section>
 
           <Section id="flow" title="How a connect works">
@@ -106,7 +106,7 @@ export function Docs() {
               head={["Tier", "Condition", "Result"]}
               rows={[
                 ["Green", "Claimed, attested, both hashes match, key live", "Connect normally, full tool set, maintainer paid"],
-                ["Sandboxed", "No verified human has claimed the name", "Container with no network, read-only filesystem and dropped capabilities. Read-only tools only. A server that cannot be containerised is not launched locally."],
+                ["Sandboxed", "No maintainer has claimed the name", "Container with no network, read-only filesystem and dropped capabilities. Read-only tools only. A server that cannot be containerised is not launched locally."],
                 ["Blocked", "Hash mismatch, revoked or expired key, or a name one to two edits from a claimed server", "Refused, with the reason and the added tool named"],
               ]}
             />
@@ -137,9 +137,9 @@ export function Docs() {
           </Section>
 
           <Section id="world" title="World" mark={{ src: "/brands/world-wordmark-light.png", alt: "World", h: 22 }}>
-            <p><strong>Agent Pass.</strong> The official World ID Agent Pass is the World IdP, an OpenID Connect issuer. An agent has no browser, so the gateway runs the Device Authorization Grant for it: a human approves in World, the gateway validates the ID token (signature, issuer, audience, expiry, <code>auth_time</code>, <code>acr</code> and <code>amr</code>) and records the validated pass on the agent&apos;s ENS name. The pass is a pure function of that record and the clock, so when the authentication is older than the allowed age the payment is refused and the connection never happens. Nothing can override it.</p>
-            <p><strong>IDKit Proof of Human.</strong> Claiming a server needs a Proof of Human. The gateway signs the request context, forwards the proof to the World Developer Portal and stores the nullifier. A second claim with the same nullifier is rejected. The client result is never trusted.</p>
-            <p><strong>Minimum sufficient assurance.</strong> For a maintainer, uniqueness is the property needed: one real person, one claim. The claim accepts any one credential that proves that (Proof of Human, a passport or a national ID) and the gateway rejects a proof that used none of them. Nothing about the person is stored beyond the nullifier, and weaker credentials such as a device or a selfie alone are not accepted. For the agent, the pass only has to show that some verified human is accountable for it.</p>
+            <p><strong>Agent Pass.</strong> The official World ID Agent Pass is the World IdP, an OpenID Connect issuer. An agent has no browser, so the gateway runs the Device Authorization Grant for it: a person approves in World, the gateway validates the ID token (signature, issuer, audience, expiry, <code>auth_time</code>, <code>acr</code> and <code>amr</code>) and records the validated pass on the agent&apos;s ENS name. The pass is a pure function of that record and the clock, so when the authentication is older than the allowed age the payment is refused and the connection never happens. Nothing can override it. The pass is spend authority, not maintainer identity.</p>
+            <p><strong>IDKit at the claim.</strong> Claiming a server needs a World credential. The gateway signs the request context, forwards the proof to the World Developer Portal and stores the nullifier. A second claim with the same nullifier is rejected. The client result is never trusted. This limits mass sockpuppets and nothing more: World does not prove the person is the real maintainer, and a household member could share a credential. That is a known weakness, and it is why identity rests on two more layers, a verified namespace (a GitHub account or a domain) and a forfeitable bond.</p>
+            <p><strong>Minimum sufficient assurance.</strong> For a maintainer, uniqueness is the property needed: one real person, one claim. The claim accepts any one credential that proves that (Proof of Human, a passport or a national ID) and the gateway rejects a proof that used none of them. Nothing about the person is stored beyond the nullifier, and weaker credentials such as a device or a selfie alone are not accepted. For the agent, the pass only has to show that a verified person authorized it to spend.</p>
             <p><strong>When verification does not succeed.</strong> Closing the World dialog collects no proof, so Claim stays on the human step and nothing is written to ENS. A proof the gateway rejects (wrong action, bad signature, or a nullifier that already claimed) returns an error and no organisation is registered. An agent with no pass, an expired pass or too weak a credential is refused before any payment, so the protected action never happens.</p>
           </Section>
 
@@ -158,7 +158,7 @@ export function Docs() {
                 ["Trustworthy registry paper", "Sigstore signing plus runtime JWS", "No revocation, no human identity, no payments"],
               ]}
             />
-            <p>Proofmark adds three narrow things: revocation that reaches a running fleet, one human instead of one account, and a recurring payment that makes the freshness check sustainable.</p>
+            <p>Proofmark adds three narrow things: revocation that reaches a running fleet, a unique, domain-verified, bonded maintainer instead of one account, and a recurring payment that makes the freshness check sustainable.</p>
           </Section>
 
           <Section id="api" title="API">
