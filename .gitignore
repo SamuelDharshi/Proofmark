@@ -35,3 +35,6 @@ Thumbs.db
 # reference recordings
 *.mp4
 *.mov
+
+# planning documents
+Proofmark v*.md
