@@ -1,5 +1,6 @@
 import type { CheckResult, ServerInfo } from "@proofmark/core";
 
+export const WORKER = process.env.NEXT_PUBLIC_WORKER_URL ?? "http://localhost:8788";
 export const GATEWAY = process.env.NEXT_PUBLIC_GATEWAY_URL ?? "http://localhost:8787";
 
 export class ApiError extends Error {
@@ -79,6 +80,7 @@ export const api = {
   unauthorized: (b: unknown) => post<{ reverted: boolean; error?: string; key: string }>("/ens/unauthorized-write", b),
   runAttest: (b: unknown) => post<any>("/attest/run", b),
   approveAttest: (b: unknown) => post<any>("/attest/approve", b),
+  submitAttest: (b: { pair: unknown; signature: string; tools: unknown }) => post<any>("/attest/submit", b),
   startPass: (name: string, ts: string, sig: string) => post<PassStart>(`/agents/${encodeURIComponent(name)}/pass/start`, { ts, sig }),
   pollPass: (attemptId: string) => post<PassPoll>("/agent-pass/poll", { attemptId }),
   revokePass: (name: string, ts: string, sig: string) => post<{ ok: boolean; tx: string }>(`/agents/${encodeURIComponent(name)}/pass/revoke`, { ts, sig }),

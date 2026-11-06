@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
 import { Loader2, ShieldCheck, UserPlus } from "lucide-react";
-import { ApiError, api } from "@/lib/api";
+import { ApiError, WORKER, api } from "@/lib/api";
 import { useWallet } from "@/lib/useWallet";
 import { ExplorerLink } from "../ExplorerLink";
 
@@ -38,12 +38,26 @@ export function Maintainers({ server, org }: { server: string; org: string }) {
       setKeys((k) => [...k, { subname: r.key.subname, label: r.key.label, tx: r.key.ensTx }]);
     });
 
+  // The hosted gateway cannot run containers. A small local worker derives the manifest in a sandbox, the wallet
+  // signs it here, and the gateway re-checks everything before recording it.
   const attest = (l: string) =>
     run("att" + l, async () => {
-      const r = await api.runAttest({ server, label: l });
-      if (r.status === "attested") setMsg(`Attested ${r.attestation.pair.version}. Manifest ${r.attestation.pair.toolManifestHash.slice(0, 14)}…`);
-      else setPending({ id: r.id, message: r.message, signer: r.signer });
+      setMsg("Deriving the tool manifest in a sandbox…");
+      let d: { pair: unknown; message: string; tools: unknown; signer: string; error?: string };
+      try {
+        const res = await fetch(`${WORKER}/derive`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ server, org, label: l }) });
+        d = await res.json();
+        if (!res.ok) throw new Error(d.error ?? `worker returned ${res.status}`);
+      } catch (e) {
+        const m = (e as Error).message;
+        throw new Error(/Failed to fetch|NetworkError|Load failed/i.test(m) ? "The local worker is not running. In a terminal on your computer run: npm run worker -w @proofmark/gateway" : m);
+      }
+      setMsg(`Sign with ${d.signer.slice(0, 8)}… in your wallet.`);
+      const signature = await wallet.sign(d.message);
+      const r = await api.submitAttest({ pair: d.pair, signature, tools: d.tools });
+      setMsg(`Attested ${r.attestation.pair.version}. Manifest ${r.attestation.pair.toolManifestHash.slice(0, 14)}… recorded on HCS.`);
     });
+  const [existing, setExisting] = useState("");
 
   const approve = () =>
     run("approve", async () => {
@@ -83,6 +97,17 @@ export function Maintainers({ server, org }: { server: string; org: string }) {
           ))}
         </ul>
       )}
+
+      <div className="space-y-3 border border-line bg-bg p-4">
+        <p className="flex items-center gap-2 font-display text-[16px] font-semibold"><ShieldCheck className="h-4 w-4 text-accent" aria-hidden /> Attest with an existing co-maintainer</p>
+        <div className="flex flex-col gap-3 sm:flex-row">
+          <input className={input} value={existing} onChange={(e) => setExisting(e.target.value.toLowerCase())} aria-label="Co-maintainer subname" placeholder="main" />
+          <button className="btn btn-primary" disabled={!existing || !!busy || !wallet.address} onClick={() => attest(existing)}>
+            {busy === "att" + existing && <Loader2 className="h-4 w-4 animate-spin" aria-hidden />} Derive, sign and publish
+          </button>
+        </div>
+        {!wallet.address && <button className="btn btn-ghost" onClick={wallet.connect}>Connect owner wallet</button>}
+      </div>
 
       {pending && (
         <div className="space-y-3 border border-accent/30 bg-accent/5 p-4">
