@@ -12,7 +12,8 @@ x402 payments and audit on Hedera · identity on ENSv2 · uniqueness and spend a
   <a href="https://proofmark-web.vercel.app/check">Check any server</a> ·
   <a href="https://proofmark-web.vercel.app/log">On-chain console</a> ·
   <a href="docs/TESTING.md">Testing report</a> ·
-  <a href="docs/WALKTHROUGH.md">Page-by-page walkthrough</a>
+  <a href="docs/WALKTHROUGH.md">Page-by-page walkthrough</a> ·
+  <a href="feedback/README.md">Sponsor feedback</a>
 </p>
 
 ---
@@ -534,6 +535,7 @@ apps/demo-server           MCP test fixture for the proxy tests (the read_env at
 apps/web                   Next.js app: landing, marketplace, check, fleet, claim, maintain, on-chain, docs, pitch
 publish/files-server       proofmark-files, a real server published to npm and the MCP registry
 docs                       TESTING.md, WALKTHROUGH.md, WORLD_DEBRIEF.md, architecture diagram
+feedback                   one FEEDBACK.md per sponsor: Hedera, ENS, World
 ```
 
 ---
