@@ -141,17 +141,13 @@ export function ClaimWizard() {
               <Field label="Your wallet" hint="Bound to the proof below. It will own the ENS name and approve co-maintainers.">
                 {wallet.address ? <p className="num flex h-11 items-center border border-line bg-bg px-3.5 text-[14px]">{wallet.address}</p> : <p className="flex h-11 items-center gap-2 border border-dashed border-line-strong px-3.5 text-[13px] text-muted">Connect your wallet with the button at the top right.</p>}
               </Field>
-              {own && (
+              {own && !own.claimed && (
                 <p className={`flex items-start gap-2 border px-4 py-3 text-[14px] ${own.ok ? "border-accent/30 bg-accent/10 text-accent" : "border-danger/30 bg-danger/10 text-danger"}`}>
                   {own.ok ? <BadgeCheck className="mt-0.5 h-4 w-4 shrink-0" aria-hidden /> : <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />}
-                  <span>{own.detail} <span className="opacity-70">({own.method})</span></span>
+                  <span>{own.detail}</span>
                 </p>
               )}
-              {own?.claimed?.yours && (
-                <a href={`/maintain?server=${encodeURIComponent(server.trim())}&org=${own.claimed.org}`} className="btn btn-primary">
-                  Open Maintain for {own.claimed.ens}
-                </a>
-              )}
+              {own?.claimed && <ClaimedCard server={server.trim()} c={own.claimed} />}
               {own?.control && !own.control.ok && (
                 <div className="space-y-3 border border-line-strong bg-surface-2 px-4 py-4 text-[14px]">
                   <p className="text-muted">The registry lists this server, but that does not show <strong className="text-text">you</strong> control it. Publish this exact line at {own.control.where}, then verify again:</p>
@@ -254,6 +250,34 @@ export function ClaimWizard() {
           )}
         </motion.div>
       </AnimatePresence>
+    </div>
+  );
+}
+
+/** A server that is already claimed is a finished claim, not an error: show who holds it, its tier and where to go next. */
+function ClaimedCard({ server, c }: { server: string; c: { org: string; ens: string; owner: string | null; yours: boolean } }) {
+  const [tier, setTier] = useState<{ tier: string; explain: string } | null>(null);
+  useEffect(() => {
+    api.check(server).then((r) => setTier({ tier: r.tier, explain: r.explain })).catch(() => {});
+  }, [server]);
+  const green = tier?.tier === "green";
+  return (
+    <div className={`space-y-4 border px-5 py-5 ${green ? "border-accent/40 bg-accent/10" : "border-line-strong bg-surface-2"}`}>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <p className="flex items-center gap-2 text-[15px] font-medium">
+          <BadgeCheck className="h-5 w-5 text-accent" aria-hidden /> Claimed by <span className="num">{c.ens}</span>
+        </p>
+        {tier && <span className={`border px-2.5 py-1 font-label text-[12px] uppercase tracking-wider ${green ? "border-accent/50 text-accent" : "border-line-strong text-muted"}`}>{tier.tier}</span>}
+      </div>
+      {tier && <p className="text-[14px] text-muted">{tier.explain}</p>}
+      <p className="text-[13px] text-muted">
+        Each server can be claimed once. {c.yours ? "This wallet owns it." : <>The owner is <span className="num text-text">{c.owner ? `${c.owner.slice(0, 6)}…${c.owner.slice(-4)}` : "on ENS"}</span>. To change it, connect that wallet.</>}
+      </p>
+      <div className="flex flex-wrap gap-3">
+        <a href={`/check?server=${encodeURIComponent(server)}`} className="btn btn-primary">See its live check</a>
+        <a href={`/server/${server}`} className="btn btn-ghost">Server page</a>
+        {c.yours && <a href={`/maintain?server=${encodeURIComponent(server)}&org=${c.org}`} className="btn btn-ghost">Open Maintain</a>}
+      </div>
     </div>
   );
 }
