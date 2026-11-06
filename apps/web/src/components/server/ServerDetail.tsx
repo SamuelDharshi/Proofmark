@@ -3,14 +3,15 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { AnimatePresence, LayoutGroup, motion } from "framer-motion";
 import { ArrowLeft, BadgeCheck, Hash, KeyRound, Layers, Plug, Wrench } from "lucide-react";
-import type { CheckResult } from "@proofmark/core";
+import type { CheckResult, ServerInfo } from "@proofmark/core";
+import { ServerFacts } from "./ServerFacts";
 import { api, GATEWAY } from "@/lib/api";
 import { usd } from "@/lib/format";
 import { TierBadge, tierColor } from "../TierBadge";
 import { ExplorerLink } from "../ExplorerLink";
 import { CopyText } from "../CopyText";
 
-type Detail = CheckResult & { keySource: string | null; divergent?: number };
+type Detail = CheckResult & { keySource: string | null; divergent?: number; info?: ServerInfo };
 const TABS = [
   { id: "overview", label: "Overview", Icon: Layers },
   { id: "tools", label: "Tools", Icon: Wrench },
@@ -33,7 +34,7 @@ export function ServerDetail({ name }: { name: string }) {
 
   useEffect(() => {
     let live = true;
-    const load = () => api.check(name).then((r) => live && setD(r)).catch((e) => live && setErr(e.message));
+    const load = () => api.check(name, true).then((r) => live && setD(r)).catch((e) => live && setErr(e.message));
     load();
     const t = setInterval(load, 8000);
     return () => {
@@ -97,6 +98,8 @@ export function ServerDetail({ name }: { name: string }) {
           <AnimatePresence mode="wait">
             <motion.div key={tab} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={{ duration: 0.2 }} className="mt-6">
               {tab === "overview" && (
+                <div className="space-y-5">
+                {d.info && <div className="card p-6"><ServerFacts info={d.info} claimed={d.claimed} /></div>}
                 <dl className="card px-6">
                   <Row k="Maintainer">{d.org ? <ExplorerLink k={{ type: "ens", id: d.org }} /> : <span className="text-muted">Unclaimed</span>}</Row>
                   <Row k="Human verified">
@@ -118,6 +121,7 @@ export function ServerDetail({ name }: { name: string }) {
                     )}
                   </Row>
                 </dl>
+                </div>
               )}
 
               {tab === "tools" &&

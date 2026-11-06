@@ -3,16 +3,20 @@ import { useState } from "react";
 import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
 import { ArrowRight, Loader2, Search } from "lucide-react";
-import type { CheckResult } from "@proofmark/core";
+import type { CheckResult, ServerInfo } from "@proofmark/core";
 import { api } from "@/lib/api";
 import { TierBadge, tierColor } from "../TierBadge";
+import { ServerFacts } from "../server/ServerFacts";
 
-const EXAMPLES = ["io.proofmark.demo/filesystem", "io.proofmark.demo/postgres", "com.example/anything"];
+type Result = CheckResult & { info?: ServerInfo };
+
+// Real servers from the official registry.
+const EXAMPLES = ["io.github.arben-adm/mcp-sequential-thinking", "com.pulsemcp/remote-filesystem", "ac.inference.sh/mcp"];
 
 export function CheckTool({ initial = "" }: { initial?: string }) {
   const [q, setQ] = useState(initial);
   const [busy, setBusy] = useState(false);
-  const [res, setRes] = useState<CheckResult | null>(null);
+  const [res, setRes] = useState<Result | null>(null);
   const [err, setErr] = useState<string | null>(null);
 
   const run = async (name: string) => {
@@ -21,7 +25,7 @@ export function CheckTool({ initial = "" }: { initial?: string }) {
     setBusy(true);
     setErr(null);
     try {
-      setRes(await api.check(n));
+      setRes(await api.check(n, true));
     } catch (e) {
       setErr((e as Error).message);
       setRes(null);
@@ -74,12 +78,19 @@ export function CheckTool({ initial = "" }: { initial?: string }) {
               <span aria-hidden className="absolute inset-x-0 top-0 h-px" style={{ background: `linear-gradient(90deg, transparent, ${tierColor[res.tier]}, transparent)` }} />
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <p className="num break-all text-[15px]">{res.server}</p>
-                <TierBadge tier={res.tier} />
+                {res.info && !res.info.found ? (
+                  <span className="inline-flex items-center rounded-lg border border-line-strong px-2.5 py-1 font-label text-[12px] text-muted">Not in registry</span>
+                ) : (
+                  <TierBadge tier={res.tier} />
+                )}
               </div>
-              <p className="mt-4 text-[16px] text-muted">{res.explain}</p>
-              <Link href={`/server/${res.server}`} className="link mt-5 inline-flex items-center gap-2 text-[14px] text-accent">
-                Open inspector <ArrowRight className="h-4 w-4" aria-hidden />
-              </Link>
+              {res.info?.found !== false && <p className="mt-4 text-[16px] text-muted">{res.explain}</p>}
+              {res.info && <ServerFacts info={res.info} claimed={res.claimed} onPick={(n) => { setQ(n); run(n); }} />}
+              {res.info?.found !== false && (
+                <Link href={`/server/${res.server}`} className="link mt-5 inline-flex items-center gap-2 text-[14px] text-accent">
+                  Open inspector <ArrowRight className="h-4 w-4" aria-hidden />
+                </Link>
+              )}
             </motion.div>
           )}
         </AnimatePresence>
