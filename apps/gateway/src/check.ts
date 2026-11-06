@@ -1,5 +1,6 @@
 import { decideTier, findTyposquat, type CheckResult } from "@proofmark/core";
 import { store, type AttestationRecord } from "./store";
+import { caps } from "./config";
 import { readServerClaim, readOrg, readKey, type KeyRecord } from "./chain";
 
 export const latestAttestation = (server: string, version?: string): AttestationRecord | undefined =>
@@ -36,7 +37,11 @@ export async function evaluate(server: string, version?: string): Promise<CheckR
   const keyMatches = !!key?.address && !!att && key.address.toLowerCase() === att.pair.attestKey.toLowerCase();
   const div = att ? divergence(server, att.pair.version, att.pair.toolManifestHash) : { count: 0, clients: 0 };
 
+  const bond = org.bondStatus === "forfeited" ? "forfeited" : org.bondTx && org.bondStatus === "live" ? "live" : "missing";
   const t = decideTier({
+    bond,
+    domainVerified: !!org.domainVerified,
+    layersRequired: caps.bond,
     claimed: true,
     attested: !!att,
     artifactMatch: true,
@@ -54,6 +59,9 @@ export async function evaluate(server: string, version?: string): Promise<CheckR
     payTo: org.payto ?? undefined,
     price: org.price ?? undefined,
     worldVerified: org.worldVerified,
+    bond,
+    bondTx: org.bondTx ?? undefined,
+    domainVerified: org.domainVerified ?? undefined,
     attestKey: att?.pair.attestKey,
     artifactHash: att?.pair.artifactHash,
     toolManifestHash: att?.pair.toolManifestHash,

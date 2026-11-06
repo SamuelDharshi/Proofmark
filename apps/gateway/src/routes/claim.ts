@@ -5,9 +5,10 @@ import { store, logEvent, uid } from "../store";
 import { getServer, verifyNameOwnership } from "../registry";
 import { rpSignature, verifyHumanProof, recordNullifier, proofNullifier, worldStatus } from "../world";
 import * as ens from "../ens";
-import { verifyControl } from "../control";
-import { anchorTo } from "../hcs";
-import { orgInfra, orgNameOwner, readOrg, readKey, readServerClaim, registerServer } from "../chain";
+import { verifyControl, namespaceOf } from "../control";
+import { bondInfo, verifyBond } from "../bond";
+import { anchor, anchorTo } from "../hcs";
+import { orgInfra, orgNameOwner, readOrg, readKey, readServerClaim, registerServer, writeOrgTexts } from "../chain";
 
 export const claimRoutes = new Hono();
 
@@ -126,6 +127,8 @@ claimRoutes.post("/claim", async (c) => {
       job.step = "Claiming the server name on ENS";
       const srv = await registerServer({ server: b.server, org: b.org, owner, expiresAt });
       job.txs.push(...srv.txs);
+      job.step = "Recording the verified namespace";
+      job.txs.push({ label: "namespace", hash: await writeOrgTexts(b.org, { "domain.verified": `${control.method}: ${namespaceOf(b.server)}` }) });
 
       // Display index only. The decisions are made from ENS.
       store.update((d) => {
@@ -144,6 +147,42 @@ claimRoutes.post("/claim", async (c) => {
   })();
 
   return c.json({ jobId: job.id }, 202);
+});
+
+// ---- the bond ----
+claimRoutes.get("/bond", (c) => c.json(bondInfo()));
+
+/** Record a bond deposit. The owner signs, the mirror node proves the transfer, ENS and HCS keep the record. */
+claimRoutes.post("/bond", async (c) => {
+  if (!caps.ens || !env.BOND_ACCOUNT_ID) return c.json({ error: "bond-not-configured", message: "This gateway has no bond account." }, 503);
+  const b = (await c.req.json()) as { org: string; txId: string; ownerSig: string };
+  const org = await requireOwner(b.org, `proofmark:bond:${b.org}:${b.txId}`, b.ownerSig);
+  if (!org) return c.json({ error: "owner signature required" }, 403);
+  if (!org.payto) return c.json({ error: "the org has no payout account on ENS" }, 409);
+  const v = await verifyBond(b.txId, org.payto);
+  if (!v.ok) return c.json({ error: "bond-rejected", message: v.detail }, 400);
+  try {
+    const ensTx = await writeOrgTexts(b.org, { "bond.tx": v.txId!, "bond.status": "live" });
+    const hcs = await anchor({ type: "bond", org: b.org, txId: v.txId, hbar: v.hbar, from: org.payto, to: env.BOND_ACCOUNT_ID, status: "live" }).catch(() => null);
+    logEvent({ kind: "bond", detail: `${ens.orgName(b.org)} bonded ${v.hbar} HBAR`, tx: { chain: "sepolia", id: ensTx } });
+    return c.json({ ok: true, hbar: v.hbar, txId: v.txId, ensTx, hcs });
+  } catch (e) {
+    return c.json({ error: "ens-failed", message: (e as Error).message }, 502);
+  }
+});
+
+/** Forfeit a bond after a malicious release. Only the ENS admin wallet may do this, and it is logged on HCS. */
+claimRoutes.post("/bond/forfeit", async (c) => {
+  if (!caps.ens) return c.json({ error: "ens-not-configured" }, 503);
+  const b = (await c.req.json()) as { org: string; reason: string; adminSig: string };
+  const message = `proofmark:forfeit:${b.org}:${b.reason}`;
+  if (!(await verifyMessage({ address: getAddress(ens.adminAddress()), message, signature: b.adminSig as `0x${string}` }).catch(() => false))) return c.json({ error: "admin signature required" }, 403);
+  const org = await readOrg(ens.orgName(b.org));
+  if (!org.bondTx) return c.json({ error: "this org has no bond" }, 409);
+  const ensTx = await writeOrgTexts(b.org, { "bond.status": "forfeited" });
+  const hcs = await anchor({ type: "bond-forfeit", org: b.org, txId: org.bondTx, reason: b.reason.slice(0, 120), status: "forfeited" }).catch(() => null);
+  logEvent({ kind: "bond", detail: `${ens.orgName(b.org)} bond forfeited: ${b.reason}`, tx: { chain: "sepolia", id: ensTx } });
+  return c.json({ ok: true, ensTx, hcs });
 });
 
 // ---- owner-signed actions. The owner is whoever the org's ENS `owner` record says. ----
