@@ -22,6 +22,9 @@ Everything below is reproducible from a clean clone.
 | --- | --- |
 | x402 settlement, agent `0.0.11331191` pays maintainer `0.0.8149406` $0.002 (0.02 HBAR), no human approving | [HashScan transaction](https://hashscan.io/testnet/transaction/0.0.7162784-1793921712-374513238) |
 | HCS topic holding every attestation and payment | [Topic 0.0.11331506](https://hashscan.io/testnet/topic/0.0.11331506) |
+| Attestation certificate collection (HTS NFT, `PMARK`) | [Token 0.0.11341242](https://hashscan.io/testnet/token/0.0.11341242) |
+| Certificate #1 minted for `ai.adeu/adeu` v1.7.1 from a real sandboxed derivation of its tool manifest | [NFT 0.0.11341242 #1](https://hashscan.io/testnet/token/0.0.11341242/1) |
+| HCS-14 agent identity message for `claude-1.agents.proofmark.eth` | [Topic message #5](https://hashscan.io/testnet/topic/0.0.11331506) |
 | Maintainer account | [0.0.8149406](https://hashscan.io/testnet/account/0.0.8149406) |
 | Paying agent account | [0.0.11331191](https://hashscan.io/testnet/account/0.0.11331191) |
 
@@ -33,7 +36,8 @@ Everything below is reproducible from a clean clone.
 | Org registry proxy and org resolver proxy for `demo.proofmark.eth` | [resolver](https://sepolia.etherscan.io/tx/0xc5b8d89f42498ee44f3d51a839b26e54f729ba73b699b7cb685bc5c9dc169783), [registry](https://sepolia.etherscan.io/tx/0x8a2251888028671212db07806cdf7e1c05c6654436c356721ad5a05a0fbc763e) |
 | Org name registered and records written | [register](https://sepolia.etherscan.io/tx/0x9a0fd456eefa59c56bd888420a4186115336b3346fda339319d7f4cdf771b84a), [records](https://sepolia.etherscan.io/tx/0x9ba046f0910a20a344bd2d05ae1b4c54d2f44ed0dcf0fa1bffe01f832d6a2541) |
 | Co-maintainer `gateway.demo.proofmark.eth` with an expiring key | [subname](https://sepolia.etherscan.io/tx/0xb2a8e03a59f1db1912e458d1159636b8fc0fdc1d935dc864ef1c4614c3cd24f4), [attest.key role](https://sepolia.etherscan.io/tx/0xc0993ea3172d74d94d42ba5c7e7582286e77896d560b76f3dfbfe04e11f90fb2), [attest.key record](https://sepolia.etherscan.io/tx/0x676bf728d8ceb8f81c2938de9722c08aff6f9a82e8e85dfaf72f564dea81e0ef) |
-| Unauthorised write to `status` by that co-maintainer | Reverts with `EACUnauthorizedAccountRoles`. Reproduce with `npm run ens:spike -w @proofmark/gateway` |
+| Unauthorised write to `status` by that co-maintainer | Reverts with `EACUnauthorizedAccountRoles` when the co-maintainer key tries to write a record it holds no role for |
+| Agent `claude-1.agents.proofmark.eth` registered as an ERC-8004 agent (#11294) in the Sepolia Identity Registry, with its HCS-14 UAID written to its ENS records | [register](https://sepolia.etherscan.io/tx/0x24c3a835a1d02dca2439ae61650baca97f129726e9c20902a6c7a12ab221eba8), [agentURI](https://sepolia.etherscan.io/tx/0x5b0ac5589274904411c3e9bcb0eda6241047ae8947f124cc2112b88d165111ac), [ENS records](https://sepolia.etherscan.io/tx/0x4e85350ffad71f3be6f1042fdae71c364c740283b82f0660d696d4fcc9ff1efa) |
 
 | What | How to see it |
 | --- | --- |
@@ -41,7 +45,7 @@ Everything below is reproducible from a clean clone.
 | x402 settlement on Hedera testnet | Connect one agent. The proxy logs a HashScan link for the settled transaction and the gateway records it on the Fleet page |
 | Public replayable log | The HCS log page reads the topic back from the Hedera mirror node. The topic link is returned by `GET /config` |
 | ENSv2 hierarchy | `GET /config` returns the contract addresses used. Each org, co-maintainer and revocation links to Sepolia Etherscan and the ENS app |
-| Denied path | Fleet, Agents tab: expire an agent's pass, then connect. The payment is refused and no connection is made |
+| Denied path | Connect with an agent that has no valid Agent Pass. The gateway refuses before any payment and no connection is made |
 | Public read-only page | `/check` resolves any server name. Unclaimed names honestly return sandboxed |
 
 ## Track requirements
@@ -131,8 +135,10 @@ One resolver instance per org, because argument-scoped grants apply to every nam
 ### Hedera
 `@x402/hedera` exact scheme on `hedera:testnet`, settled by the Blocky402 facilitator. The price and `payTo` account are set per maintainer and capped at $0.05 ([x402.ts:69](apps/gateway/src/x402.ts#L69)). The asset is configurable and defaults to HBAR, because testnet USDC token ids are not reliable across facilitators. HCS carries every attestation and payment ([hcs.ts](apps/gateway/src/hcs.ts)). Every transaction id in the app links to HashScan.
 
+Beyond x402 and HCS: each approved attestation is minted as an **HTS NFT certificate** ([hts.ts](apps/gateway/src/hts.ts), collection `0.0.11341242`); each agent has an **HCS-14 UAID** derived from its Hedera account and anchored to the topic ([identity.ts](apps/gateway/src/identity.ts)); and a **Hedera Agent Kit plugin** lets any Agent Kit agent call `PROOFMARK_CHECK_SERVER_TOOL` and `PROOFMARK_AGENT_IDENTITY_TOOL` ([packages/agent-kit-plugin](packages/agent-kit-plugin)). Spending controls are set on the x402 client, with a per-payment cap and a budget read from the agent's ENS record.
+
 ### ENS
-ENSv2 on Sepolia: Permissioned Registry subname registries, a Permissioned Resolver per org, Enhanced Access Control roles scoped to `attest.key`, expiring co-maintainer subnames and wildcard resolution to the sandboxed tier ([ens.ts](apps/gateway/src/ens.ts)).
+Agents are also registered in the ERC-8004 Identity Registry on Sepolia, and the reference is stored back on the agent's ENS name (`erc8004` record) next to its `hcs14.uaid`. ENSv2 on Sepolia: Permissioned Registry subname registries, a Permissioned Resolver per org, Enhanced Access Control roles scoped to `attest.key`, expiring co-maintainer subnames and wildcard resolution to the sandboxed tier ([ens.ts](apps/gateway/src/ens.ts)).
 
 ### World
 Agent Pass, through the official World IdP (OpenID Connect), proves a verified human operates the paying agent. The gateway runs the Device Authorization Grant, validates the ID token and records the pass on the agent's ENS name. Spend authority lapses when the authentication is older than the allowed age, so an expired pass is refused with no override. IDKit Proof of Human gates the maintainer claim, one nullifier to one identity. For a maintainer, uniqueness is the property needed, and a passport-grade credential would break the pseudonymity open source relies on. For the agent, the pass only has to show that some verified human is accountable for it ([world.ts](apps/gateway/src/world.ts), [agents.ts](apps/gateway/src/agents.ts)).
