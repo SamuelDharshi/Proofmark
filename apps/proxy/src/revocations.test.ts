@@ -6,7 +6,7 @@ const msg = (seq: number, ts: string, body: object) => ({ sequence_number: seq, 
 
 function stubMirror(batches: object[][]) {
   let call = 0;
-  return (async () => new Response(JSON.stringify({ messages: batches[Math.min(call++, batches.length - 1)] }))) as unknown as typeof fetch;
+  return (async () => new Response(JSON.stringify({ messages: batches[call++] ?? [] }))) as unknown as typeof fetch;
 }
 
 test("a revocation for this key is delivered, others are ignored", async () => {
