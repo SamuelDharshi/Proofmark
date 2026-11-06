@@ -44,7 +44,7 @@ export interface PassStatus {
   maxAgeSec: number;
 }
 export interface FleetAgent {
-  ensName: string; hederaAccount: string; evmAddress: string; budgetUsd: number; spentUsd: number; budgetLeft: number;
+  ensName: string; uaid?: string; erc8004?: string; hederaAccount: string; evmAddress: string; budgetUsd: number; spentUsd: number; budgetLeft: number;
   maxRisk: string; allowedTools: string[]; pass: PassStatus;
   last?: { kind: string; detail: string; ts: number };
 }

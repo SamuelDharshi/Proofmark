@@ -98,6 +98,26 @@ export function AgentCard({ a, onChange }: { a: FleetAgent; onChange: () => void
       </div>
 
       <p className="mt-4 text-[13px] text-muted">{a.pass.message}</p>
+      {(a.erc8004 || a.uaid) && (
+        <dl className="mt-3 space-y-1 border-t border-line pt-3 text-[12px] text-muted">
+          {a.erc8004 && (
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <dt>ERC-8004</dt>
+              <dd className="num">
+                <a className="link" target="_blank" rel="noreferrer" href={`https://sepolia.etherscan.io/token/${a.erc8004.split(":")[2]}?a=${a.erc8004.split(":")[3]}`}>
+                  agent #{a.erc8004.split(":")[3]}
+                </a>
+              </dd>
+            </div>
+          )}
+          {a.uaid && (
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <dt>HCS-14 UAID</dt>
+              <dd className="num truncate" title={a.uaid}>{a.uaid.split(";")[0].slice(0, 22)}…</dd>
+            </div>
+          )}
+        </dl>
+      )}
 
       <div className="mt-4">
         <div className="mb-1.5 flex justify-between text-[12px] text-muted">

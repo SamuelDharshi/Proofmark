@@ -113,6 +113,15 @@ export function ServerDetail({ name }: { name: string }) {
                   <Row k="Attested version"><span className="num">{d.version ?? "none"}</span></Row>
                   <Row k="Key state read from"><span className="num">{d.keySource ?? "n/a"}</span></Row>
                   <Row k="Clients reporting a different manifest"><span className="num">{d.divergent ?? 0}</span></Row>
+                  <Row k="Attestation certificate">
+                    {d.nftToken ? (
+                      <a className="link num text-accent" target="_blank" rel="noreferrer" href={`https://hashscan.io/testnet/token/${d.nftToken}/${d.nftSerial}`}>
+                        HTS NFT {d.nftToken} #{d.nftSerial}
+                      </a>
+                    ) : (
+                      <span className="text-muted">None yet</span>
+                    )}
+                  </Row>
                   <Row k="HCS anchor">
                     {d.hcsTopic ? (
                       <span className="inline-flex items-center gap-2"><ExplorerLink k={{ type: "hedera-topic", id: d.hcsTopic }} /> <span className="num text-muted">#{d.hcsSequence}</span></span>
