@@ -115,6 +115,8 @@ export const agentEns = (label: string) => `${label}.agents.${env.ENS_ROOT_NAME}
 
 export interface AgentRecord {
   ensName: string;
+  uaid?: string;
+  erc8004?: string;
   hedera: string;
   evm: string;
   budgetUsd: number;
@@ -124,11 +126,13 @@ export interface AgentRecord {
 }
 
 export async function readAgent(ensName: string): Promise<AgentRecord | null> {
-  const keys = ["hedera", "evm", "budget", "maxrisk", "allowed.tools", "pass.iss", "pass.sub", "pass.auth_time", "pass.acr", "pass.maxage"];
-  const [hedera, evm, budget, maxrisk, tools, iss, sub, auth, acr, maxage] = await Promise.all(keys.map((k) => ens.getText(ensName, k)));
+  const keys = ["hedera", "evm", "budget", "maxrisk", "allowed.tools", "pass.iss", "pass.sub", "pass.auth_time", "pass.acr", "pass.maxage", "hcs14.uaid", "erc8004"];
+  const [hedera, evm, budget, maxrisk, tools, iss, sub, auth, acr, maxage, uaid, erc8004] = await Promise.all(keys.map((k) => ens.getText(ensName, k)));
   if (!evm || !hedera) return null;
   return {
     ensName, hedera, evm,
+    uaid: uaid ?? undefined,
+    erc8004: erc8004 ?? undefined,
     budgetUsd: budget ? Number(budget) : 0,
     maxRisk: maxrisk === "sandboxed" ? "sandboxed" : "green",
     allowedTools: tools ? tools.split(",").map((s) => s.trim()).filter(Boolean) : [],
@@ -176,5 +180,17 @@ export async function writePass(ensName: string, p: { iss: string; sub: string; 
     ens.setTextCall(ensName, "pass.acr", v.acr),
   ]]);
   ens.invalidateEns(ensName);
+  return hash;
+}
+
+/** Identity records on the agent's ENS name: the HCS-14 UAID and the ERC-8004 registry reference. */
+export async function writeAgentIdentity(label: string, p: { uaid: string; erc8004: string }) {
+  const infra = await agentsInfra();
+  const name = agentEns(label);
+  const hash = await ens.send(infra.resolver, C.PermissionedResolverImpl.abi, "multicall", [[
+    ens.setTextCall(name, "hcs14.uaid", p.uaid),
+    ens.setTextCall(name, "erc8004", p.erc8004),
+  ]]);
+  ens.invalidateEns(name);
   return hash;
 }

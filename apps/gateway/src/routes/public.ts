@@ -77,7 +77,7 @@ publicRoutes.get("/fleet", async (c) => {
         if (!a) return null;
         const spent = await spentUsd(a.hedera).catch(() => 0);
         const last = db.events.find((e) => e.agent === a.ensName || e.agent === a.hedera);
-        return { ensName: a.ensName, hederaAccount: a.hedera, evmAddress: a.evm, budgetUsd: a.budgetUsd, spentUsd: spent, budgetLeft: await budgetLeft(a), maxRisk: a.maxRisk, allowedTools: a.allowedTools, pass: passStatus(a), last };
+        return { ensName: a.ensName, uaid: a.uaid, erc8004: a.erc8004, hederaAccount: a.hedera, evmAddress: a.evm, budgetUsd: a.budgetUsd, spentUsd: spent, budgetLeft: await budgetLeft(a), maxRisk: a.maxRisk, allowedTools: a.allowedTools, pass: passStatus(a), last };
       }),
     )
   ).filter(Boolean);
@@ -89,7 +89,7 @@ publicRoutes.get("/fleet", async (c) => {
 publicRoutes.get("/agents/:name", async (c) => {
   const a = await loadAgent(c.req.param("name")).catch(() => null);
   if (!a) return c.json({ error: "unknown agent" }, 404);
-  return c.json({ ensName: a.ensName, budgetUsd: a.budgetUsd, spentUsd: await spentUsd(a.hedera), budgetLeft: await budgetLeft(a), maxRisk: a.maxRisk, allowedTools: a.allowedTools, pass: passStatus(a) });
+  return c.json({ ensName: a.ensName, uaid: a.uaid, erc8004: a.erc8004, budgetUsd: a.budgetUsd, spentUsd: await spentUsd(a.hedera), budgetLeft: await budgetLeft(a), maxRisk: a.maxRisk, allowedTools: a.allowedTools, pass: passStatus(a) });
 });
 
 // ---- World ID Agent Pass ----
