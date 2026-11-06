@@ -15,6 +15,18 @@ function dockerBin(): { command: string; prefix: string[] } {
   return { command, prefix };
 }
 
+/** Run a docker command on whichever engine DOCKER_BIN selects. */
+export function dockerRun(args: string[], timeout = 240000) {
+  const d = dockerBin();
+  return spawnSync(d.command, [...d.prefix, ...args], { encoding: "utf8", timeout });
+}
+
+/** A host path as the engine sees it. Under WSL, C:\a\b becomes /mnt/c/a/b. */
+export function dockerPath(p: string): string {
+  if (dockerBin().command !== "wsl") return p;
+  return p.replace(/^([A-Za-z]):[\\/]/, (_, d: string) => `/mnt/${d.toLowerCase()}/`).replace(/\\/g, "/");
+}
+
 let dockerOk: boolean | undefined;
 export function dockerAvailable(): boolean {
   if (dockerOk === undefined) {

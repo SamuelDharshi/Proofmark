@@ -5,7 +5,7 @@ import { mkdtempSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { toolManifestHash, type AttestationPair, type McpTool, type RegistryType } from "@proofmark/core";
-import { captureTools, containerSpec, dockerAvailable, type SpawnSpec } from "@proofmark/runner";
+import { captureTools, containerSpec, dockerAvailable, dockerPath, dockerRun, type SpawnSpec } from "@proofmark/runner";
 import { getServer, packageKind, type RegistryServer } from "./registry";
 
 export interface Derived {
@@ -53,19 +53,15 @@ async function artefactHash(s: RegistryServer): Promise<{ type: RegistryType; ha
 /** Install an npm package inside a container, then return a spec that runs it offline. */
 function npmOfflineSpec(identifier: string, version: string): SpawnSpec {
   const dir = mkdtempSync(join(tmpdir(), "proofmark-npm-"));
-  const install = spawnSync(
-    "docker",
-    ["run", "--rm", "-v", `${dir}:/app`, "-w", "/app", "node:22-slim", "npm", "install", "--no-audit", "--no-fund", `${identifier}@${version}`],
-    { encoding: "utf8", timeout: 240000 },
-  );
+  const install = dockerRun(["run", "--rm", "-v", `${dockerPath(dir)}:/app`, "-w", "/app", "node:22-slim", "npm", "install", "--no-audit", "--no-fund", `${identifier}@${version}`]);
   if (install.status !== 0) throw new Error(`npm install in container failed: ${install.stderr.slice(0, 300)}`);
   const pkg = JSON.parse(readFileSync(join(dir, "node_modules", identifier, "package.json"), "utf8"));
   const bin = typeof pkg.bin === "string" ? pkg.bin : Object.values(pkg.bin ?? {})[0];
   if (!bin) throw new Error("package exposes no bin");
   const base = containerSpec("node:22-slim");
   return {
-    command: "docker",
-    args: [...base.args.slice(0, -1).filter((a) => a !== "node:22-slim"), "-v", `${dir}:/app:ro`, "-w", "/app", "node:22-slim", "node", `node_modules/${identifier}/${bin}`],
+    command: base.command,
+    args: [...base.args.slice(0, -1).filter((a) => a !== "node:22-slim"), "-v", `${dockerPath(dir)}:/app:ro`, "-w", "/app", "node:22-slim", "node", `node_modules/${identifier}/${bin}`],
   };
 }
 
