@@ -38,16 +38,10 @@ export interface AttestationRecord extends SignedAttestation {
   createdAt: number;
   hcs?: { topic: string; sequence: number; tx: string };
 }
+/** A name this gateway registered. Everything about the agent (wallet, budget, pass) lives on ENS. */
 export interface Agent {
   ensName: string;
-  hederaAccount: string;
-  evmAddress: string;
-  budgetUsd: number;
-  spentUsd: number;
-  maxRisk: "green" | "sandboxed";
-  allowedTools: string[];
-  passValid: boolean;
-  passExpiresAt?: number;
+  addedAt?: number;
 }
 export interface Payment {
   id: string;
