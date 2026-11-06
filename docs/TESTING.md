@@ -7,10 +7,31 @@ Run on 2026-11-07 against the deployed system: gateway on Render, web on Vercel,
 | Area | Result |
 | --- | --- |
 | Unit tests (core 19, proxy 6, gateway 5) | 30 passed, 0 failed |
-| Live end-to-end script (`npm run e2e`) | 16 passed, 0 failed, 2 blocked on a person |
-| Live system check (`npm run live:check`) | 19 passed, 2 failed, both from two environment variables not yet set on Render |
-| Site, 8 pages in a real browser | 8 passed, no script errors, no failed requests |
+| Live end-to-end script (`npm run e2e`) | 16 passed, 0 failed, 0 blocked (second run) |
+| Live system check (`npm run live:check`) | 22 passed, 0 failed |
+| Production build of the web app | 11 routes built, no errors |
+| Site, 12 pages on the live Vercel deployment in a real browser | 12 passed, no script errors |
+| Claim of an already-claimed server, against the live gateway | returns the owner and a link to Maintain, not HTTP 409 |
 | Hedera Agent Kit plugin against the live gateway | passed |
+
+### Second run, later on 2026-11-07
+
+New evidence from this run:
+- Bond deposit [0.0.8149406-1794004053-697388103](https://hashscan.io/testnet/transaction/0.0.8149406-1794004053-697388103) verified. A 5 HBAR deposit [0.0.8149406-1794004053-081843488](https://hashscan.io/testnet/transaction/0.0.8149406-1794004053-081843488) was rejected as below the minimum.
+- Co-maintainer `e2epbpe.samuel.proofmark.eth`:
+  - added: [subname](https://sepolia.etherscan.io/tx/0xc31e50cefbafd8fa839132e0d0162546f82f274bd3fca40f53603b63689e6493), [role](https://sepolia.etherscan.io/tx/0x2aa6372ff2fbbbf94b6852606e64bf93a891f5b78e04480b52f34fda44d92f73), [key](https://sepolia.etherscan.io/tx/0xd41c46e0276e69d600b14329a5847db8e42de42e3ea466f0ba68145b7b986098)
+  - then [revoked](https://sepolia.etherscan.io/tx/0xc39e07b54d0e671a332eff6981df0693aedc036c16f6d23ef37c5eebe17f16d7)
+- The revocation went to HCS topic 0.0.11344888 as message #2. A subscribed proxy saw it 2.1 s after the HCS submit.
+- Allowance [withdrawn](https://hashscan.io/testnet/transaction/0.0.8149406-1794004134-445493937): payment refused. [Approved again](https://hashscan.io/testnet/transaction/0.0.8149406-1794004142-331722408): payment allowed.
+- `proofmark-files@1.0.0` was derived in a no-network sandbox. Its manifest is `0x0e05fb00…72d5f0`, and its artefact hash equals the registry's.
+
+Still needs a person:
+- The MetaMask signatures of the `sam` owner wallet (co-maintainer `main`, attestation approval).
+- One World Agent Pass approval.
+
+Until that approval, a paid connect is refused with HTTP 403, which is the denied path working as designed.
+
+A page-by-page walkthrough is in [WALKTHROUGH.md](WALKTHROUGH.md).
 
 ## Reproduce
 
