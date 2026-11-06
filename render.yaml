@@ -1,0 +1,71 @@
+# Render Blueprint: two services from one repo.
+# Secrets are marked sync: false, so Render asks for them in the dashboard and they never live in git.
+services:
+  - type: web
+    name: proofmark-gateway
+    runtime: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm run start -w @proofmark/gateway
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_VERSION
+        value: 22
+      - key: PUBLIC_GATEWAY_URL
+        sync: false
+      - key: HEDERA_GATEWAY_ACCOUNT_ID
+        sync: false
+      - key: HEDERA_GATEWAY_PRIVATE_KEY
+        sync: false
+      - key: HCS_TOPIC_ID
+        sync: false
+      - key: X402_FACILITATOR_URL
+        value: https://api.testnet.blocky402.com
+      - key: X402_ASSET
+        value: "0.0.0"
+      - key: HBAR_USD
+        value: "0.10"
+      - key: CONNECT_PRICE_USD
+        value: "0.002"
+      - key: MAX_PRICE_USD
+        value: "0.05"
+      - key: ATTEST_PRIVATE_KEY
+        sync: false
+      - key: SEPOLIA_RPC_URL
+        sync: false
+      - key: ENS_ADMIN_PRIVATE_KEY
+        sync: false
+      - key: ENS_ROOT_NAME
+        value: proofmark.eth
+      - key: WORLD_APP_ID
+        sync: false
+      - key: WORLD_RP_ID
+        sync: false
+      - key: WORLD_RP_SIGNING_KEY
+        sync: false
+      - key: WORLD_ENVIRONMENT
+        value: staging
+      - key: WORLD_ACTION
+        value: claim-mcp-server
+      - key: WORLD_IDP_ISSUER
+        value: https://auth.world.org
+      - key: WORLD_IDP_CLIENT_ID
+        sync: false
+      - key: WORLD_IDP_CLIENT_SECRET
+        sync: false
+      - key: WORLD_IDP_AUTH_METHOD
+        value: basic
+      - key: PASS_MAX_AGE_SECONDS
+        value: "86400"
+
+  - type: web
+    name: proofmark-web
+    runtime: node
+    plan: free
+    buildCommand: npm install && npm run build -w @proofmark/web
+    startCommand: npm run start -w @proofmark/web
+    envVars:
+      - key: NODE_VERSION
+        value: 22
+      - key: NEXT_PUBLIC_GATEWAY_URL
+        sync: false
