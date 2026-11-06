@@ -3,6 +3,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Activity, ArrowUpRight, FileClock, ShieldPlus, Store } from "lucide-react";
 import { Wordmark } from "./Logo";
+import { DECKS } from "@/lib/pitch";
 
 const NAV = [
   { href: "/fleet", label: "Fleet", Icon: Activity },
@@ -34,6 +35,16 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               </Link>
             );
           })}
+          <div className="mt-6 hidden flex-col gap-1 border-t border-line pt-5 md:flex">
+            <p className="px-3 font-label text-[11px] uppercase tracking-[0.12em] text-faint">Pitch decks</p>
+            {DECKS.map((d) => (
+              <a key={d.id} href={d.url} target="_blank" rel="noreferrer" className="group flex min-h-10 items-center justify-between gap-2 px-3 text-[13px] text-muted transition-colors hover:bg-surface hover:text-text">
+                <span><span className="text-text">{d.sponsor}</span> · {d.track.split(":")[0].replace("Best Use of ", "")}</span>
+                <ArrowUpRight className="h-3.5 w-3.5 shrink-0 opacity-0 transition-opacity group-hover:opacity-100" aria-hidden />
+              </a>
+            ))}
+            <Link href="/pitch" className="link px-3 pt-1 text-[12px] text-muted hover:text-text">All three decks</Link>
+          </div>
         </nav>
         <Link href="/docs" className="link hidden items-center gap-1.5 px-3 text-[13px] text-muted hover:text-text md:inline-flex">
           Docs <ArrowUpRight className="h-3.5 w-3.5" aria-hidden />

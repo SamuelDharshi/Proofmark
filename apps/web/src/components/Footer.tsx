@@ -21,6 +21,7 @@ const COLS: { title: string; links: L[] }[] = [
     title: "Resources",
     links: [
       { l: "Docs", h: "/docs" },
+      { l: "Pitch decks", h: "/pitch" },
       { l: "Check a server", h: "/check" },
       { l: "HCS log", h: "/log" },
       { l: "MCP registry", h: "https://registry.modelcontextprotocol.io", x: true },
