@@ -31,3 +31,7 @@ apps/web/sponsers_logo
 Thumbs.db
 
 .vercel
+
+# reference recordings
+*.mp4
+*.mov

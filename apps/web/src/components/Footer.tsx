@@ -1,70 +1,69 @@
 import Link from "next/link";
+import { ExternalLink, Github } from "lucide-react";
 import { LogoMark } from "./Logo";
-import { IsoCubes } from "./deco/IsoCubes";
-import { PixelMark } from "./deco/Pixels";
-import { Sponsors } from "./Sponsors";
+import { FOOT, IsoArt } from "./deco/IsoArt";
 
-const COLS = [
+type L = { l: string; h: string; x?: boolean };
+const COLS: { title: string; links: L[] }[] = [
   {
-    title: "Protocol",
-    links: [
-      { l: "Marketplace", h: "/marketplace" },
-      { l: "Check a server", h: "/check" },
-      { l: "Claim a server", h: "/claim" },
-      { l: "Fleet", h: "/fleet" },
-      { l: "HCS log", h: "/log" },
-    ],
-  },
-  {
-    title: "Built on",
+    title: "Ecosystem",
     links: [
       { l: "Hedera", h: "https://hedera.com", x: true },
       { l: "ENS", h: "https://ens.domains", x: true },
       { l: "World ID", h: "https://world.org", x: true },
-      { l: "Model Context Protocol", h: "https://modelcontextprotocol.io", x: true },
+      { l: "MCP", h: "https://modelcontextprotocol.io", x: true },
+      { l: "x402", h: "https://x402.org", x: true },
+      { l: "Sepolia", h: "https://sepolia.etherscan.io", x: true },
+      { l: "HashScan", h: "https://hashscan.io/testnet", x: true },
+      { l: "Blocky402", h: "https://api.testnet.blocky402.com", x: true },
     ],
   },
   {
     title: "Resources",
     links: [
       { l: "Docs", h: "/docs" },
-      { l: "GitHub", h: "https://github.com/SamuelDharshi/Proofmark", x: true },
+      { l: "Check a server", h: "/check" },
+      { l: "HCS log", h: "/log" },
       { l: "MCP registry", h: "https://registry.modelcontextprotocol.io", x: true },
+      { l: "ENS app", h: "https://sepolia.app.ens.domains", x: true },
     ],
   },
   {
-    title: "Network",
+    title: "Product",
     links: [
-      { l: "Hedera testnet", h: "https://hashscan.io/testnet", x: true },
-      { l: "Sepolia", h: "https://sepolia.etherscan.io", x: true },
-      { l: "ENS app", h: "https://sepolia.app.ens.domains", x: true },
+      { l: "Marketplace", h: "/marketplace" },
+      { l: "Claim a server", h: "/claim" },
+      { l: "Fleet", h: "/fleet" },
+    ],
+  },
+  {
+    title: "Community",
+    links: [
+      { l: "GitHub", h: "https://github.com/SamuelDharshi/Proofmark", x: true },
+      { l: "ETHGlobal", h: "https://ethglobal.com", x: true },
     ],
   },
 ];
 
-/** Charcoal footer on the five-column grid, with the isometric cluster resting in the corner. */
+/** Charcoal footer on a visible grid, the textured cube resting in the corner, black copyright bar. */
 export function Footer() {
   return (
-    <footer className="dark-zone grid-lines relative mt-0 overflow-hidden">
-      <div className="wrap relative grid gap-10 pb-72 pt-16 md:grid-cols-[1.1fr_repeat(4,1fr)] md:pb-40">
-        <div className="space-y-6">
-          <Link href="/" aria-label="Proofmark home" className="inline-flex items-center gap-2.5 text-text">
-            <LogoMark className="h-8 w-8" />
-            <span className="text-[24px] font-semibold tracking-[-0.02em]">proofmark</span>
-          </Link>
-          <PixelMark className="scale-75 origin-left" />
-          <p className="max-w-[210px] text-[14px] text-muted">A human still backs this server. Checked on Hedera, ENS and World.</p>
-        </div>
+    <footer className="dark-zone grid-lines relative overflow-hidden">
+      <div className="relative mx-auto grid max-w-[1700px] gap-12 px-6 pb-[460px] pt-8 md:grid-cols-[1.9fr_repeat(4,1fr)] md:px-10 md:pb-[200px]">
+        <Link href="/" aria-label="Proofmark home" className="inline-flex h-12 items-center gap-3 self-start text-text">
+          <LogoMark className="h-11 w-11" />
+          <span className="text-[38px] font-medium leading-none tracking-[-0.03em]">proofmark</span>
+        </Link>
         {COLS.map((c) => (
-          <nav key={c.title} aria-label={c.title}>
-            <h3 className="eyebrow text-accent">{c.title}</h3>
-            <ul className="mt-6 space-y-3">
+          <nav key={c.title} aria-label={c.title} className="md:pl-8">
+            <h3 className="eyebrow !text-[22px] text-accent">{c.title}</h3>
+            <ul className="mt-10 space-y-3.5">
               {c.links.map((k) => (
                 <li key={k.l}>
                   {k.x ? (
-                    <a href={k.h} target="_blank" rel="noreferrer" className="link text-[16px] text-text">{k.l}</a>
+                    <a href={k.h} target="_blank" rel="noreferrer" className="inline-block text-[22px] font-medium tracking-[-0.02em] text-text transition-colors hover:text-muted">{k.l}</a>
                   ) : (
-                    <Link href={k.h} className="link text-[16px] text-text">{k.l}</Link>
+                    <Link href={k.h} className="inline-block text-[22px] font-medium tracking-[-0.02em] text-text transition-colors hover:text-muted">{k.l}</Link>
                   )}
                 </li>
               ))}
@@ -73,16 +72,16 @@ export function Footer() {
         ))}
       </div>
 
-      <div className="wrap relative pb-24 md:pb-28 md:pl-[300px]">
-        <Sponsors tone="light" label="Real marks" />
-      </div>
+      <IsoArt cubes={FOOT} u={118} id="foot" className="pointer-events-none absolute bottom-0 left-0 w-[min(400px,70vw)]" />
+      <span aria-hidden className="absolute bottom-[62px] right-0 hidden h-10 w-10 md:block" style={{ background: "linear-gradient(135deg,#facc15 50%,#22d3ee 50%)" }} />
 
-      <IsoCubes size={64} className="pointer-events-none absolute -bottom-28 -left-16 h-[420px] w-[420px] opacity-95" />
-
-      <div className="relative bg-black">
-        <div className="wrap flex flex-wrap items-center justify-between gap-3 py-5 text-[14px] text-white">
-          <span>© 2026 Proofmark. All rights reserved.</span>
-          <span className="text-muted">Testnet only. Proves who stands behind a tool, not that the code is safe.</span>
+      <div className="relative ml-0 bg-black md:ml-[min(400px,30vw)]">
+        <div className="mx-auto flex max-w-[1700px] flex-wrap items-center justify-between gap-4 px-6 py-5 text-[20px] font-medium text-white md:px-10">
+          <span className="flex-1 text-center md:pl-24">© 2026 Proofmark. All rights reserved.</span>
+          <span className="flex items-center gap-6">
+            <a href="https://github.com/SamuelDharshi/Proofmark" target="_blank" rel="noreferrer" aria-label="GitHub" className="hover:text-accent"><Github className="h-6 w-6" /></a>
+            <Link href="/docs" aria-label="Docs" className="hover:text-accent"><ExternalLink className="h-6 w-6" /></Link>
+          </span>
         </div>
       </div>
     </footer>
