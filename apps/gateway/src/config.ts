@@ -55,7 +55,6 @@ const schema = z.object({
   PASS_MAX_AGE_SECONDS: z.coerce.number().default(86400),
   /** Credential classes accepted for an agent's human, comma separated. */
   WORLD_IDP_ACR: z.string().default("https://world.org/oidc/acr/orb,https://world.org/oidc/acr/orb-face"),
-  WORLD_CHAIN_RPC_URL: z.string().default("https://worldchain-mainnet.g.alchemy.com/public"),
 });
 
 export const env = schema.parse(process.env);

@@ -13,5 +13,5 @@ for (let i = 0; i < n; i++) {
   const evm = privateKeyToAccount(`0x${k.toStringRaw()}`);
   console.log(`# Agent ${i + 1} ECDSA key. Same key is the Hedera payer and the EVM address for the Agent Pass`);
   console.log(`AGENT_${i + 1}_HEDERA_PRIVATE_KEY=${k.toStringRaw()}`);
-  console.log(`# EVM address (register this in AgentBook) ${evm.address}\n`);
+  console.log(`# EVM address ${evm.address}\n`);
 }
