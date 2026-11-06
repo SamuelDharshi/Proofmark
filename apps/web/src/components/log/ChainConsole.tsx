@@ -2,14 +2,13 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ExternalLink, Radio } from "lucide-react";
 import { api, type Config } from "@/lib/api";
+import { HASHSCAN, HTS_COLLECTION, decodeMessage, mirror } from "@/lib/mirror";
 
 /**
  * Everything Proofmark does on Hedera, read straight from the public mirror node, not from the gateway.
  * Each row links to HashScan, and new rows are also printed to the browser console.
  */
-const MIRROR = "https://testnet.mirrornode.hedera.com/api/v1";
-const HASHSCAN = "https://hashscan.io/testnet";
-const HTS_DEFAULT = "0.0.11341242";
+const HTS_DEFAULT = HTS_COLLECTION;
 const PAYING_AGENT = "0.0.11331191";
 const PAYOUT = "0.0.8150748";
 
@@ -17,18 +16,8 @@ type Row = { key: string; ts: number; kind: string; what: string; detail: string
 
 const tsOf = (s: string) => Math.round(Number(s) * 1000);
 const txUrl = (consensus: string) => `${HASHSCAN}/transaction/${consensus}`;
-const decode = (b64: string) => {
-  try {
-    return JSON.parse(new TextDecoder().decode(Uint8Array.from(atob(b64), (c) => c.charCodeAt(0))));
-  } catch {
-    return null;
-  }
-};
-const get = async (path: string) => {
-  const r = await fetch(`${MIRROR}${path}`, { cache: "no-store" });
-  if (!r.ok) throw new Error(`mirror node ${r.status}`);
-  return r.json();
-};
+const decode = decodeMessage;
+const get = mirror;
 
 const TX_NAMES: Record<string, string> = {
   CRYPTOTRANSFER: "HBAR transfer",
