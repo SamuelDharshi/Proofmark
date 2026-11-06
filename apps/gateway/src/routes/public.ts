@@ -142,3 +142,16 @@ publicRoutes.post("/gossip", async (c) => {
 });
 
 publicRoutes.get("/hcs", async (c) => c.json({ topic: env.HCS_TOPIC_ID ?? null, topicUrl: env.HCS_TOPIC_ID ? hederaTopicUrl(env.HCS_TOPIC_ID) : null, messages: await readLog(Number(c.req.query("limit") ?? 25)) }));
+
+/**
+ * World's client registration needs an exact HTTPS redirect URI even for a device-only client.
+ * Proofmark authenticates agents with the Device Authorization Grant, so this URL never receives a code.
+ * It exists so the registered address resolves to a real page, and it refuses to process anything.
+ */
+publicRoutes.get("/auth/world/callback", (c) =>
+  c.html(
+    `<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Proofmark</title>` +
+      `<body style="font:16px system-ui;background:#0a0b0d;color:#f5f6f7;display:grid;place-items:center;min-height:100vh;margin:0">` +
+      `<p>Proofmark approves agents with World's device flow. You can close this window.</p></body>`,
+  ),
+);
