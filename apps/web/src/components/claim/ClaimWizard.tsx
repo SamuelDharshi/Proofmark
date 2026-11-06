@@ -23,7 +23,7 @@ const Field = ({ label, children, hint }: { label: string; children: React.React
     {hint && <span className="mt-1.5 block text-[12px] text-faint">{hint}</span>}
   </label>
 );
-const input = "num h-11 w-full rounded-xl border border-line bg-bg px-3.5 text-[14px] outline-none transition-colors placeholder:text-faint focus:border-accent/60";
+const input = "num h-11 w-full border border-line bg-bg px-3.5 text-[14px] outline-none transition-colors placeholder:text-faint focus:border-accent/60";
 
 type Own = Awaited<ReturnType<typeof api.ownership>>;
 type World = { rp_context: RpContext; app_id: `app_${string}`; action: string; environment: "staging" | "production" };
@@ -87,15 +87,15 @@ export function ClaimWizard() {
   return (
     <div className="mx-auto max-w-[760px]">
       <p className="font-pixel text-[13px] tracking-widest text-accent">CLAIM</p>
-      <h1 className="mt-2 font-hero text-[clamp(38px,4.6vw,60px)] leading-none">Claim your server.</h1>
+      <h1 className="mt-2 font-hero font-medium tracking-[-0.03em] text-[clamp(38px,4.6vw,60px)] leading-none">Claim your server.</h1>
 
       <ol className="mt-8 grid grid-cols-4 gap-2" aria-label="Progress">
         {STEPS.map(({ id, label, Icon }) => {
           const done = step > id || (id === 4 && claimed);
           const active = step === id;
           return (
-            <li key={id} className={`rounded-xl border px-3 py-3 transition-colors ${active ? "border-accent/50 bg-accent/5" : "border-line bg-surface"}`}>
-              <span className={`grid h-7 w-7 place-items-center rounded-lg ${done ? "bg-accent text-accent-ink" : active ? "bg-surface-2 text-accent" : "bg-surface-2 text-faint"}`}>
+            <li key={id} className={`border px-3 py-3 transition-colors ${active ? "border-accent/50 bg-accent/5" : "border-line bg-surface"}`}>
+              <span className={`grid h-7 w-7 place-items-center ${done ? "bg-accent text-accent-ink" : active ? "bg-surface-2 text-accent" : "bg-surface-2 text-faint"}`}>
                 {done ? <Check className="h-4 w-4" aria-hidden /> : <Icon className="h-4 w-4" aria-hidden />}
               </span>
               <p className={`mt-2 hidden font-label text-[13px] sm:block ${active ? "text-text" : "text-muted"}`}>{label}</p>
@@ -112,7 +112,7 @@ export function ClaimWizard() {
                 <input className={input} value={server} onChange={(e) => setServer(e.target.value)} placeholder="io.github.acme/filesystem" />
               </Field>
               {own && (
-                <p className={`flex items-start gap-2 rounded-xl border px-4 py-3 text-[14px] ${own.ok ? "border-accent/30 bg-accent/10 text-accent" : "border-danger/30 bg-danger/10 text-danger"}`}>
+                <p className={`flex items-start gap-2 border px-4 py-3 text-[14px] ${own.ok ? "border-accent/30 bg-accent/10 text-accent" : "border-danger/30 bg-danger/10 text-danger"}`}>
                   {own.ok ? <BadgeCheck className="mt-0.5 h-4 w-4 shrink-0" aria-hidden /> : <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />}
                   <span>{own.detail} <span className="opacity-70">({own.method})</span></span>
                 </p>
@@ -127,7 +127,7 @@ export function ClaimWizard() {
             <div className="space-y-5">
               <p className="text-[15px] text-muted">One claim per human. World ID Proof of Human is verified on the gateway, never on this page.</p>
               {proof ? (
-                <p className="flex items-center gap-2 rounded-xl border border-accent/30 bg-accent/10 px-4 py-3 text-[14px] text-accent">
+                <p className="flex items-center gap-2 border border-accent/30 bg-accent/10 px-4 py-3 text-[14px] text-accent">
                   <BadgeCheck className="h-4 w-4" aria-hidden /> Proof collected. It is checked when you claim.
                 </p>
               ) : (
@@ -159,7 +159,7 @@ export function ClaimWizard() {
                 <input className={input} value={org} onChange={(e) => setOrg(e.target.value.toLowerCase())} placeholder="acme" />
               </Field>
               <Field label="Owner wallet" hint="Owns the ENS name and approves co-maintainers.">
-                {wallet.address ? <p className="num flex h-11 items-center rounded-xl border border-line bg-bg px-3.5 text-[14px]">{wallet.address}</p> : <button className="btn btn-ghost" onClick={wallet.connect}>Connect wallet</button>}
+                {wallet.address ? <p className="num flex h-11 items-center border border-line bg-bg px-3.5 text-[14px]">{wallet.address}</p> : <button className="btn btn-ghost" onClick={wallet.connect}>Connect wallet</button>}
                 {wallet.error && <span className="mt-1.5 block text-[12px] text-danger">{wallet.error}</span>}
               </Field>
               <div className="grid gap-5 sm:grid-cols-2">
@@ -185,7 +185,7 @@ export function ClaimWizard() {
           )}
 
           {err && (
-            <p className="mt-5 flex items-start gap-2 rounded-xl border border-danger/30 bg-danger/10 px-4 py-3 text-[14px] text-danger">
+            <p className="mt-5 flex items-start gap-2 border border-danger/30 bg-danger/10 px-4 py-3 text-[14px] text-danger">
               <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden /> {err}
             </p>
           )}

@@ -67,15 +67,15 @@ export function ServerDetail({ name }: { name: string }) {
       {err ? (
         <div className="card mt-8 p-10 text-center text-muted">Gateway unreachable. {err}</div>
       ) : !d ? (
-        <div className="mt-8 h-40 animate-pulse rounded-[var(--radius-card)] bg-surface" />
+        <div className="mt-8 h-40 animate-pulse bg-surface" />
       ) : (
         <>
-          <header className="relative mt-8 overflow-hidden rounded-[var(--radius-card)] border border-line bg-surface p-7">
+          <header className="relative mt-8 overflow-hidden border border-line bg-surface p-7">
             <span aria-hidden className="absolute inset-x-0 top-0 h-px" style={{ background: `linear-gradient(90deg, transparent, ${color}, transparent)` }} />
             <span aria-hidden className="pointer-events-none absolute -right-24 -top-24 h-64 w-64 rounded-full opacity-20 blur-3xl" style={{ background: color }} />
             <div className="relative flex flex-wrap items-start justify-between gap-4">
               <div className="min-w-0">
-                <h1 className="break-all font-hero text-[clamp(34px,4.4vw,56px)] leading-[1.02]">{d.server.split("/").pop()}</h1>
+                <h1 className="break-all font-hero font-medium tracking-[-0.03em] text-[clamp(34px,4.4vw,56px)] leading-[1.02]">{d.server.split("/").pop()}</h1>
                 <p className="num mt-1 break-all text-[13px] text-faint">{d.server}</p>
               </div>
               <TierBadge tier={d.tier} className="!px-3.5 !py-1.5 !text-[13px]" />
@@ -151,7 +151,7 @@ export function ServerDetail({ name }: { name: string }) {
               {tab === "connect" && (
                 <div className="card p-5">
                   <p className="text-[14px] text-muted">Point the agent client at Proofmark instead of the server. The proxy pays, verifies and then launches it.</p>
-                  <pre className="num mt-4 overflow-x-auto rounded-xl border border-line bg-bg p-4 text-[12.5px] leading-relaxed">{snippet}</pre>
+                  <pre className="num mt-4 overflow-x-auto border border-line bg-bg p-4 text-[12.5px] leading-relaxed">{snippet}</pre>
                   <div className="mt-3"><CopyText value={snippet} display="Copy config" /></div>
                 </div>
               )}

@@ -5,7 +5,7 @@ import { ApiError, api } from "@/lib/api";
 import { useWallet } from "@/lib/useWallet";
 import { ExplorerLink } from "../ExplorerLink";
 
-const input = "num h-11 w-full rounded-xl border border-line bg-bg px-3.5 text-[14px] outline-none transition-colors placeholder:text-faint focus:border-accent/60";
+const input = "num h-11 w-full border border-line bg-bg px-3.5 text-[14px] outline-none transition-colors placeholder:text-faint focus:border-accent/60";
 
 /** Co-maintainer subnames with their own expiring key, and the attestation run. */
 export function Maintainers({ server, org }: { server: string; org: string }) {
@@ -55,7 +55,7 @@ export function Maintainers({ server, org }: { server: string; org: string }) {
 
   return (
     <div className="space-y-6">
-      <div className="space-y-4 rounded-xl border border-line bg-bg p-4">
+      <div className="space-y-4 border border-line bg-bg p-4">
         <p className="flex items-center gap-2 font-display text-[16px] font-semibold"><UserPlus className="h-4 w-4 text-accent" aria-hidden /> Add a co-maintainer</p>
         <div className="grid gap-3 sm:grid-cols-[1fr_2fr_110px]">
           <input className={input} value={label} onChange={(e) => setLabel(e.target.value.toLowerCase())} aria-label="Subname" placeholder="alice" />
@@ -72,7 +72,7 @@ export function Maintainers({ server, org }: { server: string; org: string }) {
       </div>
 
       {keys.length > 0 && (
-        <ul className="divide-y divide-line rounded-xl border border-line">
+        <ul className="divide-y divide-line border border-line">
           {keys.map((k) => (
             <li key={k.subname} className="flex flex-wrap items-center justify-between gap-3 px-4 py-3">
               <span className="flex flex-col"><ExplorerLink k={{ type: "ens", id: k.subname }} />{k.tx && <ExplorerLink k={{ type: "evm-tx", chainId: 11155111, id: k.tx }} className="mt-1" />}</span>
@@ -85,14 +85,14 @@ export function Maintainers({ server, org }: { server: string; org: string }) {
       )}
 
       {pending && (
-        <div className="space-y-3 rounded-xl border border-accent/30 bg-accent/5 p-4">
+        <div className="space-y-3 border border-accent/30 bg-accent/5 p-4">
           <p className="text-[14px]">The key <span className="num">{pending.signer}</span> must approve this attestation.</p>
           <button className="btn btn-primary" disabled={busy === "approve"} onClick={approve}>
             {busy === "approve" && <Loader2 className="h-4 w-4 animate-spin" aria-hidden />} Approve with that wallet
           </button>
         </div>
       )}
-      {msg && <p className="rounded-xl border border-line bg-surface-2 px-4 py-3 text-[14px]">{msg}</p>}
+      {msg && <p className="border border-line bg-surface-2 px-4 py-3 text-[14px]">{msg}</p>}
     </div>
   );
 }

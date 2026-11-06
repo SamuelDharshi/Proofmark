@@ -8,7 +8,7 @@ import { ExplorerLink } from "../ExplorerLink";
 function Panel({ Icon, title, body, children }: { Icon: typeof Ban; title: string; body: string; children: React.ReactNode }) {
   return (
     <section className="card p-6">
-      <span className="grid h-10 w-10 place-items-center rounded-xl border border-line-strong bg-surface-2 text-accent">
+      <span className="grid h-10 w-10 place-items-center border border-line-strong bg-surface-2 text-accent">
         <Icon className="h-5 w-5" aria-hidden />
       </span>
       <h3 className="mt-5 font-display text-[19px] font-semibold">{title}</h3>
@@ -50,7 +50,7 @@ export function Drill({ fleet, onChange }: { fleet: Fleet; onChange: () => void 
           <p className="text-[14px] text-muted">No live co-maintainer keys.</p>
         ) : (
           <>
-            <select value={pick} onChange={(e) => setPick(e.target.value)} className="num h-11 w-full rounded-xl border border-line bg-bg px-3 text-[13px]">
+            <select value={pick} onChange={(e) => setPick(e.target.value)} className="num h-11 w-full border border-line bg-bg px-3 text-[13px]">
               {live.map((k) => <option key={k.subname} value={`${k.org}/${k.label}`}>{k.subname}</option>)}
             </select>
             {wallet.address ? (
@@ -92,7 +92,7 @@ export function Drill({ fleet, onChange }: { fleet: Fleet; onChange: () => void 
       </Panel>
 
       {msg && (
-        <p className={`lg:col-span-2 rounded-xl border px-4 py-3 text-[14px] ${msg.kind === "ok" ? "border-accent/30 bg-accent/10 text-accent" : "border-danger/30 bg-danger/10 text-danger"}`}>
+        <p className={`lg:col-span-2 border px-4 py-3 text-[14px] ${msg.kind === "ok" ? "border-accent/30 bg-accent/10 text-accent" : "border-danger/30 bg-danger/10 text-danger"}`}>
           {msg.text} {msg.tx && <ExplorerLink k={{ type: "evm-tx", chainId: 11155111, id: msg.tx }} className="ml-2" />}
         </p>
       )}

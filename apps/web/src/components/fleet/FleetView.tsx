@@ -29,12 +29,12 @@ export function FleetView() {
   return (
     <div className="mx-auto max-w-[1100px]">
       <p className="font-pixel text-[13px] tracking-widest text-accent">FLEET</p>
-      <h1 className="mt-2 font-hero text-[clamp(38px,4.6vw,60px)] leading-none">Every agent, one view.</h1>
+      <h1 className="mt-2 font-hero font-medium tracking-[-0.03em] text-[clamp(38px,4.6vw,60px)] leading-none">Every agent, one view.</h1>
 
       {error && !data ? (
         <div className="card mt-8 p-10 text-center text-muted">Gateway unreachable. Run <span className="num">npm run gateway</span>.</div>
       ) : !data ? (
-        <div className="mt-8 h-40 animate-pulse rounded-[var(--radius-card)] bg-surface" />
+        <div className="mt-8 h-40 animate-pulse bg-surface" />
       ) : (
         <>
           <div className="mt-8 grid grid-cols-2 gap-3 md:grid-cols-4">

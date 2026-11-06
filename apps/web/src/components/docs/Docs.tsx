@@ -19,7 +19,7 @@ function Section({ id, title, children, mark }: { id: string; title: string; chi
   return (
     <section id={id} className="scroll-mt-28 border-t border-line py-12 first:border-0 first:pt-0">
       <div className="flex items-center gap-4">
-        <h2 className="font-hero text-[clamp(30px,3.4vw,44px)] leading-tight">{title}</h2>
+        <h2 className="font-hero font-medium tracking-[-0.03em] text-[clamp(30px,3.4vw,44px)] leading-tight">{title}</h2>
         {/* eslint-disable-next-line @next/next/no-img-element */}
         {mark && <img src={mark.src} alt={mark.alt} style={{ height: mark.h, width: "auto" }} className="opacity-80" />}
       </div>
@@ -57,7 +57,7 @@ export function Docs() {
   return (
     <div className="wrap pb-10 pt-32">
       <p className="font-pixel text-[13px] tracking-widest text-accent">DOCS</p>
-      <h1 className="mt-3 max-w-[820px] font-hero text-[clamp(44px,6vw,84px)] leading-[0.98]">How Proofmark works.</h1>
+      <h1 className="mt-3 max-w-[820px] font-hero font-medium tracking-[-0.03em] text-[clamp(44px,6vw,84px)] leading-[0.98]">How Proofmark works.</h1>
 
       <div className="mt-14 grid gap-12 lg:grid-cols-[200px_1fr]">
         <nav aria-label="On this page" className="hidden lg:block">
@@ -121,7 +121,7 @@ export function Docs() {
 
           <Section id="ens" title="ENSv2" mark={{ src: "/brands/ens-wordmark-light.png", alt: "ENS", h: 20 }}>
             <p>The tree runs on Sepolia. Addresses and ABIs are loaded from the ENS deployments table, not hard-coded.</p>
-            <pre className="num overflow-x-auto rounded-xl border border-line bg-surface p-4 text-[12.5px] leading-relaxed text-text">{`proofmark.eth                     Permissioned Registry, administered by Proofmark
+            <pre className="num overflow-x-auto border border-line bg-surface p-4 text-[12.5px] leading-relaxed text-text">{`proofmark.eth                     Permissioned Registry, administered by Proofmark
   acme.proofmark.eth              maintainer org, owned by the claiming human
       status, payto, x402.price, world.verified
     alice.acme.proofmark.eth      co-maintainer: attest.key, expires
@@ -176,7 +176,7 @@ export function Docs() {
           </Section>
 
           <Section id="run" title="Run it">
-            <pre className="num overflow-x-auto rounded-xl border border-line bg-surface p-4 text-[12.5px] leading-relaxed text-text">{`npm install
+            <pre className="num overflow-x-auto border border-line bg-surface p-4 text-[12.5px] leading-relaxed text-text">{`npm install
 cp .env.example .env      # fill in the values
 npm run hcs:create -w @proofmark/gateway
 npm run agents:create -w @proofmark/gateway -- 2 5 1

@@ -83,7 +83,7 @@ export function AgentCard({ a, onChange }: { a: FleetAgent; onChange: () => void
       <span aria-hidden className="absolute inset-x-0 top-0 h-px" style={{ background: `linear-gradient(90deg, transparent, ${ok ? "var(--color-accent)" : "var(--color-danger)"}, transparent)` }} />
       <div className="flex items-start justify-between gap-3">
         <div className="flex min-w-0 items-center gap-3">
-          <span className={`grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-line-strong bg-surface-2 ${ok ? "text-accent" : "text-danger"}`}>
+          <span className={`grid h-10 w-10 shrink-0 place-items-center border border-line-strong bg-surface-2 ${ok ? "text-accent" : "text-danger"}`}>
             <Bot className="h-5 w-5" aria-hidden />
           </span>
           <div className="min-w-0">
@@ -91,7 +91,7 @@ export function AgentCard({ a, onChange }: { a: FleetAgent; onChange: () => void
             <ExplorerLink k={{ type: "hedera-account", id: a.hederaAccount }} />
           </div>
         </div>
-        <span className={`inline-flex shrink-0 items-center gap-1.5 rounded-lg border px-2.5 py-1 font-label text-[12px] ${ok ? "border-accent/30 bg-accent/10 text-accent" : "border-danger/30 bg-danger/10 text-danger"}`}>
+        <span className={`inline-flex shrink-0 items-center gap-1.5 border px-2.5 py-1 font-label text-[12px] ${ok ? "border-accent/30 bg-accent/10 text-accent" : "border-danger/30 bg-danger/10 text-danger"}`}>
           {ok ? <ShieldCheck className="h-3.5 w-3.5" aria-hidden /> : <ShieldAlert className="h-3.5 w-3.5" aria-hidden />}
           {ok ? left(a.pass.expiresAt) : a.pass.reason === "expired" ? "Pass expired" : "No pass"}
         </span>
@@ -111,7 +111,7 @@ export function AgentCard({ a, onChange }: { a: FleetAgent; onChange: () => void
 
       <AnimatePresence mode="wait">
         {phase.t === "waiting" && (
-          <motion.div key="w" initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} className="mt-4 overflow-hidden rounded-xl border border-accent/30 bg-accent/5 p-4">
+          <motion.div key="w" initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} className="mt-4 overflow-hidden border border-accent/30 bg-accent/5 p-4">
             <p className="text-[13px] text-muted">Approve this agent in World. The gateway validates the result.</p>
             <p className="num mt-2 text-[22px] tracking-[0.2em]">{phase.start.userCode}</p>
             <a href={phase.start.verificationUriComplete ?? phase.start.verificationUri} target="_blank" rel="noreferrer" className="link mt-2 inline-flex items-center gap-1.5 text-[13px] text-accent">
@@ -126,7 +126,7 @@ export function AgentCard({ a, onChange }: { a: FleetAgent; onChange: () => void
           </motion.p>
         )}
         {phase.t === "error" && (
-          <motion.p key="e" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mt-4 rounded-lg border border-danger/30 bg-danger/10 px-3 py-2 text-[13px] text-danger">{phase.message}</motion.p>
+          <motion.p key="e" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mt-4 border border-danger/30 bg-danger/10 px-3 py-2 text-[13px] text-danger">{phase.message}</motion.p>
         )}
       </AnimatePresence>
 

@@ -12,7 +12,7 @@ export function LogView() {
   return (
     <div className="mx-auto max-w-[900px]">
       <p className="font-pixel text-[13px] tracking-widest text-accent">HCS LOG</p>
-      <h1 className="mt-2 font-hero text-[clamp(38px,4.6vw,60px)] leading-none">Every attestation, on the record.</h1>
+      <h1 className="mt-2 font-hero font-medium tracking-[-0.03em] text-[clamp(38px,4.6vw,60px)] leading-none">Every attestation, on the record.</h1>
       {data?.topic && (
         <p className="mt-4 flex items-center gap-2 text-[14px] text-muted">
           Topic <ExplorerLink k={{ type: "hedera-topic", id: data.topic }} />
@@ -23,7 +23,7 @@ export function LogView() {
         {error && !data ? (
           <div className="card p-10 text-center text-muted">Gateway unreachable.</div>
         ) : !data ? (
-          <div className="h-40 animate-pulse rounded-[var(--radius-card)] bg-surface" />
+          <div className="h-40 animate-pulse bg-surface" />
         ) : !data.topic ? (
           <div className="card p-10 text-center text-muted">No HCS topic configured. Run <span className="num">npm run hcs:create -w @proofmark/gateway</span> and set <span className="num">HCS_TOPIC_ID</span>.</div>
         ) : data.messages.length === 0 ? (

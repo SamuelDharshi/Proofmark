@@ -13,7 +13,7 @@ export function CopyText({ value, display, block = false }: { value: string; dis
   return (
     <span className={`inline-flex items-start gap-2 ${block ? "w-full" : ""}`}>
       <span className={`num text-[13px] ${block ? "w-full whitespace-pre-wrap break-all" : "break-all"}`}>{display ?? value}</span>
-      <button type="button" onClick={copy} aria-label="Copy" className="mt-0.5 grid h-6 w-6 shrink-0 place-items-center rounded-md text-faint transition-colors hover:text-text">
+      <button type="button" onClick={copy} aria-label="Copy" className="mt-0.5 grid h-6 w-6 shrink-0 place-items-center text-faint transition-colors hover:text-text">
         {done ? <Check className="h-3.5 w-3.5 text-accent" /> : <Copy className="h-3.5 w-3.5" />}
       </button>
     </span>

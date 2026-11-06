@@ -47,21 +47,21 @@ export function Marketplace() {
     <div className="wrap pb-10 pt-32">
       <div className="max-w-[720px]">
         <p className="font-pixel text-[13px] tracking-widest text-accent">MARKETPLACE</p>
-        <h1 className="mt-3 font-hero text-[clamp(44px,6vw,84px)] leading-[0.98]">MCP servers, graded.</h1>
+        <h1 className="mt-3 font-hero font-medium tracking-[-0.03em] text-[clamp(44px,6vw,84px)] leading-[0.98]">MCP servers, graded.</h1>
       </div>
 
       <div className="mt-10 flex flex-wrap items-center justify-between gap-4">
         <LayoutGroup id="tabs">
-          <div role="tablist" aria-label="Filter by tier" className="flex gap-1 rounded-2xl border border-line bg-surface p-1">
+          <div role="tablist" aria-label="Filter by tier" className="flex gap-1 border border-line bg-surface p-1">
             {TABS.map((t) => (
               <button
                 key={t.id}
                 role="tab"
                 aria-selected={tab === t.id}
                 onClick={() => setTab(t.id)}
-                className={`relative min-h-10 rounded-xl px-4 font-label text-[14px] transition-colors ${tab === t.id ? "text-text" : "text-muted hover:text-text"}`}
+                className={`relative min-h-10 px-4 font-label text-[14px] transition-colors ${tab === t.id ? "text-text" : "text-muted hover:text-text"}`}
               >
-                {tab === t.id && <motion.span layoutId="tab-pill" className="absolute inset-0 rounded-xl bg-surface-2 ring-1 ring-line-strong" transition={{ type: "spring", stiffness: 420, damping: 34 }} />}
+                {tab === t.id && <motion.span layoutId="tab-pill" className="absolute inset-0 bg-surface-2 ring-1 ring-line-strong" transition={{ type: "spring", stiffness: 420, damping: 34 }} />}
                 <span className="relative flex items-center gap-2">
                   {t.label}
                   <span className="num text-[12px] text-faint">{counts[t.id]}</span>
@@ -78,7 +78,7 @@ export function Marketplace() {
             value={q}
             onChange={(e) => setQ(e.target.value)}
             placeholder="Search the registry"
-            className="h-11 w-full rounded-xl border border-line bg-surface pl-10 pr-3 text-[15px] outline-none transition-colors placeholder:text-faint focus:border-accent/60"
+            className="h-11 w-full border border-line bg-surface pl-10 pr-3 text-[15px] outline-none transition-colors placeholder:text-faint focus:border-accent/60"
           />
         </label>
       </div>

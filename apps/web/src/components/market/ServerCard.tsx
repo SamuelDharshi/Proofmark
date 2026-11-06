@@ -49,7 +49,7 @@ export function ServerCard({ s, i }: { s: ServerRow; i: number }) {
 
         <Link href={`/server/${s.server}`} className="relative flex h-full flex-col gap-4 p-5" aria-label={`Open ${name}`}>
           <div className="flex items-start justify-between gap-3">
-            <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl border border-line-strong bg-surface-2" style={{ color }}>
+            <span className="grid h-11 w-11 shrink-0 place-items-center border border-line-strong bg-surface-2" style={{ color }}>
               <ServerIcon className="h-5 w-5" aria-hidden />
             </span>
             <TierBadge tier={s.tier} />
@@ -95,8 +95,8 @@ export function CardSkeleton() {
   return (
     <div className="card h-[236px] animate-pulse p-5">
       <div className="flex justify-between">
-        <div className="h-11 w-11 rounded-xl bg-surface-2" />
-        <div className="h-7 w-20 rounded-lg bg-surface-2" />
+        <div className="h-11 w-11 bg-surface-2" />
+        <div className="h-7 w-20 bg-surface-2" />
       </div>
       <div className="mt-5 h-5 w-2/3 rounded bg-surface-2" />
       <div className="mt-3 h-3 w-1/2 rounded bg-surface-2" />

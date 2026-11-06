@@ -35,7 +35,7 @@ export function ExplorerLink({ k, label, className = "" }: { k: Kind; label?: st
       <button
         type="button"
         aria-label="Copy"
-        className="grid h-6 w-6 place-items-center rounded-md text-faint transition-colors hover:text-text"
+        className="grid h-6 w-6 place-items-center text-faint transition-colors hover:text-text"
         onClick={() => {
           navigator.clipboard.writeText(k.id);
           setDone(true);

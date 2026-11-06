@@ -19,7 +19,7 @@ export function ServerFacts({ info, claimed, onPick }: { info: ServerInfo; claim
   if (!info.found) {
     return (
       <div className="mt-5 space-y-4">
-        <p className="flex items-start gap-2.5 rounded-xl border border-line bg-surface-2 px-4 py-3.5 text-[14.5px]">
+        <p className="flex items-start gap-2.5 border border-line bg-surface-2 px-4 py-3.5 text-[14.5px]">
           <ShieldQuestion className="mt-0.5 h-4 w-4 shrink-0 text-muted" aria-hidden />
           <span>
             <strong className="font-semibold">Not in the official MCP registry.</strong> <span className="text-muted">{info.launch.detail}</span>
@@ -63,7 +63,7 @@ export function ServerFacts({ info, claimed, onPick }: { info: ServerInfo; claim
         </div>
       )}
 
-      <dl className="rounded-xl border border-line bg-bg px-4">
+      <dl className="border border-line bg-bg px-4">
         {info.version && <Row k="Version"><span className="num">{info.version}</span></Row>}
         {published && <Row k="Published"><span className="num">{published}</span> <span className="text-muted">({info.ageDays} days ago)</span></Row>}
         {info.packages.map((p, i) => {
@@ -116,7 +116,7 @@ export function ServerFacts({ info, claimed, onPick }: { info: ServerInfo; claim
       {info.signals.length > 0 && (
         <ul className="flex flex-wrap gap-2">
           {info.signals.map((s) => (
-            <li key={s.label} className={`inline-flex items-center gap-2 rounded-lg border px-3 py-1.5 text-[13px] ${s.level === "warn" ? "border-danger/30 bg-danger/5 text-text" : "border-line text-muted"}`}>
+            <li key={s.label} className={`inline-flex items-center gap-2 border px-3 py-1.5 text-[13px] ${s.level === "warn" ? "border-danger/30 bg-danger/5 text-text" : "border-line text-muted"}`}>
               <span className={`h-1.5 w-1.5 rounded-full ${s.level === "warn" ? "bg-danger" : "bg-faint"}`} aria-hidden />
               {s.label}
             </li>

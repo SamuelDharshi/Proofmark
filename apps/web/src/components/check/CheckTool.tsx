@@ -37,7 +37,7 @@ export function CheckTool({ initial = "" }: { initial?: string }) {
   return (
     <div className="wrap pb-10 pt-32">
       <p className="font-pixel text-[13px] tracking-widest text-accent">CHECK</p>
-      <h1 className="mt-3 max-w-[760px] font-hero text-[clamp(44px,6vw,84px)] leading-[0.98]">Resolve any server name.</h1>
+      <h1 className="mt-3 max-w-[760px] font-hero font-medium tracking-[-0.03em] text-[clamp(44px,6vw,84px)] leading-[0.98]">Resolve any server name.</h1>
 
       <form
         onSubmit={(e) => {
@@ -53,7 +53,7 @@ export function CheckTool({ initial = "" }: { initial?: string }) {
             value={q}
             onChange={(e) => setQ(e.target.value)}
             placeholder="io.github.acme/filesystem"
-            className="num h-12 w-full rounded-xl border border-line bg-surface pl-10 pr-3 text-[15px] outline-none transition-colors placeholder:text-faint focus:border-accent/60"
+            className="num h-12 w-full border border-line bg-surface pl-10 pr-3 text-[15px] outline-none transition-colors placeholder:text-faint focus:border-accent/60"
           />
         </label>
         <button className="btn btn-primary h-12" disabled={busy}>
@@ -64,7 +64,7 @@ export function CheckTool({ initial = "" }: { initial?: string }) {
 
       <div className="mt-4 flex flex-wrap gap-2">
         {EXAMPLES.map((x) => (
-          <button key={x} onClick={() => { setQ(x); run(x); }} className="num rounded-lg border border-line px-3 py-1.5 text-[12.5px] text-muted transition-colors hover:border-line-strong hover:text-text">
+          <button key={x} onClick={() => { setQ(x); run(x); }} className="num border border-line px-3 py-1.5 text-[12.5px] text-muted transition-colors hover:border-line-strong hover:text-text">
             {x}
           </button>
         ))}
@@ -79,7 +79,7 @@ export function CheckTool({ initial = "" }: { initial?: string }) {
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <p className="num break-all text-[15px]">{res.server}</p>
                 {res.info && !res.info.found ? (
-                  <span className="inline-flex items-center rounded-lg border border-line-strong px-2.5 py-1 font-label text-[12px] text-muted">Not in registry</span>
+                  <span className="inline-flex items-center border border-line-strong px-2.5 py-1 font-label text-[12px] text-muted">Not in registry</span>
                 ) : (
                   <TierBadge tier={res.tier} />
                 )}
