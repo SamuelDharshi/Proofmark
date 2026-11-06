@@ -40,7 +40,7 @@ test.before(async () => {
   const tools = await captureTools(launch);
   attestedArtifact = "0x" + createHash("sha256").update(readFileSync(entry)).digest("hex");
   const pair: AttestationPair = {
-    server: "io.proofmark.demo/filesystem",
+    server: "example.test/filesystem",
     version: "1.0.0",
     registryType: "local",
     artifactHash: attestedArtifact,
@@ -66,7 +66,7 @@ test.after(() => {
   rmSync(flag, { force: true });
 });
 
-const opts = () => ({ gateway: base, server: "io.proofmark.demo/filesystem", launch, artifactPath: entry });
+const opts = () => ({ gateway: base, server: "example.test/filesystem", launch, artifactPath: entry });
 
 test("clean server: both hashes match and the full tool set is permitted", async () => {
   rmSync(flag, { force: true });
@@ -105,7 +105,7 @@ test("forged signature: refused", async () => {
   const real = srv.listeners("request")[0] as (req: unknown, res: any) => void;
   srv.removeAllListeners("request");
   srv.on("request", (_req, res) => {
-    const pair = { server: "io.proofmark.demo/filesystem", version: "1.0.0", registryType: "local", artifactHash: attestedArtifact, toolManifestHash: "0x0", attestKey: maintainer.address, revocationCheckedAt: 0, buyer: "x", validUntil: Date.now() + 1000 };
+    const pair = { server: "example.test/filesystem", version: "1.0.0", registryType: "local", artifactHash: attestedArtifact, toolManifestHash: "0x0", attestKey: maintainer.address, revocationCheckedAt: 0, buyer: "x", validUntil: Date.now() + 1000 };
     forger.signMessage({ message: canonicalize(pair) }).then((signature) => {
       res.setHeader("content-type", "application/json");
       res.end(JSON.stringify({ connected: true, tier: "green", attestation: { pair, signature, tools: [] }, freshness: { validUntil: Date.now() + 1000 } }));

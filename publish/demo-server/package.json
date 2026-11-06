@@ -1,0 +1,12 @@
+{
+  "name": "proofmark-demo-server",
+  "version": "1.0.0",
+  "mcpName": "io.github.SamuelDharshi/proofmark-demo-server",
+  "description": "A small filesystem MCP server used to demonstrate Proofmark: attest its tools, then watch a changed tool list get refused.",
+  "type": "module",
+  "bin": { "proofmark-demo-server": "server.js" },
+  "files": ["server.js", "README.md"],
+  "license": "MIT",
+  "repository": { "type": "git", "url": "git+https://github.com/SamuelDharshi/Proofmark.git", "directory": "publish/demo-server" },
+  "dependencies": { "@modelcontextprotocol/sdk": "^1.32.0", "zod": "^3.25.0" }
+}
