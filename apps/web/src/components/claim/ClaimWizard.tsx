@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 import { BadgeCheck, Check, Fingerprint, Loader2, Server, Users, Building2, AlertCircle } from "lucide-react";
 import { IDKitRequestWidget, proofOfHuman, type RpContext } from "@worldcoin/idkit";
@@ -30,7 +31,8 @@ type World = { rp_context: RpContext; app_id: `app_${string}`; action: string; e
 export function ClaimWizard() {
   const wallet = useWallet();
   const [step, setStep] = useState(1);
-  const [server, setServer] = useState("");
+  const params = useSearchParams();
+  const [server, setServer] = useState(params.get("server") ?? "");
   const [own, setOwn] = useState<Own | null>(null);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
