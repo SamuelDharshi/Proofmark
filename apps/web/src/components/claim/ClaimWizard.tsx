@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 import { BadgeCheck, Check, Fingerprint, Loader2, Server, Users, Building2, AlertCircle } from "lucide-react";
@@ -37,6 +37,10 @@ export function ClaimWizard() {
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
 
+  const [staging, setStaging] = useState(false);
+  useEffect(() => {
+    api.config().then((c) => setStaging(c.world.environment === "staging")).catch(() => {});
+  }, []);
   const [world, setWorld] = useState<World | null>(null);
   const [open, setOpen] = useState(false);
   const [proof, setProof] = useState<unknown>(null);
@@ -126,6 +130,14 @@ export function ClaimWizard() {
           {step === 2 && (
             <div className="space-y-5">
               <p className="text-[15px] text-muted">One claim per human. World ID Proof of Human is verified on the gateway, never on this page.</p>
+              {staging && (
+                <p className="border border-line-strong bg-surface-2 px-4 py-3 text-[13px] text-muted">
+                  This gateway runs World ID in <strong className="text-text">staging</strong>. A phone camera and the regular World App only open production links, so the QR will not open it. In the dialog choose <strong className="text-text">Use the simulator</strong>, or scan with the World sandbox app:{" "}
+                  <a className="link text-accent" target="_blank" rel="noreferrer" href="https://simulator.worldcoin.org">simulator</a>,{" "}
+                  <a className="link text-accent" target="_blank" rel="noreferrer" href="https://testflight.apple.com/join/Tub7zuyD">iOS sandbox</a>,{" "}
+                  <a className="link text-accent" target="_blank" rel="noreferrer" href="https://appdistribution.firebase.dev/i/8333634946231041">Android sandbox</a>.
+                </p>
+              )}
               {proof ? (
                 <p className="flex items-center gap-2 border border-accent/30 bg-accent/10 px-4 py-3 text-[14px] text-accent">
                   <BadgeCheck className="h-4 w-4" aria-hidden /> Proof collected. It is checked when you claim.
