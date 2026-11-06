@@ -7,6 +7,7 @@ import { claimRoutes } from "./routes/claim";
 import { attestRoutes } from "./routes/attest";
 import { store } from "./store";
 import * as ens from "./ens";
+import { orgInfra } from "./chain";
 
 const app = new Hono();
 app.use("*", cors({ origin: "*", allowHeaders: ["*"], exposeHeaders: ["*"] }));
@@ -18,8 +19,8 @@ app.onError((e, c) => {
   return c.json({ error: e.message }, 500);
 });
 
-// Resume chain watchers for orgs claimed before this restart.
-if (caps.ens) for (const o of store.get().orgs) if (o.resolver) ens.watchResolver(o.resolver as `0x${string}`);
+// Resume chain watchers for every org this gateway knows, found through the root registry.
+if (caps.ens) for (const o of store.get().orgs) orgInfra(o.name).then((x) => x && ens.watchResolver(x.resolver)).catch(() => {});
 
 serve({ fetch: app.fetch, port: env.PORT }, (i) => {
   console.log(`Proofmark gateway on http://localhost:${i.port}`);
