@@ -21,7 +21,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     <div className="min-h-screen md:grid md:grid-cols-[232px_1fr]">
       <aside className="dark-zone sticky top-0 z-30 flex items-center gap-2 border-b border-line px-4 py-3 md:h-screen md:flex-col md:items-stretch md:gap-8 md:border-b-0 md:border-r md:px-4 md:py-6">
         <Link href="/" aria-label="Proofmark home" className="px-2">
-          <Wordmark />
+          <Wordmark tone="light" />
         </Link>
         <nav className="flex flex-1 gap-1 overflow-x-auto md:flex-col" aria-label="App">
           {NAV.map(({ href, label, Icon }) => {

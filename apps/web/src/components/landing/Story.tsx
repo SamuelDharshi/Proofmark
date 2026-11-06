@@ -244,7 +244,7 @@ function OnChain() {
             </Link>
           </div>
           <div className="relative aspect-square w-full max-w-[620px] justify-self-center">
-            {near ? <PCanvas progress={scrollYProgress} /> : <LogoMark className="absolute inset-[22%] h-auto w-auto text-text" />}
+            {near ? <PCanvas progress={scrollYProgress} /> : <LogoMark tone="light" className="absolute inset-[22%] h-auto w-auto" />}
           </div>
         </div>
       </div>

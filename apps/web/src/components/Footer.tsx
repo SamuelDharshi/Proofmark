@@ -51,7 +51,7 @@ export function Footer() {
     <footer className="dark-zone grid-lines relative overflow-hidden">
       <div className="relative mx-auto grid max-w-[1700px] gap-12 px-6 pb-[460px] pt-8 md:grid-cols-[1.9fr_repeat(4,1fr)] md:px-10 md:pb-[200px]">
         <Link href="/" aria-label="Proofmark home" className="inline-flex h-12 items-center gap-3 self-start text-text">
-          <LogoMark className="h-11 w-11" />
+          <LogoMark className="h-11 w-11" tone="light" />
           <span className="text-[38px] font-medium leading-none tracking-[-0.03em]">proofmark</span>
         </Link>
         {COLS.map((c) => (
