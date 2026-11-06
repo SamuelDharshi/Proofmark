@@ -7,6 +7,7 @@ import type { CheckResult, ServerInfo } from "@proofmark/core";
 import { api } from "@/lib/api";
 import { TierBadge, tierColor } from "../TierBadge";
 import { ServerFacts } from "../server/ServerFacts";
+import { LayerRows } from "../claim/Layers";
 
 type Result = CheckResult & { info?: ServerInfo };
 
@@ -86,6 +87,7 @@ export function CheckTool({ initial = "" }: { initial?: string }) {
               </div>
               {res.info?.found !== false && <p className="mt-4 text-[16px] text-muted">{res.explain}</p>}
               {res.info && <ServerFacts info={res.info} claimed={res.claimed} onPick={(n) => { setQ(n); run(n); }} />}
+              {res.claimed && <div className="mt-5"><LayerRows c={res} /></div>}
               {res.info?.found !== false && (
                 <Link href={`/server/${res.server}`} className="link mt-5 inline-flex items-center gap-2 text-[14px] text-accent">
                   Open inspector <ArrowRight className="h-4 w-4" aria-hidden />
