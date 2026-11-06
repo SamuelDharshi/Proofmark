@@ -1,233 +1,564 @@
 <p align="center">
-  <img src="apps/web/public/logo.svg" width="72" alt="Proofmark" />
+  <img src="apps/web/public/logo.svg" width="80" alt="Proofmark" />
 </p>
 
 <h1 align="center">Proofmark</h1>
 
-<p align="center"><strong>A bonded maintainer still backs this server. x402 on Hedera.</strong></p>
+<p align="center"><strong>The trust gate between AI agents and the MCP servers they connect to.</strong><br/>
+x402 payments and audit on Hedera · identity on ENSv2 · uniqueness and spend authority from World</p>
 
-Proofmark is an MCP trust gate. Before an agent connects to an MCP server, which gets shell, filesystem and credential access, it pays $0.002 over x402 on Hedera for a fresh attestation that a unique, domain-verified, bonded maintainer still stands behind this exact build and these exact tools. If the server later advertises a tool it did not have when it was attested, the hashes diverge and the connection is refused before the model sees the tool list. If a maintainer's key is revoked, running agents block on their next check.
+<p align="center">
+  <a href="https://proofmark-web.vercel.app">Live app</a> ·
+  <a href="https://proofmark-web.vercel.app/check">Check any server</a> ·
+  <a href="https://proofmark-web.vercel.app/log">On-chain console</a> ·
+  <a href="docs/TESTING.md">Testing report</a> ·
+  <a href="docs/WALKTHROUGH.md">Page-by-page walkthrough</a>
+</p>
 
-It is an MCP proxy, a Hono gateway that is an x402 merchant, an attestation worker, and a Next.js app with a marketplace, a public `/check` page and a fleet view.
+---
 
-<p align="center"><img src="docs/architecture.svg" alt="Proofmark architecture" /></p>
+## Contents
+
+1. [The idea](#the-idea)
+2. [How it works, in one picture](#how-it-works-in-one-picture)
+3. [The flows](#the-flows)
+4. [Using Proofmark](#using-proofmark)
+5. [Proof it runs](#proof-it-runs)
+6. [Track requirements](#track-requirements)
+7. [Design details](#design-details)
+8. [Run it yourself](#run-it-yourself)
+9. [Repo map](#repo-map)
+10. [Limits, stated plainly](#limits-stated-plainly)
+11. [Prior art](#prior-art)
+12. [How AI was used](#how-ai-was-used)
+
+---
+
+## The idea
+
+### The problem
+
+An MCP server is not a library. When an agent connects to one, the server is handed the agent's **shell, filesystem, credentials and payment rails**. Thousands of MCP servers already exist, installed with one line such as `npx -y some-server`. Most of them come from people the user has never heard of.
+
+Today the best assurance available is a signature showing that *some GitHub account* built the code. That leaves four gaps:
+
+| Gap | What goes wrong |
+| --- | --- |
+| **Tools change after approval** | A server that was harmless yesterday quietly adds a `read_env` tool today. Nothing re-checks it. |
+| **Accounts are cheap** | One person can run fifty GitHub accounts. A signature binds code to an account, not to anyone accountable. |
+| **Nothing revokes** | If a maintainer's key leaks on Tuesday, every agent already connected keeps trusting it. |
+| **Nobody pays for checking** | Every verification proposal assumes someone checks for free, forever. In practice nobody does. |
+
+### What Proofmark does
+
+Before an agent connects to an MCP server, Proofmark:
+
+1. **Looks the server up on ENS** to find who maintains it, what they charge, and which key may vouch for it right now.
+2. **Pays the maintainer $0.002 over x402 on Hedera**, with no human approving the payment. The agent is allowed to spend because a person approved it once, through a World Agent Pass, and because its operator set an on-chain Hedera allowance.
+3. **Gets a signed attestation** of two hashes: the hash of the exact build, and the hash of its exact tool list.
+4. **Starts the server and hashes the tools it actually offers.** If the tools differ from what was attested, the connection is refused **before the model ever sees the tool list**.
+5. **Keeps watching.** A revoked key reaches every connected agent within seconds through a Hedera Consensus Service topic. ENS is re-read every 15 seconds as the source of truth.
+
+A server is **green** only when its maintainer is backed by all three layers:
+
+```
+   ┌────────────────────┐   ┌──────────────────────┐   ┌──────────────────────┐
+   │  UNIQUE            │   │  DOMAIN-VERIFIED     │   │  BONDED              │
+   │  World ID          │ + │  GitHub gist or      │ + │  50 HBAR in a 2-of-2 │
+   │  one person,       │   │  domain proof of the │   │  Hedera account,     │
+   │  one claim         │   │  registry namespace  │   │  forfeited on malice │
+   └────────────────────┘   └──────────────────────┘   └──────────────────────┘
+              stops sockpuppets      ties name to owner      puts money at stake
+```
+
+World alone is deliberately **not** trusted for identity. A credential can be shared, so the namespace proof and the bond exist to cover that.
+
+### What Proofmark is not
+
+It is **not a code scanner**. An honest, verified maintainer can still ship a backdoor. Proofmark proves *who stands behind* a build, and that they *still* stand behind it, as of seconds ago. It complements tools like Socket and Snyk; it does not replace them.
+
+---
+
+## How it works, in one picture
+
+```
+                                   ┌──────────────────────────────────────────────┐
+  ┌──────────────┐   MCP (stdio)   │              PROOFMARK PROXY                 │
+  │ Agent client │ ──────────────▶ │  resolve on ENS → pay x402 → verify hashes   │
+  │ Claude Code, │ ◀────────────── │  → spawn server → watch for changes          │
+  │ Cursor, ...  │  only permitted └───────┬───────────────┬─────────────┬────────┘
+  └──────────────┘      tools              │ x402 HTTP     │ spawns      │ subscribes
+                                           ▼               ▼             ▼
+                ┌──────────────────────────────┐   ┌─────────────┐  ┌──────────────────┐
+                │      PROOFMARK GATEWAY       │   │ MCP server  │  │ Hedera mirror    │
+                │  Hono · x402 merchant        │   │ (sandboxed  │  │ node: revocation │
+                │  attest · claim · revoke     │   │ if unclaimed)│ │ topic messages   │
+                └──┬──────────┬──────────┬─────┘   └─────────────┘  └──────────────────┘
+                   │          │          │
+         ┌─────────▼───┐ ┌────▼──────┐ ┌─▼─────────────┐
+         │   HEDERA    │ │  ENSv2    │ │    WORLD      │
+         │ x402 settle │ │  Sepolia  │ │ IDKit (claim) │
+         │ HCS audit   │ │ orgs,     │ │ Agent Pass    │
+         │ HCS revoke  │ │ keys,     │ │ (spend)       │
+         │ HTS certs   │ │ agents    │ │               │
+         │ allowances  │ │ ERC-8004  │ │               │
+         │ bond acct   │ │           │ │               │
+         └─────────────┘ └───────────┘ └───────────────┘
+```
+
+| Part | Job |
+| --- | --- |
+| **Proxy** (`apps/proxy`) | What the agent talks to instead of the server. It is the only place enforcement is possible, because a local MCP server runs with the user's full privileges. |
+| **Gateway** (`apps/gateway`) | x402 merchant. Sells signed attestations, runs the claim flow, writes ENS, logs to HCS, mints HTS certificates, verifies World proofs. |
+| **Worker** (`npm run worker`) | Runs on a machine with Docker. Derives a server's tool manifest inside a no-network sandbox. Holds no keys. |
+| **Web app** (`apps/web`) | Marketplace, public `/check`, Fleet, Claim, Maintain, On-chain console, Docs, Pitch. |
+| **Agent Kit plugin** (`packages/agent-kit-plugin`) | Lets any Hedera Agent Kit agent check a server and read its own identity. |
+
+### The simple sequence
+
+```mermaid
+sequenceDiagram
+  autonumber
+  participant A as Agent
+  participant P as Proofmark proxy
+  participant G as Gateway
+  participant E as ENS (Sepolia)
+  participant H as Hedera
+  participant S as MCP server
+  A->>P: connect to "io.github.acme/files"
+  P->>G: GET /attest (signed by the agent)
+  G->>E: who maintains it? is the key live? is the agent allowed to spend?
+  G-->>P: 402 Payment Required, $0.002
+  P->>H: pay over x402 (no human)
+  H-->>G: settled · logged on HCS
+  G-->>P: signed {artifactHash, toolManifestHash}
+  P->>S: start the pinned build
+  S-->>P: tools/list
+  P->>P: hash the tools it received and compare
+  P-->>A: the permitted tools, or a refusal naming what changed
+```
+
+The same flow without Mermaid:
+
+```
+ Agent        Proxy            Gateway             ENS        Hedera        Server
+   │  connect   │                 │                 │            │             │
+   │──────────▶ │  GET /attest    │                 │            │             │
+   │            │───────────────▶ │  read records   │            │             │
+   │            │                 │───────────────▶ │            │             │
+   │            │  402 · $0.002   │ ◀───────────────│            │             │
+   │            │ ◀───────────────│                 │            │             │
+   │            │  pay over x402 ────────────────────────────────▶ │             │
+   │            │                 │ ◀── settled + HCS log ───────│             │
+   │            │  signed hashes  │                 │            │             │
+   │            │ ◀───────────────│                 │            │             │
+   │            │  start pinned build ───────────────────────────────────────▶ │
+   │            │ ◀──────────────────────────────────────── tools/list ────────│
+   │            │  hash + compare │                 │            │             │
+   │  tools ✓   │                 │                 │            │             │
+   │ ◀──────────│   (or ✗ refused, naming the added tool)                      │
+```
+
+---
+
+## The flows
+
+### Flow 1 · A maintainer claims a server (about a minute)
+
+```
+  Maintainer                         Gateway                               Chains
+  ──────────                         ───────                               ──────
+  1. Enter registry name ─────────▶  Is it in the official MCP registry?
+     connect MetaMask                Does this wallet control the
+                                     namespace? (GitHub gist / domain)
+                                              │ yes
+  2. World ID proof ──────────────▶  Verify proof on the backend,
+     (Proof of Human)                reject a reused nullifier
+                                              │ valid
+  3. Org name, payout   ──────────▶  Register  sam.proofmark.eth  ───────▶  ENSv2 · Sepolia
+     account, price                  its own resolver + records            (registry, resolver,
+                                     server name → org                      records, roles)
+                                              │
+  4. Bond: 50 HBAR from payout ───▶  Verify on the mirror node    ───────▶  Hedera
+     account to 0.0.11344995         write bond.tx on ENS, log on HCS       (transfer + HCS)
+                                              │
+                                     Server leaves the sandbox once it has
+                                     a live key and an attestation
+```
+
+### Flow 2 · A release is attested
+
+```
+  ┌───────────────┐  pinned build   ┌──────────────────────────┐   tools/list    ┌────────────┐
+  │ MCP registry  │ ──────────────▶ │ Worker (Docker sandbox)  │ ──────────────▶ │ canonical  │
+  │ npm / OCI /   │  hash checked   │ --network none           │                 │ SHA-256 of │
+  │ mcpb          │  against the    │ --read-only --cap-drop   │                 │ names,     │
+  └───────────────┘  registry       └──────────────────────────┘                 │ schemas    │
+                                                                                 └─────┬──────┘
+          ┌──────────────────────────────────────────────────────────────────────────┘
+          ▼
+  { server, version, artifactHash, toolManifestHash, attestKey, validUntil }
+          │ signed by a co-maintainer key that is live on ENS
+          ▼
+  Gateway re-checks everything ──▶ full record on HCS ──▶ HTS NFT certificate minted
+```
+
+The manifest is **derived, never requested**. Because it comes from running the hash-verified build, a server cannot show one tool list to the attester and another to the user without also changing the build, which the artefact hash catches.
+
+### Flow 3 · An agent connects (the hero flow)
+
+```
+   resolve        pay              verify              connect
+ ┌─────────┐   ┌─────────┐   ┌──────────────────┐   ┌───────────┐
+ │ ENS:    │──▶│ x402 on │──▶│ artefact hash  ✓ │──▶│ session   │
+ │ org,    │   │ Hedera  │   │ manifest hash  ✓ │   │ with the  │
+ │ price,  │   │ $0.002  │   │ key live       ✓ │   │ permitted │
+ │ key     │   │ no human│   │ pass + allowance✓│   │ tools     │
+ └─────────┘   └─────────┘   └──────────────────┘   └─────┬─────┘
+                                                         │ keeps watching:
+                                                         │ • tools/list_changed → re-hash
+                                                         │ • HCS revocation topic → seconds
+                                                         │ • ENS re-check every 15 s
+```
+
+### Flow 4 · The attack is caught
+
+```
+  Yesterday (attested)                 Today (served)
+  ┌──────────────────────┐             ┌──────────────────────┐
+  │ list_dir             │             │ list_dir             │
+  │ read_file            │             │ read_file            │
+  │                      │             │ read_env   ◀── NEW   │
+  └──────────┬───────────┘             └──────────┬───────────┘
+             ▼                                    ▼
+      0x0e05fb00…72d5f0        ≠           0x9c1a77e2…0b31d4
+                          │
+                          ▼
+     ✗ BLOCKED · manifest-mismatch · "added: read_env"
+       The model never sees the tool list. No connection is made.
+```
+
+### Flow 5 · Revocation across a fleet
+
+```
+  Maintainer revokes bob.acme.proofmark.eth
+        │
+        ├──▶ ENS: attest.key cleared  (source of truth)
+        │
+        └──▶ HCS topic 0.0.11344888: {org, key, reason, ts}
+                    │
+                    │  mirror node subscription (measured 2.1 s)
+         ┌──────────┼───────────┬─────────────┐
+         ▼          ▼           ▼             ▼
+     agent-1    agent-2      agent-3   ...  agent-n      → all go red
+     ✗ blocked  ✗ blocked    ✗ blocked      ✗ blocked
+     Alice's attestations are untouched: only Bob's key was revoked.
+```
+
+### Flow 6 · Spend authority and the denied path
+
+```
+                        ┌──────────────── before ANY payment ───────────────┐
+  agent asks to pay ──▶ │ World Agent Pass valid and fresh?  ── no ──▶ 403  │ ✗ no payment
+                        │ Operator allowance on Hedera left? ── no ──▶ 403  │ ✗ no connect
+                        │ Inside the ENS budget?             ── no ──▶ 403  │
+                        └──────────────────────┬────────────────────────────┘
+                                               │ all yes
+                                               ▼
+                                     pay $0.002 over x402
+```
+
+### The three tiers
+
+```
+                    ┌──────────────────────────┐
+     name unclaimed │        SANDBOXED         │  runs in a container:
+   ───────────────▶ │ --network none --read-only│  read-only tools only
+                    └────────────┬─────────────┘
+                                 │ claimed + namespace proof + bond + live key
+                                 ▼
+                    ┌──────────────────────────┐
+                    │          GREEN           │  full tool set,
+                    │  both hashes match       │  maintainer paid
+                    └────────────┬─────────────┘
+       hash mismatch · key revoked/expired · bond forfeited · typosquat
+                                 ▼
+                    ┌──────────────────────────┐
+                    │         BLOCKED          │  refused, reason shown,
+                    │                          │  alternative offered
+                    └──────────────────────────┘
+```
+
+There is **no amber tier**. "Pin to the last good version" would let an attacker freeze everyone on a vulnerable build simply by stopping attestation.
+
+---
+
+## Using Proofmark
+
+### If you are a judge: two minutes
+
+1. Open **[/check](https://proofmark-web.vercel.app/check)** and type any MCP server name, for example `io.github.SamuelDharshi/proofmark-files`. You see its tier, its reason and its three layers, all read live from ENS and Hedera.
+2. Open **[/log](https://proofmark-web.vercel.app/log)**, the On-chain console. Every payment, HCS message, HTS mint and allowance appears live from the Hedera mirror node. Click any row to open it on HashScan. Press F12 to see each transaction printed to the console.
+3. Open **[/marketplace](https://proofmark-web.vercel.app/marketplace)** to browse real registry servers graded green, sandboxed or blocked, with prices in HBAR.
+4. Read **[docs/TESTING.md](docs/TESTING.md)** for every transaction from the live test runs.
+
+### If you maintain an MCP server
+
+| Step | Where | What you do | What happens on-chain |
+| --- | --- | --- | --- |
+| 1 | `/claim` → Server | Press **Connect wallet** (top right). Enter your registry name. Publish the one-line gist the page shows, then **Verify ownership** | Nothing yet. The gateway reads the registry and your gist |
+| 2 | `/claim` → Human | Verify with World ID | The proof is checked on the gateway and its nullifier stored |
+| 3 | `/claim` → Organisation | Choose an org name, a Hedera payout account and a price | Org, resolver and records written to ENSv2 on Sepolia |
+| 4 | `/maintain` → Bond | Send 50 HBAR from your payout account to `0.0.11344995`, paste the transaction id, sign | `bond.tx` on ENS, an HCS audit message |
+| 5 | `/maintain` → Co-maintainer | Add a name, a key address and an expiry, then sign | An expiring ENS subname with a role that can only set `attest.key` |
+| 6 | `/maintain` → Attest | Start the worker (below), press **Derive, sign and publish**, sign | The full record on HCS, plus an HTS NFT certificate |
+| 7 | `/maintain` → Revoke | Revoke a key | One ENS write plus an HCS message. Connected agents block in seconds |
+
+The worker for step 6 runs on your machine, because deriving the manifest needs Docker:
+
+```bash
+wsl -u root service docker start        # Windows with Docker in WSL; skip on macOS/Linux
+npm run worker -w @proofmark/gateway     # listens on 127.0.0.1:8788, holds no keys
+```
+
+All of steps 4 to 6 can also run from a terminal:
+
+```bash
+npm run bond:pay -w @proofmark/gateway -- <payout account> <payout key> 50
+npm run maintain -w @proofmark/gateway -- <org> <registry name> <label> <days>
+```
+
+### If you run agents
+
+1. **Fleet page (`/fleet`):** each agent card shows its ENS name, HCS-14 UAID, ERC-8004 id, budget, operator allowance and Agent Pass.
+2. **Get pass:** the gateway starts World's device flow, and you approve once in World. The validated pass is written to the agent's ENS name. Without it, the agent cannot pay, which is the denied path.
+3. **Allowance:** approve or withdraw the operator's Hedera allowance to the agent:
+
+   ```bash
+   npm run allowance -w @proofmark/gateway -- approve 5     # cap in HBAR
+   npm run allowance -w @proofmark/gateway -- withdraw
+   ```
+
+4. **Point your agent at the proxy** instead of the server, for example in Claude Code's MCP config:
+
+   ```json
+   {
+     "mcpServers": {
+       "files": {
+         "command": "npx",
+         "args": ["tsx", "apps/proxy/src/cli.ts",
+                  "--server", "io.github.SamuelDharshi/proofmark-files",
+                  "--gateway", "https://proofmark-gateway.onrender.com",
+                  "--", "npx", "-y", "proofmark-files", "."],
+         "env": { "AGENT_ENS_NAME": "claude-1.agents.proofmark.eth" }
+       }
+     }
+   }
+   ```
+
+   The agent also gets two tools of its own: `proofmark_explain` (why a server has its tier) and `proofmark_budget` (its spend, caps and pass).
+
+### If you build with the Hedera Agent Kit
+
+```ts
+import { proofmarkPlugin } from "@proofmark/agent-kit-plugin";
+// adds PROOFMARK_CHECK_SERVER_TOOL and PROOFMARK_AGENT_IDENTITY_TOOL to any Agent Kit agent
+```
+
+---
 
 ## Proof it runs
 
-Everything below is reproducible from a clean clone.
+Every link below is a real transaction. The full list from the latest runs, including bond, revocation and allowance transactions, is in **[docs/TESTING.md](docs/TESTING.md)**.
 
-**Live on Hedera testnet**
+**Hedera testnet**
 
 | What | Link |
 | --- | --- |
-| x402 settlement, agent `0.0.11331191` pays maintainer `0.0.8149406` $0.002 (0.02 HBAR), no human approving | [HashScan transaction](https://hashscan.io/testnet/transaction/0.0.7162784-1793921712-374513238) |
-| HCS topic holding every attestation and payment | [Topic 0.0.11331506](https://hashscan.io/testnet/topic/0.0.11331506) |
-| Attestation certificate collection (HTS NFT, `PMARK`) | [Token 0.0.11341242](https://hashscan.io/testnet/token/0.0.11341242) |
-| Certificate #1 minted for `ai.adeu/adeu` v1.7.1 from a real sandboxed derivation of its tool manifest | [NFT 0.0.11341242 #1](https://hashscan.io/testnet/token/0.0.11341242/1) |
-| HCS-14 agent identity message for `claude-1.agents.proofmark.eth` | [Topic message #5](https://hashscan.io/testnet/topic/0.0.11331506) |
-| Maintainer account | [0.0.8149406](https://hashscan.io/testnet/account/0.0.8149406) |
-| Paying agent account | [0.0.11331191](https://hashscan.io/testnet/account/0.0.11331191) |
+| x402 settlement: agent `0.0.11331191` pays maintainer `0.0.8149406` $0.002 (0.02 HBAR), no human approving | [0.0.7162784-1793921712-374513238](https://hashscan.io/testnet/transaction/0.0.7162784-1793921712-374513238) |
+| HCS audit topic: every attestation, payment and identity | [0.0.11331506](https://hashscan.io/testnet/topic/0.0.11331506) |
+| HCS revocation topic, subscribed to by proxies | [0.0.11344888](https://hashscan.io/testnet/topic/0.0.11344888) |
+| HTS attestation certificates (`PMARK`) | [0.0.11341242](https://hashscan.io/testnet/token/0.0.11341242) |
+| Bond account, a 2-of-2 key list | [0.0.11344995](https://hashscan.io/testnet/account/0.0.11344995) |
+| A 50 HBAR bond verified; a 5 HBAR one rejected | [verified](https://hashscan.io/testnet/transaction/0.0.8149406-1794004053-697388103) · [rejected](https://hashscan.io/testnet/transaction/0.0.8149406-1794004053-081843488) |
+| Operator allowance withdrawn (payment refused), then approved again | [withdraw](https://hashscan.io/testnet/transaction/0.0.8149406-1794004134-445493937) · [approve](https://hashscan.io/testnet/transaction/0.0.8149406-1794004142-331722408) |
 
-**Live on Sepolia (ENSv2)**
+**Sepolia (ENSv2 and ERC-8004)**
 
 | What | Link |
 | --- | --- |
 | Root name | [proofmark.eth](https://sepolia.app.ens.domains/proofmark.eth) |
-| Org registry proxy and org resolver proxy for `demo.proofmark.eth` | [resolver](https://sepolia.etherscan.io/tx/0xc5b8d89f42498ee44f3d51a839b26e54f729ba73b699b7cb685bc5c9dc169783), [registry](https://sepolia.etherscan.io/tx/0x8a2251888028671212db07806cdf7e1c05c6654436c356721ad5a05a0fbc763e) |
-| Org name registered and records written | [register](https://sepolia.etherscan.io/tx/0x9a0fd456eefa59c56bd888420a4186115336b3346fda339319d7f4cdf771b84a), [records](https://sepolia.etherscan.io/tx/0x9ba046f0910a20a344bd2d05ae1b4c54d2f44ed0dcf0fa1bffe01f832d6a2541) |
-| Co-maintainer `gateway.demo.proofmark.eth` with an expiring key | [subname](https://sepolia.etherscan.io/tx/0xb2a8e03a59f1db1912e458d1159636b8fc0fdc1d935dc864ef1c4614c3cd24f4), [attest.key role](https://sepolia.etherscan.io/tx/0xc0993ea3172d74d94d42ba5c7e7582286e77896d560b76f3dfbfe04e11f90fb2), [attest.key record](https://sepolia.etherscan.io/tx/0x676bf728d8ceb8f81c2938de9722c08aff6f9a82e8e85dfaf72f564dea81e0ef) |
-| Unauthorised write to `status` by that co-maintainer | Reverts with `EACUnauthorizedAccountRoles` when the co-maintainer key tries to write a record it holds no role for |
-| Agent `claude-1.agents.proofmark.eth` registered as an ERC-8004 agent (#11294) in the Sepolia Identity Registry, with its HCS-14 UAID written to its ENS records | [register](https://sepolia.etherscan.io/tx/0x24c3a835a1d02dca2439ae61650baca97f129726e9c20902a6c7a12ab221eba8), [agentURI](https://sepolia.etherscan.io/tx/0x5b0ac5589274904411c3e9bcb0eda6241047ae8947f124cc2112b88d165111ac), [ENS records](https://sepolia.etherscan.io/tx/0x4e85350ffad71f3be6f1042fdae71c364c740283b82f0660d696d4fcc9ff1efa) |
+| Org registry and resolver proxies for an org | [resolver](https://sepolia.etherscan.io/tx/0xc5b8d89f42498ee44f3d51a839b26e54f729ba73b699b7cb685bc5c9dc169783) · [registry](https://sepolia.etherscan.io/tx/0x8a2251888028671212db07806cdf7e1c05c6654436c356721ad5a05a0fbc763e) |
+| Co-maintainer added with an expiring key and a role scoped to `attest.key` | [subname](https://sepolia.etherscan.io/tx/0xc31e50cefbafd8fa839132e0d0162546f82f274bd3fca40f53603b63689e6493) · [role](https://sepolia.etherscan.io/tx/0x2aa6372ff2fbbbf94b6852606e64bf93a891f5b78e04480b52f34fda44d92f73) · [key](https://sepolia.etherscan.io/tx/0xd41c46e0276e69d600b14329a5847db8e42de42e3ea466f0ba68145b7b986098) |
+| ...and revoked; a connected proxy saw it 2.1 s after the HCS submit | [revoke](https://sepolia.etherscan.io/tx/0xc39e07b54d0e671a332eff6981df0693aedc036c16f6d23ef37c5eebe17f16d7) |
+| An unauthorised write to `status` by a co-maintainer | reverts with `EACUnauthorizedAccountRoles` |
+| Agent `claude-1.agents.proofmark.eth` registered in the ERC-8004 Identity Registry (#11294) | [register](https://sepolia.etherscan.io/tx/0x24c3a835a1d02dca2439ae61650baca97f129726e9c20902a6c7a12ab221eba8) · [ENS records](https://sepolia.etherscan.io/tx/0x4e85350ffad71f3be6f1042fdae71c364c740283b82f0660d696d4fcc9ff1efa) |
 
-| What | How to see it |
+**Automated**
+
+| Suite | Result |
 | --- | --- |
-| Derived manifest hash and mismatch refusal | `npm test`. The proxy suite runs a local MCP test fixture clean, then with an added tool, and asserts the refusal names `read_env` |
-| x402 settlement on Hedera testnet | Connect one agent. The proxy logs a HashScan link for the settled transaction and the gateway records it on the Fleet page |
-| Public replayable log | The HCS log page reads the topic back from the Hedera mirror node. The topic link is returned by `GET /config` |
-| ENSv2 hierarchy | `GET /config` returns the contract addresses used. Each org, co-maintainer and revocation links to Sepolia Etherscan and the ENS app |
-| Denied path | Connect with an agent that has no valid Agent Pass. The gateway refuses before any payment and no connection is made |
-| Public read-only page | `/check` resolves any server name. Unclaimed names honestly return sandboxed |
+| `npm test`: canonical hashing, tiers, typosquats, proxy mismatch refusal, revocation watcher, HCS rebuild | 30 / 30 pass |
+| `npm run live:check -w @proofmark/gateway`: the deployed system against both chains and World | 22 / 22 pass |
+| `npm run e2e -w @proofmark/gateway`: real bond, revocation, allowance and sandbox transactions | 16 / 16 pass |
+
+---
 
 ## Track requirements
 
-| Partner | Requirement | How Proofmark meets it | Code |
-| --- | --- | --- | --- |
-| Hedera | x402-protected endpoint settling on Hedera testnet through a listed facilitator | `GET /attest` uses `@x402/hedera` exact scheme with the Blocky402 facilitator | [x402.ts:33](apps/gateway/src/x402.ts#L33), [x402.ts:69](apps/gateway/src/x402.ts#L69) |
-| Hedera | A paid request with no human approving | The proxy signs and pays on its own. The Agent Pass gates authority to spend, not each payment | [connect.ts:48](apps/proxy/src/connect.ts#L48), [attest.ts:31](apps/gateway/src/routes/attest.ts#L31) |
-| Hedera | HCS audit topic | Every attestation and every settled payment is one HCS message | [hcs.ts:27](apps/gateway/src/hcs.ts#L27), [x402.ts:37](apps/gateway/src/x402.ts#L37) |
-| Hedera | Per-run budget and approval threshold | Budget lives on the agent record and is enforced before payment | [attest.ts:31](apps/gateway/src/routes/attest.ts#L31) |
-| ENS | ENSv2 on Sepolia, addresses from the deployments table | Addresses and ABIs load from an export of the deployments table | [ens.ts](apps/gateway/src/ens.ts), [deployments.sepolia.json](apps/gateway/ens/deployments.sepolia.json) |
-| ENS | Permissioned Registry, per-maintainer Permissioned Resolver, EAC roles scoped per record key | One resolver proxy per org. Co-maintainers get a setter role for `attest.key` only | [ens.ts:103](apps/gateway/src/ens.ts#L103), [ens.ts:133](apps/gateway/src/ens.ts#L133) |
-| ENS | Expiring co-maintainer subnames, surgical revocation | Subname registered with an expiry. Revocation is one write | [ens.ts:150](apps/gateway/src/ens.ts#L150) |
-| ENS | An unauthorised write reverts | `eth_call` as the co-maintainer writing `status` returns `EACUnauthorizedAccountRoles` | [ens.ts:159](apps/gateway/src/ens.ts#L159) |
-| ENS | Wildcard resolution, public read-only page | Any unclaimed name resolves to sandboxed on `/check` | [check.ts](apps/gateway/src/check.ts) |
-| ENS | Reads cached 15s, invalidated on `TextUpdated` and `EACRolesChanged` | Cache plus chain event watchers | [ens.ts:188](apps/gateway/src/ens.ts#L188) |
-| World | Official World ID Agent Pass integrated, spend authority depends on it | The official World IdP over OIDC: a headless device grant, the ID token validated on the gateway (signature, issuer, audience, expiry, `auth_time`, `acr`, `amr`), and the validated pass written to the agent's ENS name | [idp.ts](apps/gateway/src/idp.ts), [agents.ts](apps/gateway/src/agents.ts) |
-| World | Denied path | Expired or revoked pass: payment refused, no connection | [attest.ts:31](apps/gateway/src/routes/attest.ts#L31) |
-| World | IDKit Proof of Human on the claim, duplicate nullifier rejected | Backend verification, nullifier stored per action | [world.ts:39](apps/gateway/src/world.ts#L39) |
-| World | Validation on a secure backend | RP signing and proof verification run only on the gateway | [world.ts:10](apps/gateway/src/world.ts#L10) |
-| World | Integration debrief | Time to first success, friction, missing docs, the one improvement | [docs/WORLD_DEBRIEF.md](docs/WORLD_DEBRIEF.md) |
+### Hedera · AI Agents That Pay: x402
 
-## How it works
+| Requirement | How Proofmark meets it | Code |
+| --- | --- | --- |
+| x402-protected endpoint settling on Hedera through a listed facilitator | `GET /attest` uses the `@x402/hedera` exact scheme with Blocky402 | [x402.ts](apps/gateway/src/x402.ts) |
+| An agent completes a paid request with no human approving | The proxy pays on its own. The Agent Pass and allowance gate *authority to spend*, not each payment | [connect.ts](apps/proxy/src/connect.ts) |
+| README with setup, architecture, payment flow and a settled transaction id | This file: [How it works](#how-it-works-in-one-picture), [Flow 3](#flow-3--an-agent-connects-the-hero-flow), [Proof it runs](#proof-it-runs) | |
+| Extra: spending controls | Per-payment cap, ENS budget, on-chain operator allowance | [allowance.ts](apps/gateway/src/allowance.ts) |
+| Extra: HCS audit log | Attestations, payments, identity, bond and revocation messages | [hcs.ts](apps/gateway/src/hcs.ts) |
+| Extra: HCS-14 and ERC-8004 identity | UAID on the agent's ENS name and anchored on HCS; ERC-8004 agent #11294 | [identity.ts](apps/gateway/src/identity.ts) |
+| Extra: HTS | Each attestation minted as an NFT certificate | [hts.ts](apps/gateway/src/hts.ts) |
+| Extra: Hedera Agent Kit | `@proofmark/agent-kit-plugin` | [packages/agent-kit-plugin](packages/agent-kit-plugin) |
 
-```mermaid
-sequenceDiagram
-  participant A as Agent client
-  participant P as Proofmark proxy
-  participant G as Gateway
-  participant H as Hedera
-  participant E as ENS
-  participant S as MCP server
-  A->>P: connect to server
-  P->>G: GET /attest (signed by agent wallet)
-  G->>G: Agent Pass, budget, tier
-  G-->>P: 402 payment required
-  P->>H: pay over x402, no human approving
-  H-->>G: settled, anchored on HCS
-  G->>E: key live? (cached 15s)
-  G-->>P: signed hash pair
-  P->>S: spawn the pinned artefact
-  S-->>P: tools/list
-  P->>P: hash what the server sent, compare
-  P-->>A: tools, or a refusal naming the added tool
-```
+### ENS · Best Use of ENSv2
+
+| Requirement | How Proofmark meets it | Code |
+| --- | --- | --- |
+| ENSv2 on Sepolia, addresses from the deployments table | Addresses and ABIs load from the deployments export | [deployments.sepolia.json](apps/gateway/ens/deployments.sepolia.json) |
+| ENS central, not cosmetic | Every tier decision reads ENS: org, payout, price, keys, bond, domain, agents | [chain.ts](apps/gateway/src/chain.ts) |
+| Permissioned Registry, a Permissioned Resolver per org, EAC roles scoped per record | One resolver per org; co-maintainers can only set `attest.key` | [ens.ts](apps/gateway/src/ens.ts) |
+| Expiring co-maintainer subnames, surgical revocation | Revoke Bob and Alice's attestations stand | [ens.ts](apps/gateway/src/ens.ts) |
+| Wildcard, public read-only page | Any unclaimed name resolves to sandboxed on `/check` | [check.ts](apps/gateway/src/check.ts) |
+| Agents as namespaces | `claude-1.agents.proofmark.eth` holds budget, allowed tools, max risk, pass, UAID, ERC-8004 | [chain.ts](apps/gateway/src/chain.ts) |
+
+### World · Agent Pass and IDKit
+
+| Requirement | How Proofmark meets it | Code |
+| --- | --- | --- |
+| Official Agent Pass, protecting a meaningful action | The protected action is an agent **spending money** and connecting to a server with shell access | [idp.ts](apps/gateway/src/idp.ts) |
+| Complete journey | Device flow request → person approves in World → ID token validated on the gateway → pass written to ENS → paid connect | [agents.ts](apps/gateway/src/agents.ts) |
+| Denied, expired or cancelled path | No pass, expired pass or a declined request: HTTP 403 before any payment, no connection | [attest.ts](apps/gateway/src/routes/attest.ts) |
+| Secure backend validation | RP signing, proof and token checks happen only on the gateway | [world.ts](apps/gateway/src/world.ts) |
+| IDKit with a supported credential, verified on the server | Proof of Human (or passport or national ID) on the maintainer claim, with the nullifier checked | [world.ts](apps/gateway/src/world.ts) |
+| Why this credential is the minimum sufficient | The trust event is claiming a server name, and it needs one person, one claim. A passport adds friction without proving the holder is the maintainer, so the namespace proof and bond carry identity | [WORLD_DEBRIEF.md](docs/WORLD_DEBRIEF.md) |
+| Integration debrief | Time to first success, friction, missing docs, the one improvement | [WORLD_DEBRIEF.md](docs/WORLD_DEBRIEF.md) |
+
+---
+
+## Design details
 
 ### The two hashes
 
 | Hash | Source | Catches |
 | --- | --- | --- |
-| Artefact | Registry integrity field: mcpb `fileSha256`, OCI digest, npm `dist.integrity` | A changed binary |
-| Tool manifest | SHA-256 over sorted tool names, descriptions and input schemas | The same binary quietly offering a new tool |
+| **Artefact** | The registry's integrity field: mcpb `fileSha256`, OCI digest, npm `dist.integrity` | A changed binary |
+| **Tool manifest** | SHA-256 over sorted tool names, descriptions and input schemas | The same binary quietly offering a new tool |
 
-The manifest is derived, never requested. The attestation worker fetches the pinned artefact, verifies its hash, runs it with no network and captures `tools/list` itself, so a split view implies a different binary. Canonicalisation sorts keys, normalises whitespace and strips volatile fields: [canonical.ts](packages/core/src/canonical.ts).
+Canonicalisation sorts keys, normalises whitespace and strips volatile fields, so honest servers never trip a false mismatch: [canonical.ts](packages/core/src/canonical.ts).
 
 ### Rechecks
 
-The proxy checks at connect, again on every `notifications/tools/list_changed` ([cli.ts:103](apps/proxy/src/cli.ts#L103)), and re-checks liveness against the gateway every 15 seconds. Every attestation carries `revocationCheckedAt` and a 24 hour `validUntil`, so a cached one is evidence that goes stale rather than a free pass.
+- **At connect:** both hashes, key liveness, pass and allowance.
+- **On every `tools/list_changed`:** re-hash mid-session ([cli.ts](apps/proxy/src/cli.ts)).
+- **Revocation topic:** a subscription through the mirror node drops a session within seconds ([revocations.ts](apps/proxy/src/revocations.ts)).
+- **Every 15 seconds:** liveness re-read from ENS through the gateway. A missed HCS message only delays a block; it never allows one.
+- Each attestation carries `revocationCheckedAt` and a 24-hour `validUntil`, so it goes stale rather than becoming a free pass.
 
-### Tiers
-
-```mermaid
-stateDiagram-v2
-  [*] --> Sandboxed: name unclaimed
-  [*] --> Blocked: one or two edits from a claimed name
-  Sandboxed --> Green: a maintainer claims it, proves the namespace and posts a bond
-  Green --> Blocked: hash mismatch
-  Green --> Blocked: key revoked or expired
-  Blocked --> Green: fresh attestation by a live key
-```
-
-### What stands behind a green server
-
-Identity rests on three layers, and each one answers a different attack. World alone is deliberately not trusted for identity: it does not prove the person using a credential is the real maintainer, and a household member could share one.
-
-| Layer | What it proves | Where it lives | What it does not prove |
-| --- | --- | --- | --- |
-| World at the claim | One identity can register one org. Limits mass sockpuppets | Nullifier stored per action, checked on the backend ([world.ts](apps/gateway/src/world.ts)) | Who the maintainer is |
-| Verified namespace | The claimer controls the registry namespace: a public gist on the GitHub account for `io.github.*` names, a `/.well-known/proofmark.txt` file or `_proofmark` TXT record for domain names | `domain.verified` on the org's ENS records ([control.ts](apps/gateway/src/control.ts)) | That the code is safe |
-| Bond on Hedera | Money is at stake. A deposit in HBAR from the org's payout account to a 2-of-2 bond account, checked on the mirror node | `bond.tx` and `bond.status` on ENS, and an HCS audit message ([bond.ts](apps/gateway/src/bond.ts)) | Anything automatic: the gateway marks a bond forfeited today, a contract or HTS escrow is the next step |
-
-Green needs all three, a live key and both hashes. A forfeited bond blocks. A claimed server that lacks the bond or the namespace proof stays sandboxed.
-
-Revocation is published to its own HCS topic as well as written to ENS. A proxy subscribes to the topic through the mirror node and drops a matching session within seconds ([revocations.ts](apps/proxy/src/revocations.ts)). ENS remains the source of truth: the proxy re-reads it on connect and on a timer, so a missed message delays a block and never allows one.
-
-Spend needs the World Agent Pass **and** an on-chain Hedera allowance from the operator to the agent, with a cap, read from the mirror node before each payment ([allowance.ts](apps/gateway/src/allowance.ts)). The x402 payment itself settles from the agent's own account, so the allowance is the operator's revocable authority and the gate, not the funding source.
-
-Attestations are written to HCS in full (the signed record), minted as an HTS NFT, and rebuilt from the topic after a restart, so a gateway that sleeps or restarts loses nothing ([attestations.ts](apps/gateway/src/attestations.ts)).
-
-There is no amber tier. Pinning to the last attested version would let an attacker freeze everyone on a vulnerable build by stopping attestation. Policy: [tiers.ts](packages/core/src/tiers.ts).
-
-### ENS tree
+### The ENS tree
 
 ```
-proofmark.eth                     Permissioned Registry, administered by Proofmark
-  acme.proofmark.eth              maintainer org, owned by the claiming human
-      status, payto, x402.price, world.verified
-    alice.acme.proofmark.eth      co-maintainer: attest.key, expires
-    bob.acme.proofmark.eth        co-maintainer: attest.key, expires
+proofmark.eth                          Permissioned Registry, run by Proofmark
+├── *.proofmark.eth                    wildcard: any unclaimed server → sandboxed
+├── sam.proofmark.eth                  maintainer org, owned by the claiming wallet
+│     status · payto · x402.price · world.verified
+│     bond.tx · bond.status · domain.verified
+│   ├── main.sam.proofmark.eth         co-maintainer: attest.key, expires in 180 days
+│   └── bob.sam.proofmark.eth          co-maintainer: attest.key, revocable alone
+├── <server>.proofmark.eth             the server name → resolves to its org
+└── agents.proofmark.eth
+    └── claude-1.agents.proofmark.eth  agent: budget · allowed.tools · maxrisk
+                                       pass.* · hcs14.uaid · erc8004 · operator
 ```
 
-One resolver instance per org, because argument-scoped grants apply to every name an instance serves. Claim and revoke are one write each. Nothing is written per attestation.
+There is one resolver instance per org, because argument-scoped grants apply to every name an instance serves. Claim and revoke are one write each, and nothing is written per attestation.
 
-## Sponsor integrations
+### What lives where
 
-### Hedera
-`@x402/hedera` exact scheme on `hedera:testnet`, settled by the Blocky402 facilitator. The price and `payTo` account are set per maintainer and capped at $0.05 ([x402.ts:69](apps/gateway/src/x402.ts#L69)). The asset is configurable and defaults to HBAR, because testnet USDC token ids are not reliable across facilitators. HCS carries every attestation and payment ([hcs.ts](apps/gateway/src/hcs.ts)). Every transaction id in the app links to HashScan.
+| Where | What |
+| --- | --- |
+| **ENSv2 on Sepolia** | Who may vouch, and whether they still may: orgs, keys, bonds, domains, agents |
+| **Hedera HCS** | That it happened, and when: every attestation, payment, identity and revocation, replayable by anyone |
+| **Hedera HTS** | A certificate NFT for each attested version |
+| **Hedera accounts** | x402 settlement, operator allowances, the 2-of-2 bond account |
+| **Gateway** | Only caches. Attestations are rebuilt from HCS after a restart |
 
-Beyond x402 and HCS: each approved attestation is minted as an **HTS NFT certificate** ([hts.ts](apps/gateway/src/hts.ts), collection `0.0.11341242`); each agent has an **HCS-14 UAID** derived from its Hedera account and anchored to the topic ([identity.ts](apps/gateway/src/identity.ts)); and a **Hedera Agent Kit plugin** lets any Agent Kit agent call `PROOFMARK_CHECK_SERVER_TOOL` and `PROOFMARK_AGENT_IDENTITY_TOOL` ([packages/agent-kit-plugin](packages/agent-kit-plugin)). Spending controls are set on the x402 client, with a per-payment cap and a budget read from the agent's ENS record.
+---
 
-### ENS
-Agents are also registered in the ERC-8004 Identity Registry on Sepolia, and the reference is stored back on the agent's ENS name (`erc8004` record) next to its `hcs14.uaid`. ENSv2 on Sepolia: Permissioned Registry subname registries, a Permissioned Resolver per org, Enhanced Access Control roles scoped to `attest.key`, expiring co-maintainer subnames and wildcard resolution to the sandboxed tier ([ens.ts](apps/gateway/src/ens.ts)).
+## Run it yourself
 
-### World
-Agent Pass, through the official World IdP (OpenID Connect), is spend authority for the paying agent, not maintainer identity. The gateway runs the Device Authorization Grant, validates the ID token and records the pass on the agent's ENS name. Spend authority lapses when the authentication is older than the allowed age, so an expired pass is refused with no override. IDKit Proof of Human gates the maintainer claim, one nullifier to one identity. For a maintainer, uniqueness is the property needed: the claim accepts any one credential that proves one real person (Proof of Human, passport or national ID, set by `WORLD_CREDENTIALS`) and the gateway rejects a proof that used none of them. Why this is the minimum sufficient assurance: the trust event is claiming a server's name, and the only property it needs is one person, one claim. A passport would add friction and still not prove the holder is the real maintainer, so the namespace proof and the bond carry identity instead. The full reasoning and the integration debrief are in [docs/WORLD_DEBRIEF.md](docs/WORLD_DEBRIEF.md). For the agent, the pass only has to show that a verified person authorized it to spend ([world.ts](apps/gateway/src/world.ts), [agents.ts](apps/gateway/src/agents.ts)).
+```bash
+npm install
+cp .env.example .env                                  # fill in the values below
+npm run keys -w @proofmark/gateway                    # a signing key for ATTEST_PRIVATE_KEY
+npm run hcs:create -w @proofmark/gateway              # HCS_TOPIC_ID
+npm run hcs:create -w @proofmark/gateway -- revocations   # REVOKE_TOPIC_ID
+npm run hts:create -w @proofmark/gateway              # HTS_TOKEN_ID
+npm run bond:create -w @proofmark/gateway             # BOND_ACCOUNT_ID
+npm run ens:status -w @proofmark/gateway              # confirms the admin wallet owns the root name
+npm run agents:create -w @proofmark/gateway -- 2 5 1  # 2 agents, 5 HBAR each, $1 budget
+npm run gateway                                       # http://localhost:8787
+npm run web                                           # http://localhost:3000
+npm test                                              # 30 unit tests
+npm run live:check -w @proofmark/gateway              # the deployed system, end to end
+```
 
-### MCP
-Name ownership uses the official registry's own verification: `mcpName` in package.json, an `mcp-name:` README line or an OCI label ([registry.ts](apps/gateway/src/registry.ts)).
+| Account | What you need |
+| --- | --- |
+| Hedera | A testnet account with an ECDSA key: the gateway payee, HCS submitter and funder |
+| ENS | A Sepolia wallet that owns the root name, with Sepolia ETH |
+| World Agent Pass | An OIDC client from the [World IdP portal](https://auth.world.org/portal) |
+| World IDKit | An app, RP id and signing key from the [Developer Portal](https://developer.world.org) |
+| Docker | Only on the machine that runs the attestation worker |
+
+---
+
+## Repo map
+
+```
+packages/core              canonical manifest hash, tier policy, typosquat check, explorer links
+packages/runner            spawns an MCP server, in a hermetic container when available
+packages/agent-kit-plugin  Hedera Agent Kit plugin
+apps/gateway               Hono gateway: x402, attest, HCS, HTS, ENS, World, claim, bond, revoke
+apps/gateway/src/scripts   live:check, e2e, worker, maintain, bond, allowance, setup scripts
+apps/proxy                 the MCP proxy agents connect through
+apps/demo-server           MCP test fixture for the proxy tests (the read_env attack)
+apps/web                   Next.js app: landing, marketplace, check, fleet, claim, maintain, on-chain, docs, pitch
+publish/files-server       proofmark-files, a real server published to npm and the MCP registry
+docs                       TESTING.md, WALKTHROUGH.md, WORLD_DEBRIEF.md, architecture diagram
+```
+
+---
+
+## Limits, stated plainly
+
+- **Not a scanner.** A verified maintainer can still ship malicious code. Proofmark makes that attack cost a unique identity, a namespace and a bond, keeps it revocable, and leaves a record.
+- **Hosted remote servers** get liveness, identity and revocation, but no integrity guarantee. A remote endpoint can show the attester a different face. Clients report the hashes they observe so divergence is flagged.
+- **The gateway is trusted** to run the sandboxed derivation honestly and to mark a bond forfeited. A contract or HTS escrow for the bond is the next step.
+- **World proves uniqueness, not identity.** A shared credential is a known weakness, which is why the namespace proof and the bond exist.
+
+---
 
 ## Prior art
 
 | Work | What it does | What it leaves open |
 | --- | --- | --- |
-| [Stacklok ToolHive](https://stacklok.com/blog/from-unknown-to-verified-solving-the-mcp-server-trust-problem/) | Verifies Sigstore signatures and build attestations on MCP images before deployment | No revocation, no human identity beyond a GitHub account, nothing once deployed |
-| [Tool-definition hash pinning](https://codeongrass.com/blog/mcp-tool-shadowing-defenses-detect-poisoned-descriptions/) | Canonical SHA-256 over tool names, descriptions and schemas | Nobody ships or signs it, nothing binds it to a person |
-| [Official MCP registry](https://modelcontextprotocol.io/registry/about) | Verifies name ownership | No signing, no revocation, no identity |
+| [Stacklok ToolHive](https://stacklok.com/blog/from-unknown-to-verified-solving-the-mcp-server-trust-problem/) | Sigstore signatures and build attestations on MCP images before deploy | No revocation, no identity beyond a GitHub account, nothing after deploy |
+| [Tool-definition hash pinning](https://codeongrass.com/blog/mcp-tool-shadowing-defenses-detect-poisoned-descriptions/) | Canonical SHA-256 over tool definitions | Nobody ships or signs it; nothing binds it to a person |
+| [Official MCP registry](https://modelcontextprotocol.io/registry/about) | Verifies name ownership. Proofmark uses it | No signing, no revocation, no identity |
 | [A trustworthy MCP registry](https://www.mdpi.com/1999-5903/18/5/243) | Sigstore signing plus runtime JWS | No revocation, no human identity, no payments |
 
-Proofmark adds three narrow things: revocation that reaches a running fleet, a unique, domain-verified, bonded maintainer instead of one account, and a recurring payment that makes the freshness check sustainable.
+Proofmark adds three narrow things: **revocation that reaches a running fleet**, a **unique, domain-verified, bonded maintainer** instead of one account, and a **recurring payment** that keeps the freshness check sustainable.
 
-## Run it
-
-Nothing here is simulated. Claims, prices, payees, agent budgets and co-maintainer keys live on ENS, spend lives in the HCS log, and settlement happens on Hedera testnet.
-
-```bash
-npm install
-cp .env.example .env                          # fill in the values, see below
-npm run keys -w @proofmark/gateway            # fresh signing key for ATTEST_PRIVATE_KEY
-npm run hcs:create -w @proofmark/gateway      # prints HCS_TOPIC_ID
-npm run ens:status -w @proofmark/gateway      # confirms the admin wallet owns the root name
-npm run agents:create -w @proofmark/gateway -- 2 5 1   # 2 agents as ENS names, 5 HBAR each, 1 USD budget
-npm run gateway                               # http://localhost:8787
-npm run web                                   # http://localhost:3000
-npm test                                      # core and proxy suites
-```
-
-**Accounts you need**
-
-| For | What |
-| --- | --- |
-| Hedera | A testnet account with an ECDSA key. It is the maintainer payee, the HCS submitter and the funder of agent accounts |
-| ENS | A Sepolia wallet that owns the root name, with Sepolia ETH |
-| World Agent Pass | An OIDC client from the [World IdP portal](https://auth.world.org/portal): client id and secret in `WORLD_IDP_CLIENT_ID` and `WORLD_IDP_CLIENT_SECRET` |
-| World IDKit | An app, RP id and signing key from the [Developer Portal](https://developer.world.org) for the maintainer claim |
-
-**Using it.** A maintainer opens `/claim`, proves ownership through the registry, a GitHub or domain proof and a World credential, and the gateway registers the org and the server name on ENS. Each agent gets an Agent Pass from the Fleet page: the gateway starts World's device flow, a person approves in World, the gateway validates the ID token and writes the pass to the agent's ENS name. Point an agent client at the proxy instead of the server:
-
-```json
-{
-  "mcpServers": {
-    "server": {
-      "command": "npx",
-      "args": ["tsx", "apps/proxy/src/cli.ts", "--server", "<registry name>", "--gateway", "http://localhost:8787",
-               "--artifact", "<tarball or file to hash>", "--", "<command that starts the server>"],
-      "env": { "AGENT_ENS_NAME": "claude-1.agents.proofmark.eth" }
-    }
-  }
-}
-```
-
-## Repo map
-
-```
-packages/core      canonical manifest hash, tier policy, typosquat check, explorer links
-packages/runner    spawn an MCP server, in a hermetic container when one is available
-apps/gateway       Hono gateway: x402, attestation worker, HCS, ENS, World, claim, revoke
-apps/proxy         the MCP proxy agents connect through
-apps/demo-server   MCP test fixture used only by the proxy test suite, never published
-publish/files-server   proofmark-files, a read-only folder server published to npm and the MCP registry
-apps/web           Next.js app: landing, marketplace, inspector, check, fleet, claim, docs
-docs               architecture diagram
-```
+---
 
 ## How AI was used
 
@@ -235,4 +566,4 @@ Following ETHGlobal's rules: an AI coding assistant (Claude Code) was used throu
 
 ## Credits
 
-Marks for Hedera, ENS, World and the Model Context Protocol belong to their owners and appear here only to show the technology Proofmark is built with.
+Marks for Hedera, ENS, World, MetaMask and the Model Context Protocol belong to their owners and appear here only to show the technology Proofmark is built with.
