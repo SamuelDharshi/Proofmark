@@ -7,6 +7,7 @@ import { IDKitRequestWidget, CredentialRequest, any, type CredentialType, type R
 import { ApiError, api } from "@/lib/api";
 import { useWallet } from "@/lib/useWallet";
 import { ExplorerLink } from "../ExplorerLink";
+import { CopyText } from "../CopyText";
 import { Maintainers } from "./Maintainers";
 
 const STEPS = [
@@ -64,7 +65,7 @@ export function ClaimWizard() {
 
   const verifyOwnership = () =>
     guard(async () => {
-      const r = await api.ownership(server.trim());
+      const r = await api.ownership(server.trim(), wallet.address);
       setOwn(r);
       if (r.ok) setStep(2);
     });
@@ -136,13 +137,24 @@ export function ClaimWizard() {
               <Field label="Registry name" hint="The name exactly as the official MCP registry lists it.">
                 <input className={input} value={server} onChange={(e) => setServer(e.target.value)} placeholder="io.github.acme/filesystem" />
               </Field>
+              <Field label="Your wallet" hint="Bound to the proof below. It will own the ENS name and approve co-maintainers.">
+                {wallet.address ? <p className="num flex h-11 items-center border border-line bg-bg px-3.5 text-[14px]">{wallet.address}</p> : <button className="btn btn-ghost" onClick={wallet.connect}>Connect wallet</button>}
+                {wallet.error && <span className="mt-1.5 block text-[12px] text-danger">{wallet.error}</span>}
+              </Field>
               {own && (
                 <p className={`flex items-start gap-2 border px-4 py-3 text-[14px] ${own.ok ? "border-accent/30 bg-accent/10 text-accent" : "border-danger/30 bg-danger/10 text-danger"}`}>
                   {own.ok ? <BadgeCheck className="mt-0.5 h-4 w-4 shrink-0" aria-hidden /> : <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />}
                   <span>{own.detail} <span className="opacity-70">({own.method})</span></span>
                 </p>
               )}
-              <button className="btn btn-primary" disabled={!server.trim() || busy} onClick={verifyOwnership}>
+              {own?.control && !own.control.ok && (
+                <div className="space-y-3 border border-line-strong bg-surface-2 px-4 py-4 text-[14px]">
+                  <p className="text-muted">The registry lists this server, but that does not show <strong className="text-text">you</strong> control it. Publish this exact line at {own.control.where}, then verify again:</p>
+                  <p className="num break-all border border-line bg-bg px-3 py-2 text-[13px]">{own.control.challenge}</p>
+                  <CopyText value={own.control.challenge} display="Copy the line" />
+                </div>
+              )}
+              <button className="btn btn-primary" disabled={!server.trim() || !wallet.address || busy} onClick={verifyOwnership}>
                 {busy && <Loader2 className="h-4 w-4 animate-spin" aria-hidden />} Verify ownership
               </button>
             </div>
