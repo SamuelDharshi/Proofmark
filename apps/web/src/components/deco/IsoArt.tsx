@@ -66,25 +66,12 @@ export function IsoArt({ cubes, u = 96, id, className = "" }: { cubes: Cube[]; u
 
 export const HERO: Cube[] = [
   [0, 0, 0, ["concrete", "black", "black"]],
-  [1, 0, 0, ["white", "pale", "white"]],
-  [2, 0, 0, ["water", "grad", "black"]],
-  [3, 0, 0, ["white", "white", "black"]],
-  [0, 1, 0, ["black", "black", "white"]],
-  [1, 1, 0, ["concrete", "concrete", "concrete"]],
-  [2, 1, 0, ["green", "pale", "grad"]],
-  [3, 1, 0, ["black", "black", "white"]],
-  [0, 2, 0, ["white", "pale", "black"]],
-  [1, 2, 0, ["water", "white", "black"]],
-  [2, 2, 0, ["black", "black", "black"]],
+  [1, 0, 0, ["water", "grad", "black"]],
+  [0, 1, 0, ["white", "pale", "white"]],
+  [1, 1, 0, ["green", "pale", "white"]],
   [0, 0, 1, ["white", "pale", "white"]],
-  [1, 0, 1, ["concrete", "pale", "concrete"]],
-  [2, 0, 1, ["green", "white", "black"]],
   [1, 1, 1, ["chrome", "chrome", "white"]],
-  [2, 1, 1, ["water", "grad", "black"]],
-  [0, 1, 1, ["black", "black", "black"]],
   [0, 0, 2, ["moss", "black", "black"]],
-  [1, 0, 2, ["white", "pale", "white"]],
-  [1, 1, 2, ["concrete", "white", "pale"]],
 ];
 
 export const FOOT: Cube[] = [
@@ -97,18 +84,18 @@ export const FOOT: Cube[] = [
   [0, 0, 2, ["chrome", "chrome", "white"]],
 ];
 
-/** A tiling field of mixed-height cubes for the full-bleed pattern band. */
-export function field(cols: number, rows: number, seed = 3): Cube[] {
-  const mats: Face[] = ["concrete", "white", "moss", "black", "water", "chrome", "green", "grad", "pale"];
-  let s = seed;
-  const rnd = () => ((s = (s * 16807) % 2147483647) / 2147483647);
+/** A calm, repeating field of cubes for the full-bleed band. Same rule everywhere, no randomness. */
+export function field(cols: number, rows: number): Cube[] {
+  const tops: Face[] = ["concrete", "water", "white", "moss", "green", "chrome"];
+  const lefts: Face[] = ["black", "grad", "pale"];
+  const rights: Face[] = ["white", "black", "concrete"];
   const out: Cube[] = [];
   for (let x = 0; x < cols; x++)
     for (let y = 0; y < rows; y++) {
       const h = ((x * 2 + y) % 3) + 1;
       for (let z = 0; z < h; z++) {
-        const pick = () => mats[Math.floor(rnd() * mats.length)];
-        out.push([x, y, z, [z === h - 1 ? pick() : "white", pick(), pick()]]);
+        const i = x * 3 + y * 5 + z;
+        out.push([x, y, z, [z === h - 1 ? tops[i % tops.length] : "white", lefts[i % lefts.length], rights[(i + 1) % rights.length]]]);
       }
     }
   return out;
@@ -120,9 +107,9 @@ export function field(cols: number, rows: number, seed = 3): Cube[] {
 export function HeroArt({ className = "" }: { className?: string }) {
   const mx = useMotionValue(0);
   const my = useMotionValue(0);
-  const x = useSpring(useTransform(mx, (v) => v * -18), { stiffness: 60, damping: 20 });
-  const y = useSpring(useTransform(my, (v) => v * -12), { stiffness: 60, damping: 20 });
-  const mxs = useSpring(useTransform(mx, (v) => v * -34), { stiffness: 50, damping: 20 });
+  const x = useSpring(useTransform(mx, (v) => v * -8), { stiffness: 60, damping: 20 });
+  const y = useSpring(useTransform(my, (v) => v * -5), { stiffness: 60, damping: 20 });
+  const mxs = useSpring(useTransform(mx, (v) => v * -14), { stiffness: 50, damping: 20 });
 
   useEffect(() => {
     const move = (e: PointerEvent) => {
@@ -142,7 +129,7 @@ export function HeroArt({ className = "" }: { className?: string }) {
       </motion.div>
       <motion.div style={{ x, y }} className="absolute inset-0">
         <span className="absolute left-[34%] -top-[16%] h-[34%] w-[34%] rounded-full" style={{ background: "radial-gradient(circle at 40% 62%, #6d6d6d 0, #2a2a2a 38%, #0c0c0c 72%)" }} />
-        <IsoArt cubes={HERO} u={110} id="hero" className="absolute -right-[10%] -top-[4%] w-[112%]" />
+        <IsoArt cubes={HERO} u={120} id="hero" className="absolute -right-[8%] top-[2%] w-[76%]" />
       </motion.div>
     </div>
   );

@@ -20,7 +20,7 @@ const rise = (delay = 0) => ({
 function Hero() {
   return (
     <section className="grid-lines relative min-h-screen overflow-hidden">
-      <HeroArt className="absolute right-0 top-0 hidden h-[500px] w-[44%] overflow-hidden md:block" />
+      <HeroArt className="absolute right-0 top-0 hidden h-[640px] w-[44%] overflow-x-clip md:block" />
       <div className="wrap relative flex min-h-screen flex-col justify-between pb-0 pt-28">
         <div>
           <motion.p {...rise(0.05)} className="eyebrow inline-block"><span className="hl">An MCP trust gate</span></motion.p>
@@ -192,17 +192,17 @@ function Tiers() {
 }
 
 /* ----------------------------------------------------------- pattern band */
-const BAND = field(11, 9, 5);
+const BAND = field(7, 6);
 
 /** Full-bleed field of textured cubes with the mark set into a white hexagon at its centre. */
 function Band() {
   const ref = useRef<HTMLElement>(null);
   const { scrollYProgress } = useScroll({ target: ref, offset: ["start end", "end start"] });
-  const x = useTransform(scrollYProgress, [0, 1], ["-6%", "6%"]);
+  const x = useTransform(scrollYProgress, [0, 1], ["-3%", "3%"]);
   return (
     <section ref={ref} className="relative h-[100vh] min-h-[620px] overflow-hidden bg-bg">
       <motion.div style={{ x }} className="absolute left-1/2 top-1/2 w-[190vw] -translate-x-1/2 -translate-y-1/2 md:w-[150vw]">
-        <IsoArt cubes={BAND} u={120} id="band" className="w-full" />
+        <IsoArt cubes={BAND} u={210} id="band" className="w-full" />
       </motion.div>
       <div
         className="absolute left-1/2 top-1/2 grid h-[300px] w-[260px] -translate-x-1/2 -translate-y-1/2 place-items-center bg-white"
