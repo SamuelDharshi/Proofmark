@@ -46,6 +46,7 @@ const schema = z.object({
   WORLD_RP_ID: opt,
   WORLD_RP_SIGNING_KEY: opt,
   WORLD_ENVIRONMENT: z.enum(["staging", "production"]).default("staging"),
+  WORLD_CREDENTIALS: z.string().default("proof_of_human,passport,mnc"),
   WORLD_ACTION: z.string().default("claim-mcp-server"),
   // World ID Agent Pass: the official World IdP (OpenID Connect). Use https://sandbox.auth.world.org for the sandbox.
   WORLD_IDP_ISSUER: z.string().default("https://auth.world.org"),

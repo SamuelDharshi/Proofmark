@@ -2,6 +2,10 @@ import { signRequest } from "@worldcoin/idkit-core/signing";
 import { env, caps } from "./config";
 import { store } from "./store";
 
+/** Credentials that count as proof of a unique person for a maintainer claim. Set WORLD_CREDENTIALS to change them. */
+const KNOWN = ["proof_of_human", "passport", "mnc", "selfie"];
+export const acceptedCredentials = () => env.WORLD_CREDENTIALS.split(",").map((s) => s.trim()).filter((s) => KNOWN.includes(s));
+
 export function worldStatus() {
   return { configured: caps.world, environment: env.WORLD_ENVIRONMENT, action: env.WORLD_ACTION, appId: env.WORLD_APP_ID ?? null, rpId: env.WORLD_RP_ID ?? null };
 }
@@ -15,7 +19,7 @@ export function rpSignature(action = env.WORLD_ACTION) {
       `WORLD_RP_SIGNING_KEY must be the 32-byte signing key (64 hex characters) from the World developer portal, not an address. The configured value is ${raw.length / 2} bytes.`,
     );
   const { sig, nonce, createdAt, expiresAt } = signRequest({ signingKeyHex: raw, action });
-  return { sig, nonce, created_at: createdAt, expires_at: expiresAt, rp_id: env.WORLD_RP_ID!, app_id: env.WORLD_APP_ID!, action, environment: env.WORLD_ENVIRONMENT };
+  return { sig, nonce, created_at: createdAt, expires_at: expiresAt, rp_id: env.WORLD_RP_ID!, app_id: env.WORLD_APP_ID!, action, environment: env.WORLD_ENVIRONMENT, credentials: acceptedCredentials() };
 }
 
 /** First nullifier found anywhere in the IDKit result. */
@@ -35,7 +39,7 @@ const toDecimal = (hex: string) => BigInt(hex).toString(10);
 
 export type ProofResult =
   | { ok: true; nullifier: string }
-  | { ok: false; reason: "not-configured" | "wrong-environment" | "invalid-proof" | "no-nullifier" | "duplicate"; message: string; nullifier?: string };
+  | { ok: false; reason: "not-configured" | "wrong-environment" | "invalid-proof" | "no-nullifier" | "duplicate" | "credential-not-accepted"; message: string; nullifier?: string };
 
 /**
  * Verify a Proof of Human on the backend. The client result is never trusted:
@@ -45,6 +49,11 @@ export async function verifyHumanProof(idkitResponse: any, action = env.WORLD_AC
   if (!caps.world) return { ok: false, reason: "not-configured", message: "World verification is not configured on this gateway." };
   if (idkitResponse?.environment !== env.WORLD_ENVIRONMENT)
     return { ok: false, reason: "wrong-environment", message: `Proof environment must be ${env.WORLD_ENVIRONMENT}.` };
+
+  // The request is built in the browser, so the gateway enforces the credential itself.
+  const presented = ((idkitResponse as { responses?: { identifier?: string }[] })?.responses ?? []).map((x) => x.identifier).filter(Boolean) as string[];
+  if (!presented.some((id) => acceptedCredentials().includes(id)))
+    return { ok: false, reason: "credential-not-accepted", message: `A claim needs one of: ${acceptedCredentials().join(", ")}. This proof used ${presented.join(", ") || "none"}.` };
 
   const r = await fetch(`https://developer.world.org/api/v4/verify/${env.WORLD_RP_ID}`, {
     method: "POST",
