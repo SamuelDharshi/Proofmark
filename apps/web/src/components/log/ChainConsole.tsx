@@ -34,7 +34,8 @@ const TX_NAMES: Record<string, string> = {
 function describeMessage(topicName: string, b: any): string {
   if (!b) return "message";
   if (b.type === "revocation") return `Key ${b.subname ?? b.label} revoked (${b.reason ?? "no reason"})`;
-  if (b.type === "payment" || b.txId) return `Payment for ${b.server ?? "a server"}${b.usd ? `, $${b.usd}` : ""}`;
+  if (b.type === "bond") return `Bond ${b.hbar ?? ""} HBAR posted by ${b.org ?? "an org"} (${b.status ?? "live"})`;
+  if (b.type === "payment" || (!b.type && b.txId)) return `Payment for ${b.server ?? "a server"}${b.usd ? `, $${b.usd}` : ""}`;
   if (b.type === "attestation") return `Attestation ${b.server ?? ""}${b.version ? ` @ ${b.version}` : ""}`;
   if (b.type) return `${b.type}${b.server ? ` ${b.server}` : b.agent ? ` ${b.agent}` : b.org ? ` ${b.org}` : ""}`;
   return topicName;
