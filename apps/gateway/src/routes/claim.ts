@@ -37,7 +37,19 @@ claimRoutes.post("/world/rp-signature", (c) => {
 claimRoutes.post("/claim/ownership", async (c) => {
   const { server, owner } = (await c.req.json()) as { server: string; owner?: string };
   if (!server) return c.json({ error: "server is required" }, 400);
-  if (await readServerClaim(server).catch(() => null)) return c.json({ ok: false, method: "claimed", detail: "This server is already claimed on ENS." }, 409);
+  const existing = await readServerClaim(server).catch(() => null);
+  if (existing) {
+    // Already on ENS. Tell the owner where to go instead of failing.
+    const label = existing.org.split(".")[0];
+    const chainOwner = await orgNameOwner(label).catch(() => null);
+    const yours = !!owner && !!chainOwner && chainOwner.toLowerCase() === owner.toLowerCase();
+    return c.json({
+      ok: false,
+      method: "claimed",
+      claimed: { org: label, ens: existing.org.includes(".") ? existing.org : `${label}.${env.ENS_ROOT_NAME}`, owner: chainOwner, yours },
+      detail: yours ? `You already own this server, as ${label}. Continue on the Maintain page.` : `Already claimed on ENS by ${label}.`,
+    });
+  }
   const o = await ownership(server).catch((e) => ({ ok: false, method: "error", detail: (e as Error).message }));
   const meta = await getServer(server).catch(() => null);
   const base = { title: meta?.title ?? meta?.name, version: meta?.version, description: meta?.description };
