@@ -116,6 +116,24 @@ stateDiagram-v2
   Blocked --> Green: fresh attestation by a live key
 ```
 
+### What stands behind a green server
+
+Identity rests on three layers, and each one answers a different attack. World alone is deliberately not trusted for identity: it does not prove the person using a credential is the real maintainer, and a household member could share one.
+
+| Layer | What it proves | Where it lives | What it does not prove |
+| --- | --- | --- | --- |
+| World at the claim | One identity can register one org. Limits mass sockpuppets | Nullifier stored per action, checked on the backend ([world.ts](apps/gateway/src/world.ts)) | Who the maintainer is |
+| Verified namespace | The claimer controls the registry namespace: a public gist on the GitHub account for `io.github.*` names, a `/.well-known/proofmark.txt` file or `_proofmark` TXT record for domain names | `domain.verified` on the org's ENS records ([control.ts](apps/gateway/src/control.ts)) | That the code is safe |
+| Bond on Hedera | Money is at stake. A deposit in HBAR from the org's payout account to a 2-of-2 bond account, checked on the mirror node | `bond.tx` and `bond.status` on ENS, and an HCS audit message ([bond.ts](apps/gateway/src/bond.ts)) | Anything automatic: the gateway marks a bond forfeited today, a contract or HTS escrow is the next step |
+
+Green needs all three, a live key and both hashes. A forfeited bond blocks. A claimed server that lacks the bond or the namespace proof stays sandboxed.
+
+Revocation is published to its own HCS topic as well as written to ENS. A proxy subscribes to the topic through the mirror node and drops a matching session within seconds ([revocations.ts](apps/proxy/src/revocations.ts)). ENS remains the source of truth: the proxy re-reads it on connect and on a timer, so a missed message delays a block and never allows one.
+
+Spend needs the World Agent Pass **and** an on-chain Hedera allowance from the operator to the agent, with a cap, read from the mirror node before each payment ([allowance.ts](apps/gateway/src/allowance.ts)). The x402 payment itself settles from the agent's own account, so the allowance is the operator's revocable authority and the gate, not the funding source.
+
+Attestations are written to HCS in full (the signed record), minted as an HTS NFT, and rebuilt from the topic after a restart, so a gateway that sleeps or restarts loses nothing ([attestations.ts](apps/gateway/src/attestations.ts)).
+
 There is no amber tier. Pinning to the last attested version would let an attacker freeze everyone on a vulnerable build by stopping attestation. Policy: [tiers.ts](packages/core/src/tiers.ts).
 
 ### ENS tree
