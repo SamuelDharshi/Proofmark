@@ -39,7 +39,7 @@ export function Nav({ solid = false }: { solid?: boolean }) {
         className={[
           "flex w-[min(1160px,calc(100%-2rem))] items-center justify-between px-4 py-2.5 transition-all duration-300 ease-out",
           "border",
-          scrolled ? "border-line-strong bg-bg/85 shadow-[0_8px_30px_rgba(39,39,39,0.12)] backdrop-blur-xl" : "border-transparent bg-transparent",
+          scrolled ? "border-line-strong bg-bg/95 shadow-[0_8px_30px_rgba(39,39,39,0.12)]" : "border-transparent bg-transparent",
         ].join(" ")}
         aria-label="Primary"
       >

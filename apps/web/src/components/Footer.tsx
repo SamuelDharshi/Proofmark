@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { ExternalLink, Github } from "lucide-react";
 import { LogoMark } from "./Logo";
-import { FOOT, IsoArt } from "./deco/IsoArt";
 
 type L = { l: string; h: string; x?: boolean };
 const COLS: { title: string; links: L[] }[] = [
@@ -72,7 +71,8 @@ export function Footer() {
         ))}
       </div>
 
-      <IsoArt cubes={FOOT} u={118} id="foot" className="pointer-events-none absolute bottom-0 left-0 w-[min(400px,70vw)]" />
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src="/art/foot.webp" alt="" width={1200} height={1247} loading="lazy" decoding="async" className="pointer-events-none absolute bottom-0 left-0 w-[min(400px,70vw)]" />
       <span aria-hidden className="absolute bottom-[62px] right-0 hidden h-10 w-10 md:block" style={{ background: "linear-gradient(135deg,#facc15 50%,#22d3ee 50%)" }} />
 
       <div className="relative ml-0 bg-black md:ml-[min(400px,30vw)]">

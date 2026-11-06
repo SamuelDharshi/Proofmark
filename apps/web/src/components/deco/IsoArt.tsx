@@ -1,6 +1,5 @@
 "use client";
-import { useEffect } from "react";
-import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
+/** Generator only. The site serves the pre-rendered images in /public/art, so no SVG is drawn at runtime. */
 
 /**
  * Flat isometric illustration, drawn as SVG. Each cube has three visible faces
@@ -99,38 +98,4 @@ export function field(cols: number, rows: number): Cube[] {
       }
     }
   return out;
-}
-
-/* -------------------------------------------------------------- hero art */
-
-/** The hero illustration: cropped off the corner, drifting with the pointer, moon and sphere floating above. */
-export function HeroArt({ className = "" }: { className?: string }) {
-  const mx = useMotionValue(0);
-  const my = useMotionValue(0);
-  const x = useSpring(useTransform(mx, (v) => v * -8), { stiffness: 60, damping: 20 });
-  const y = useSpring(useTransform(my, (v) => v * -5), { stiffness: 60, damping: 20 });
-  const mxs = useSpring(useTransform(mx, (v) => v * -14), { stiffness: 50, damping: 20 });
-
-  useEffect(() => {
-    const move = (e: PointerEvent) => {
-      mx.set((e.clientX / window.innerWidth - 0.5) * 2);
-      my.set((e.clientY / window.innerHeight - 0.5) * 2);
-    };
-    window.addEventListener("pointermove", move, { passive: true });
-    return () => window.removeEventListener("pointermove", move);
-  }, [mx, my]);
-
-  return (
-    <div aria-hidden className={`pointer-events-none ${className}`}>
-      <motion.div style={{ x: mxs }} className="absolute left-[6%] top-[15%] w-[12%]">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/tex/moon.png" alt="" className="w-full" />
-        <span className="absolute left-1/2 top-full h-[700px] w-px bg-line-strong" />
-      </motion.div>
-      <motion.div style={{ x, y }} className="absolute inset-0">
-        <span className="absolute left-[34%] -top-[16%] h-[34%] w-[34%] rounded-full" style={{ background: "radial-gradient(circle at 40% 62%, #6d6d6d 0, #2a2a2a 38%, #0c0c0c 72%)" }} />
-        <IsoArt cubes={HERO} u={120} id="hero" className="absolute -right-[8%] top-[2%] w-[76%]" />
-      </motion.div>
-    </div>
-  );
 }

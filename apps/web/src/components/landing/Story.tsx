@@ -4,7 +4,7 @@ import { useRef, useState } from "react";
 import { motion, useMotionValueEvent, useScroll, useTransform, type MotionValue } from "framer-motion";
 import { ArrowRight } from "lucide-react";
 import { Sponsors } from "../Sponsors";
-import { HeroArt, IsoArt, field } from "../deco/IsoArt";
+import { HeroArt } from "../deco/HeroArt";
 import { LogoMark } from "../Logo";
 import { GradBars, PixelArrow, PixelMark } from "../deco/Pixels";
 
@@ -192,7 +192,6 @@ function Tiers() {
 }
 
 /* ----------------------------------------------------------- pattern band */
-const BAND = field(7, 6);
 
 /** Full-bleed field of textured cubes with the mark set into a white hexagon at its centre. */
 function Band() {
@@ -201,8 +200,9 @@ function Band() {
   const x = useTransform(scrollYProgress, [0, 1], ["-3%", "3%"]);
   return (
     <section ref={ref} className="relative h-[100vh] min-h-[620px] overflow-hidden bg-bg">
-      <motion.div style={{ x }} className="absolute left-1/2 top-1/2 w-[190vw] -translate-x-1/2 -translate-y-1/2 md:w-[150vw]">
-        <IsoArt cubes={BAND} u={210} id="band" className="w-full" />
+      <motion.div style={{ x }} className="absolute left-1/2 top-1/2 w-[190vw] -translate-x-1/2 -translate-y-1/2 will-change-transform md:w-[150vw]">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/art/band.webp" alt="" width={2400} height={1919} loading="lazy" decoding="async" className="block w-full" />
       </motion.div>
       <div
         className="absolute left-1/2 top-1/2 grid h-[300px] w-[260px] -translate-x-1/2 -translate-y-1/2 place-items-center bg-white"
