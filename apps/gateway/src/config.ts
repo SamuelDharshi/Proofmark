@@ -38,7 +38,8 @@ const schema = z.object({
 
   AGENT_HEDERA_ACCOUNT_ID: opt,
   AGENT_HEDERA_PRIVATE_KEY: opt,
-  AGENT_ENS_NAME: z.string().default("claude-1.team.eth"),
+  AGENT_ENS_NAME: z.string().default("claude-1.agents.proofmark.eth"),
+  AGENT_ENS_NAMES: opt,
 
   ATTEST_PRIVATE_KEY: evmKey,
 

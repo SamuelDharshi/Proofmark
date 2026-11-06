@@ -11,7 +11,7 @@ import { loadAgent, passStatus, budgetLeft } from "../agents";
 import { bondInfo } from "../bond";
 import { allowanceStatus } from "../allowance";
 import { startAgentPass, pollAgentPass, idpStatus } from "../idp";
-import { readKey, writePass } from "../chain";
+import { readKey, readServerClaim, writePass } from "../chain";
 import { ensAddresses, adminAddress } from "../ens";
 
 export const publicRoutes = new Hono();
@@ -73,12 +73,31 @@ publicRoutes.get("/servers", async (c) => {
 });
 
 /** Fleet view. Agents, passes and budgets are read from ENS and the HCS log, not from a local file. */
+// The local index is only a cache: a hosted gateway loses it on restart. Configured agent names are always
+// listed too, and every one is read from ENS, so the fleet never comes back empty while the agents exist.
+function agentNames(db: ReturnType<typeof store.get>) {
+  const root = env.ENS_ROOT_NAME;
+  const extra = (env.AGENT_ENS_NAMES ?? "").split(",").map((s) => s.trim()).filter(Boolean);
+  return [...new Set([...db.agents.map((a) => a.ensName), ...extra, env.AGENT_ENS_NAME, `claude-1.agents.${root}`, `claude-2.agents.${root}`])];
+}
+
+// Claimed servers are rebuilt from the attestations on HCS, each confirmed against ENS.
+async function claimedServers(db: ReturnType<typeof store.get>) {
+  const out = new Map(db.claims.map((c) => [c.server, c]));
+  for (const server of new Set(db.attestations.map((a) => a.pair.server))) {
+    if (out.has(server)) continue;
+    const claim = await readServerClaim(server).catch(() => null);
+    if (claim) out.set(server, { server, org: claim.org, claimedAt: 0 } as (typeof db.claims)[number]);
+  }
+  return [...out.values()];
+}
+
 publicRoutes.get("/fleet", async (c) => {
   const db = store.get();
   const agents = (
     await Promise.all(
-      db.agents.map(async (idx) => {
-        const a = await loadAgent(idx.ensName).catch(() => null);
+      agentNames(db).map(async (ensName) => {
+        const a = await loadAgent(ensName).catch(() => null);
         if (!a) return null;
         const spent = await spentUsd(a.hedera).catch(() => 0);
         const last = db.events.find((e) => e.agent === a.ensName || e.agent === a.hedera);
@@ -88,7 +107,7 @@ publicRoutes.get("/fleet", async (c) => {
   ).filter(Boolean);
   const keys = await Promise.all(db.keys.map(async (k) => ({ ...k, live: (await readKey(k.subname).catch(() => null))?.live ?? false })));
   const payments = (await paymentMessages().catch(() => [])).slice(0, 40).map((p) => ({ id: p.txId, txId: p.txId, buyer: p.buyer, server: p.server, usd: p.usd, payTo: "", ts: p.ts }));
-  return c.json({ agents, events: db.events.slice(0, 60), payments, orgs: db.orgs, keys, claims: db.claims });
+  return c.json({ agents, events: db.events.slice(0, 60), payments, orgs: db.orgs, keys, claims: await claimedServers(db) });
 });
 
 publicRoutes.get("/agents/:name", async (c) => {
