@@ -7,7 +7,6 @@ import { join } from "node:path";
 import { toolManifestHash, type AttestationPair, type McpTool, type RegistryType } from "@proofmark/core";
 import { captureTools, containerSpec, dockerAvailable, type SpawnSpec } from "@proofmark/runner";
 import { getServer, packageKind, type RegistryServer } from "./registry";
-import { fixtureEntry, fixtureServer, isFixture } from "./fixtures";
 
 export interface Derived {
   server: string;
@@ -20,17 +19,11 @@ export interface Derived {
 }
 
 export async function resolveServer(name: string, version = "latest"): Promise<RegistryServer | null> {
-  if (isFixture(name)) return fixtureServer(name);
   return getServer(name, version);
 }
 
 /** Artefact hash comes from the registry's own integrity fields. */
 async function artefactHash(s: RegistryServer): Promise<{ type: RegistryType; hash: string; spec: SpawnSpec | null }> {
-  if (isFixture(s.name)) {
-    const entry = fixtureEntry(s.name)!;
-    const hash = "0x" + createHash("sha256").update(readFileSync(entry)).digest("hex");
-    return { type: "local", hash, spec: { command: "npx", args: ["tsx", entry] } };
-  }
   const { type, pkg } = packageKind(s);
   if (type === "mcpb" && pkg?.fileSha256) return { type, hash: "0x" + pkg.fileSha256.replace(/^sha256:/, ""), spec: null };
   if (type === "oci" && pkg?.identifier) {
@@ -44,6 +37,15 @@ async function artefactHash(s: RegistryServer): Promise<{ type: RegistryType; ha
     const integrity = j.dist?.integrity ?? j.dist?.shasum;
     if (!integrity) throw new Error("npm package has no dist.integrity");
     return { type, hash: integrity, spec: null };
+  }
+  if (type === "pypi" && pkg?.identifier) {
+    const ver = pkg.version ?? s.version;
+    const r = await fetch(`https://pypi.org/pypi/${pkg.identifier}/${ver}/json`);
+    if (!r.ok) throw new Error(`PyPI ${r.status} for ${pkg.identifier}`);
+    const j = (await r.json()) as { urls?: { packagetype: string; digests?: { sha256?: string } }[] };
+    const f = j.urls?.find((u) => u.packagetype === "bdist_wheel") ?? j.urls?.[0];
+    if (!f?.digests?.sha256) throw new Error("PyPI release has no sha256 digest");
+    return { type, hash: "0x" + f.digests.sha256, spec: null };
   }
   return { type: "remote", hash: "0x0", spec: null };
 }
@@ -79,6 +81,7 @@ export async function deriveAttestation(name: string, version = "latest"): Promi
     const { pkg } = packageKind(s);
     spec = npmOfflineSpec(pkg!.identifier!, pkg!.version ?? s.version);
   }
+  if (!spec && a.type === "pypi") throw new Error("PyPI servers verify their digest, but running them hermetically needs the two-phase container install, which is not built yet. Use an OCI, mcpb or npm server.");
   if (!spec) throw new Error(`${a.type} servers are not attestable yet`);
   if (a.type === "oci" && !dockerAvailable()) throw new Error("container runtime unavailable");
   const tools = await captureTools(spec);
