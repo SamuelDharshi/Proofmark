@@ -53,6 +53,7 @@ export function Layers({ server, org }: { server: string; org: string }) {
     return () => clearInterval(t);
   }, [load]);
 
+  const txOk = /^0\.0\.\d+[@-]\d+[.-]\d+$/.test(tx.trim());
   const record = async () => {
     setBusy(true);
     setMsg(null);
@@ -80,10 +81,11 @@ export function Layers({ server, org }: { server: string; org: string }) {
           </p>
           <div className="flex flex-col gap-3 sm:flex-row">
             <input value={tx} onChange={(e) => setTx(e.target.value)} placeholder="0.0.8150748@1793995806.183190447" aria-label="Bond transaction id" className="num h-11 w-full border border-line bg-bg px-3.5 text-[14px] outline-none placeholder:text-faint focus:border-accent/60" />
-            <button className="btn btn-primary" disabled={!tx.trim() || busy || !wallet.address} onClick={record}>
+            <button className="btn btn-primary" disabled={!txOk || busy || !wallet.address} onClick={record}>
               {busy && <Loader2 className="h-4 w-4 animate-spin" aria-hidden />} Record with owner signature
             </button>
           </div>
+          {tx.trim() && !txOk && <p className="text-[12px] text-danger">That is not a Hedera transaction id. It looks like 0.0.8150748@1793995806.183190447.</p>}
           {!wallet.address && <span className="self-center text-[13px] text-muted">Connect your wallet, top right.</span>}
           {msg && <p className="text-[13px] text-muted">{msg}</p>}
         </div>

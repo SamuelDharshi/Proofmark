@@ -10,7 +10,7 @@ const input = "num h-11 w-full border border-line bg-bg px-3.5 text-[14px] outli
 /** Co-maintainer subnames with their own expiring key, and the attestation run. */
 export function Maintainers({ server, org }: { server: string; org: string }) {
   const wallet = useWallet();
-  const [label, setLabel] = useState("alice");
+  const [label, setLabel] = useState("");
   const [addr, setAddr] = useState("");
   const [days, setDays] = useState("180");
   const [keys, setKeys] = useState<{ subname: string; label: string; tx?: string }[]>([]);
@@ -30,8 +30,10 @@ export function Maintainers({ server, org }: { server: string; org: string }) {
     }
   };
 
+  const addrOk = /^0x[0-9a-fA-F]{40}$/.test(addr.trim());
   const add = () =>
     run("add", async () => {
+      if (!addrOk) throw new Error("The key address must be a wallet address, 0x followed by 40 characters. Not a transaction id.");
       const expiresAt = Math.floor(Date.now() / 1000) + Number(days) * 86400;
       const ownerSig = await wallet.sign(`proofmark:add-comaintainer:${org}:${label}:${addr}:${expiresAt}`);
       const r = await api.addCoMaintainer({ org, label, address: addr, expiresAt, ownerSig });
@@ -52,6 +54,8 @@ export function Maintainers({ server, org }: { server: string; org: string }) {
         const m = (e as Error).message;
         throw new Error(/Failed to fetch|NetworkError|Load failed/i.test(m) ? "The local worker is not running. In a terminal on your computer run: npm run worker -w @proofmark/gateway" : m);
       }
+      if (wallet.address?.toLowerCase() !== d.signer.toLowerCase())
+        throw new Error(`${l} signs with key ${d.signer.slice(0, 8)}…${d.signer.slice(-4)}, and the connected wallet is ${wallet.address?.slice(0, 8) ?? "none"}…. Only that key can sign this attestation. Switch to it in MetaMask, or add a co-maintainer whose key is your wallet.`);
       setMsg(`Sign with ${d.signer.slice(0, 8)}… in your wallet.`);
       const signature = await wallet.sign(d.message);
       const r = await api.submitAttest({ pair: d.pair, signature, tools: d.tools });
@@ -72,8 +76,9 @@ export function Maintainers({ server, org }: { server: string; org: string }) {
       <div className="space-y-4 border border-line bg-bg p-4">
         <p className="flex items-center gap-2 font-display text-[16px] font-semibold"><UserPlus className="h-4 w-4 text-accent" aria-hidden /> Add a co-maintainer</p>
         <div className="grid gap-3 sm:grid-cols-[1fr_2fr_110px]">
-          <input className={input} value={label} onChange={(e) => setLabel(e.target.value.toLowerCase())} aria-label="Subname" placeholder="alice" />
-          <input className={input} value={addr} onChange={(e) => setAddr(e.target.value)} aria-label="Key address" placeholder="0x… attest key" />
+          <input className={input} value={label} onChange={(e) => setLabel(e.target.value.toLowerCase())} aria-label="Subname" placeholder="name, e.g. alice" />
+          <input className={input} value={addr} onChange={(e) => setAddr(e.target.value)} aria-label="Key address" placeholder="0x… wallet address of the co-maintainer" />
+          {addr && !addrOk && <p className="text-[12px] text-danger sm:col-span-3">That is not a wallet address. It must start with 0x and have 40 characters after it.</p>}
           <input className={input} value={days} onChange={(e) => setDays(e.target.value)} aria-label="Days until expiry" inputMode="numeric" />
         </div>
         {wallet.address ? (
