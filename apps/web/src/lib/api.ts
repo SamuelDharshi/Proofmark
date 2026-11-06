@@ -44,7 +44,7 @@ export interface PassStatus {
   maxAgeSec: number;
 }
 export interface FleetAgent {
-  ensName: string; uaid?: string; erc8004?: string; hederaAccount: string; evmAddress: string; budgetUsd: number; spentUsd: number; budgetLeft: number;
+  ensName: string; uaid?: string; erc8004?: string; allowance?: { required: boolean; valid: boolean; remainingHbar?: number; grantedHbar?: number; message: string } | null; hederaAccount: string; evmAddress: string; budgetUsd: number; spentUsd: number; budgetLeft: number;
   maxRisk: string; allowedTools: string[]; pass: PassStatus;
   last?: { kind: string; detail: string; ts: number };
 }
@@ -75,6 +75,7 @@ export const api = {
   claimJob: (id: string) => req<{ status: "running" | "done" | "failed"; step: string; txs: { label: string; hash: string }[]; error?: string; result?: any }>(`/claim/job/${id}`),
   addCoMaintainer: (b: unknown) => post<any>("/comaintainers", b),
   revoke: (b: unknown) => post<any>("/revoke", b),
+  postBond: (b: { org: string; txId: string; ownerSig: string }) => post<{ ok: boolean; hbar: number; txId: string; ensTx: string }>("/bond", b),
   unauthorized: (b: unknown) => post<{ reverted: boolean; error?: string; key: string }>("/ens/unauthorized-write", b),
   runAttest: (b: unknown) => post<any>("/attest/run", b),
   approveAttest: (b: unknown) => post<any>("/attest/approve", b),

@@ -9,6 +9,7 @@ import { useWallet } from "@/lib/useWallet";
 import { ExplorerLink } from "../ExplorerLink";
 import { CopyText } from "../CopyText";
 import { Maintainers } from "./Maintainers";
+import { Layers } from "./Layers";
 
 const STEPS = [
   { id: 1, label: "Server", Icon: Server },
@@ -238,6 +239,7 @@ export function ClaimWizard() {
             <div className="space-y-5">
               <p className="flex items-center gap-2 text-[16px] text-accent"><BadgeCheck className="h-5 w-5" aria-hidden /> Claimed by {claimed.org.ensName}</p>
               {claimed.org.ensTx && <p className="text-[14px] text-muted">ENS registration <ExplorerLink k={{ type: "evm-tx", chainId: 11155111, id: claimed.org.ensTx }} /></p>}
+              <Layers server={server.trim()} org={claimed.org.name} />
               <Maintainers server={server.trim()} org={claimed.org.name} />
             </div>
           )}
