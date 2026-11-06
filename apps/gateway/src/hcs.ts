@@ -27,12 +27,17 @@ export interface HcsRecord {
 /** Anchor one message. Each attestation and each payment is one message. */
 export async function anchor(message: Record<string, unknown>): Promise<HcsRecord | null> {
   if (!caps.hcs) return null;
+  return anchorTo(env.HCS_TOPIC_ID!, message);
+}
+
+/** Anchor one message to a specific topic, such as the revocation topic. */
+export async function anchorTo(topic: string, message: Record<string, unknown>): Promise<HcsRecord> {
   const tx = await new TopicMessageSubmitTransaction()
-    .setTopicId(env.HCS_TOPIC_ID!)
+    .setTopicId(topic)
     .setMessage(JSON.stringify({ v: 1, ...message }))
     .execute(hedera());
   const receipt = await tx.getReceipt(hedera());
-  return { topic: env.HCS_TOPIC_ID!, sequence: Number(receipt.topicSequenceNumber), tx: tx.transactionId.toString() };
+  return { topic, sequence: Number(receipt.topicSequenceNumber), tx: tx.transactionId.toString() };
 }
 
 /** Read the public replayable log back from the mirror node. */
@@ -89,3 +94,21 @@ export async function paidRecently(hederaAccount: string, server: string) {
 }
 
 export const invalidateSpent = (_account?: string) => void (payCache = null);
+
+/** Every JSON message of one topic, newest first. The log is the record, so state can be rebuilt from it. */
+export async function topicMessages(topic: string, max = 300): Promise<{ sequence: number; consensusTimestamp: string; body: any }[]> {
+  const out: { sequence: number; consensusTimestamp: string; body: any }[] = [];
+  let url: string | null = `https://testnet.mirrornode.hedera.com/api/v1/topics/${topic}/messages?limit=100&order=desc`;
+  for (let page = 0; page < 10 && url && out.length < max; page++) {
+    const r: Response = await fetch(url, { signal: AbortSignal.timeout(10_000) });
+    if (!r.ok) break;
+    const j = (await r.json()) as { messages: { sequence_number: number; consensus_timestamp: string; message: string }[]; links?: { next?: string | null } };
+    for (const m of j.messages) {
+      try {
+        out.push({ sequence: m.sequence_number, consensusTimestamp: m.consensus_timestamp, body: JSON.parse(Buffer.from(m.message, "base64").toString("utf8")) });
+      } catch {}
+    }
+    url = j.links?.next ? `https://testnet.mirrornode.hedera.com${j.links.next}` : null;
+  }
+  return out;
+}

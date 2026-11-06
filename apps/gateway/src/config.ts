@@ -25,6 +25,9 @@ const schema = z.object({
   HEDERA_GATEWAY_ACCOUNT_ID: opt,
   HEDERA_GATEWAY_PRIVATE_KEY: hederaKey,
   HCS_TOPIC_ID: opt,
+  REVOKE_TOPIC_ID: opt,
+  BOND_ACCOUNT_ID: opt,
+  BOND_MIN_HBAR: z.coerce.number().default(50),
   GITHUB_TOKEN: opt,
   HTS_TOKEN_ID: opt,
   X402_FACILITATOR_URL: z.string().default("https://api.testnet.blocky402.com"),
@@ -66,6 +69,8 @@ export const dataDir = resolve(process.cwd(), env.DATA_DIR);
 /** What is configured. Features that lack credentials report "not configured" instead of faking a result. */
 export const caps = {
   hedera: !!(env.HEDERA_GATEWAY_ACCOUNT_ID && env.HEDERA_GATEWAY_PRIVATE_KEY),
+  revocations: !!(env.HEDERA_GATEWAY_ACCOUNT_ID && env.HEDERA_GATEWAY_PRIVATE_KEY && env.REVOKE_TOPIC_ID),
+  bond: !!env.BOND_ACCOUNT_ID,
   hcs: !!(env.HEDERA_GATEWAY_ACCOUNT_ID && env.HEDERA_GATEWAY_PRIVATE_KEY && env.HCS_TOPIC_ID),
   hts: !!(env.HEDERA_GATEWAY_ACCOUNT_ID && env.HEDERA_GATEWAY_PRIVATE_KEY && env.HTS_TOKEN_ID),
   signing: !!env.ATTEST_PRIVATE_KEY,
