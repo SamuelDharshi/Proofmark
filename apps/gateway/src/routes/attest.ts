@@ -160,7 +160,7 @@ attestRoutes.post("/submit", async (c) => {
 
   const claim = await readServerClaim(pair.server);
   if (!claim) return c.json({ error: "this server is not claimed on ENS" }, 403);
-  if (!pair.attestSubname.endsWith(`.${orgNameOf(claim.org)}`)) return c.json({ error: "the signing key does not belong to the org that claimed this server" }, 403);
+  if (!pair.attestSubname.endsWith(`.${claim.org}`)) return c.json({ error: "the signing key does not belong to the org that claimed this server" }, 403);
   const key = await readKey(pair.attestSubname);
   if (!key.live || key.address?.toLowerCase() !== pair.attestKey.toLowerCase()) return c.json({ error: "that key is not live on ENS" }, 403);
   if (!(await verifyMessage({ address: getAddress(pair.attestKey), message: canonicalize(pair), signature: b.signature }).catch(() => false))) return c.json({ error: "signature does not match the attest.key recorded on ENS" }, 403);
