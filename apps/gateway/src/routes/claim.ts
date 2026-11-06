@@ -191,7 +191,7 @@ claimRoutes.post("/revoke", async (c) => {
 });
 
 /** Show that a co-maintainer cannot write status or payto. An eth_call, no key needed. */
-claimRoutes.post("/ens/unauthorized-demo", async (c) => {
+claimRoutes.post("/ens/unauthorized-write", async (c) => {
   if (!caps.ens) return c.json({ error: "ENS is not configured" }, 503);
   const { org, label, key } = (await c.req.json()) as { org: string; label: string; key?: string };
   const infra = await orgInfra(org);

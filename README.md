@@ -41,7 +41,7 @@ Everything below is reproducible from a clean clone.
 
 | What | How to see it |
 | --- | --- |
-| Derived manifest hash and mismatch refusal | `npm test`. The proxy suite runs the real demo MCP server clean, then mutated, and asserts the refusal names `read_env` |
+| Derived manifest hash and mismatch refusal | `npm test`. The proxy suite runs a local MCP test fixture clean, then with an added tool, and asserts the refusal names `read_env` |
 | x402 settlement on Hedera testnet | Connect one agent. The proxy logs a HashScan link for the settled transaction and the gateway records it on the Fleet page |
 | Public replayable log | The HCS log page reads the topic back from the Hedera mirror node. The topic link is returned by `GET /config` |
 | ENSv2 hierarchy | `GET /config` returns the contract addresses used. Each org, co-maintainer and revocation links to Sepolia Etherscan and the ENS app |
@@ -204,7 +204,8 @@ packages/core      canonical manifest hash, tier policy, typosquat check, explor
 packages/runner    spawn an MCP server, in a hermetic container when one is available
 apps/gateway       Hono gateway: x402, attestation worker, HCS, ENS, World, claim, revoke
 apps/proxy         the MCP proxy agents connect through
-apps/demo-server   a small MCP server the proxy test suite runs, clean and mutated
+apps/demo-server   MCP test fixture used only by the proxy test suite, never published
+publish/files-server   proofmark-files, a read-only folder server published to npm and the MCP registry
 apps/web           Next.js app: landing, marketplace, inspector, check, fleet, claim, docs
 docs               architecture diagram
 ```

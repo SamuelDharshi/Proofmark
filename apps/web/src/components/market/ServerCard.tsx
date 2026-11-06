@@ -7,7 +7,7 @@ import { TierBadge, tierColor } from "../TierBadge";
 import { usd } from "@/lib/format";
 import type { ServerRow } from "@/lib/api";
 
-const KIND: Record<string, string> = { local: "Demo", mcpb: "MCPB", oci: "OCI", npm: "npm", pypi: "PyPI", remote: "Remote" };
+const KIND: Record<string, string> = { local: "Local", mcpb: "MCPB", oci: "OCI", npm: "npm", pypi: "PyPI", remote: "Remote" };
 
 /**
  * A linked card lifts 2px and a soft spotlight follows the cursor. No tilt.
