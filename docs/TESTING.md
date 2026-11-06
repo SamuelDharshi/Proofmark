@@ -84,16 +84,6 @@ Blocked on a person: the claim (needs the GitHub gist, the World credential and 
 | Extras: HTS tokens | Met | collection [0.0.11341242](https://hashscan.io/testnet/token/0.0.11341242), certificate #1 |
 | Extras: Agent Kit | Met | `@proofmark/agent-kit-plugin`, tested live |
 
-### Hedera, "No Solidity Allowed"
-
-| Requirement | Status | Evidence |
-| --- | --- | --- |
-| Hedera JS SDK, no Solidity contracts | Met | `@hashgraph/sdk` only. No `.sol` files in the repo |
-| At least two native services | Met | HCS (topics 0.0.11331506, 0.0.11344888), HTS (0.0.11341242), allowances, KeyList bond account 0.0.11344995 |
-| README with setup and usage | Met | README |
-| Demo video of 5 minutes or less | You | |
-| Extras: Mirror Node, HCS integrity, Agent Kit, key management | Met | bond and allowance checks, the revocation watcher, the attestation rebuild from HCS, the Agent Kit plugin, the 2-of-2 key list |
-
 ### ENS, Best Use of ENSv2
 
 | Requirement | Status | Evidence |

@@ -67,7 +67,6 @@ Everything below is reproducible from a clean clone.
 | World | IDKit Proof of Human on the claim, duplicate nullifier rejected | Backend verification, nullifier stored per action | [world.ts:39](apps/gateway/src/world.ts#L39) |
 | World | Validation on a secure backend | RP signing and proof verification run only on the gateway | [world.ts:10](apps/gateway/src/world.ts#L10) |
 | World | Integration debrief | Time to first success, friction, missing docs, the one improvement | [docs/WORLD_DEBRIEF.md](docs/WORLD_DEBRIEF.md) |
-| Hedera, No Solidity | Hedera SDK only, at least two native services | HCS (audit and revocation topics), HTS (certificate NFTs), crypto allowances, a 2-of-2 KeyList bond account, Mirror Node reads and the Agent Kit. There are no smart contracts in this repo | [hcs.ts](apps/gateway/src/hcs.ts), [hts.ts](apps/gateway/src/hts.ts), [allowance.ts](apps/gateway/src/allowance.ts), [bond.ts](apps/gateway/src/bond.ts) |
 
 ## How it works
 
