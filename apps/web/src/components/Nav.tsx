@@ -38,8 +38,8 @@ export function Nav({ solid = false }: { solid?: boolean }) {
       <nav
         className={[
           "flex w-[min(1160px,calc(100%-2rem))] items-center justify-between px-4 py-2.5 transition-all duration-300 ease-out",
-          "rounded-2xl border",
-          scrolled ? "border-line-strong bg-bg/70 shadow-[0_8px_30px_rgba(0,0,0,0.35)] backdrop-blur-xl" : "border-transparent bg-transparent",
+          "border",
+          scrolled ? "border-line-strong bg-bg/85 shadow-[0_8px_30px_rgba(39,39,39,0.12)] backdrop-blur-xl" : "border-transparent bg-transparent",
         ].join(" ")}
         aria-label="Primary"
       >
@@ -54,7 +54,7 @@ export function Nav({ solid = false }: { solid?: boolean }) {
               <li key={l.href}>
                 <Link
                   href={l.href}
-                  className={`font-label rounded-lg px-3.5 py-2 text-[14px] transition-colors ${active ? "text-text" : "text-muted hover:text-text"}`}
+                  className={`font-label px-3.5 py-2 text-[13px] uppercase tracking-[0.08em] transition-colors ${active ? "text-text" : "text-muted hover:text-text"}`}
                 >
                   {l.label}
                 </Link>
@@ -62,7 +62,7 @@ export function Nav({ solid = false }: { solid?: boolean }) {
             );
           })}
           <li className="pl-2">
-            <Link href="/claim" className="btn btn-primary !min-h-10 !px-4 !text-[14px]">
+            <Link href="/claim" className="btn btn-primary !min-h-10 !px-4 !text-[13px]">
               Claim a server
             </Link>
           </li>
@@ -70,7 +70,7 @@ export function Nav({ solid = false }: { solid?: boolean }) {
 
         <button
           type="button"
-          className="grid h-11 w-11 place-items-center rounded-xl border border-line-strong md:hidden"
+          className="grid h-11 w-11 place-items-center border border-line-strong md:hidden"
           aria-label={open ? "Close menu" : "Open menu"}
           aria-expanded={open}
           onClick={() => setOpen((v) => !v)}
@@ -86,10 +86,10 @@ export function Nav({ solid = false }: { solid?: boolean }) {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
             transition={{ duration: 0.2 }}
-            className="absolute inset-x-4 top-[72px] rounded-2xl border border-line-strong bg-surface p-3 shadow-2xl md:hidden"
+            className="absolute inset-x-4 top-[72px] border border-line-strong bg-surface p-3 shadow-2xl md:hidden"
           >
             {LINKS.map((l) => (
-              <Link key={l.href} href={l.href} className="flex min-h-12 items-center rounded-xl px-4 text-[16px] hover:bg-surface-2">
+              <Link key={l.href} href={l.href} className="flex min-h-12 items-center px-4 font-label text-[14px] uppercase tracking-[0.08em] hover:bg-surface-2">
                 {l.label}
               </Link>
             ))}

@@ -1,10 +1,9 @@
 import type { Metadata, Viewport } from "next";
-import { Instrument_Serif, Bricolage_Grotesque, Space_Grotesk, JetBrains_Mono } from "next/font/google";
+import { Inter_Tight, Space_Grotesk, JetBrains_Mono } from "next/font/google";
 import { GeistPixelSquare } from "geist/font/pixel";
 import "./globals.css";
 
-const serif = Instrument_Serif({ subsets: ["latin"], weight: "400", style: ["normal", "italic"], variable: "--font-instrument", display: "swap" });
-const bricolage = Bricolage_Grotesque({ subsets: ["latin"], variable: "--font-bricolage", display: "swap" });
+const grotesk = Inter_Tight({ subsets: ["latin"], weight: ["400", "500", "600", "700"], variable: "--font-grotesk", display: "swap" });
 const space = Space_Grotesk({ subsets: ["latin"], variable: "--font-space", display: "swap" });
 const mono = JetBrains_Mono({ subsets: ["latin"], variable: "--font-jetbrains", display: "swap" });
 
@@ -17,11 +16,11 @@ export const metadata: Metadata = {
   twitter: { card: "summary_large_image", title: "Proofmark", description: "A human still backs this server. x402 on Hedera.", images: ["/og-image.png"] },
 };
 
-export const viewport: Viewport = { themeColor: "#0a0b0d" };
+export const viewport: Viewport = { themeColor: "#e7e6e4" };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${serif.variable} ${bricolage.variable} ${space.variable} ${mono.variable} ${GeistPixelSquare.variable}`}>
+    <html lang="en" className={`${grotesk.variable} ${space.variable} ${mono.variable} ${GeistPixelSquare.variable}`}>
       <body>{children}</body>
     </html>
   );
