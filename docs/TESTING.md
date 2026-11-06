@@ -25,8 +25,17 @@ New evidence from this run:
 - Allowance [withdrawn](https://hashscan.io/testnet/transaction/0.0.8149406-1794004134-445493937): payment refused. [Approved again](https://hashscan.io/testnet/transaction/0.0.8149406-1794004142-331722408): payment allowed.
 - `proofmark-files@1.0.0` was derived in a no-network sandbox. Its manifest is `0x0e05fb00…72d5f0`, and its artefact hash equals the registry's.
 
+Then the Maintain flow was run for your own org, `sam`. Each step is a real transaction:
+- **Co-maintainer:** `main.sam.proofmark.eth` added, with the project attest key and a 180-day expiry.
+- **Derivation:** `proofmark-files@1.0.0` derived in the sandbox. Tools `list_dir` and `read_file`, manifest `0x0e05fb00…72d5f0`.
+- **Attestation:** signed by `main` and accepted by the live gateway, which re-checked the claim, the key, the signature, the registry hash and the manifest hash.
+- **On HCS:** the full record is [audit message #6](https://hashscan.io/testnet/transaction/1794006018.748691104).
+- **Certificate:** minted as [HTS certificate #2](https://hashscan.io/testnet/token/0.0.11341242/2).
+- **Result:** the server moved from **blocked** (no key) to **sandboxed** (layers-incomplete). The bond is the only layer still missing.
+- **Bug found and fixed:** the gateway added the `.proofmark.eth` suffix to the org name twice when checking a submitted attestation, so every valid one was refused.
+
 Still needs a person:
-- The MetaMask signatures of the `sam` owner wallet (co-maintainer `main`, attestation approval).
+- The bond for `sam`. It must come from the payout account `0.0.8150748`, whose key only the owner holds.
 - One World Agent Pass approval.
 
 Until that approval, a paid connect is refused with HTTP 403, which is the denied path working as designed.
