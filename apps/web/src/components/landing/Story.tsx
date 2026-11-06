@@ -1,10 +1,11 @@
 "use client";
 import Link from "next/link";
 import { useRef, useState } from "react";
-import { motion, useMotionValueEvent, useScroll, useTransform } from "framer-motion";
+import { motion, useMotionValueEvent, useScroll, useTransform, type MotionValue } from "framer-motion";
 import { ArrowRight } from "lucide-react";
 import { Sponsors } from "../Sponsors";
-import { IsoCubes } from "../deco/IsoCubes";
+import { HeroArt, IsoArt, field } from "../deco/IsoArt";
+import { LogoMark } from "../Logo";
 import { GradBars, PixelArrow, PixelMark } from "../deco/Pixels";
 
 const ease = [0.22, 1, 0.36, 1] as const;
@@ -19,7 +20,7 @@ const rise = (delay = 0) => ({
 function Hero() {
   return (
     <section className="grid-lines relative min-h-screen overflow-hidden">
-      <IsoCubes size={78} className="absolute -right-28 -top-4 hidden h-[640px] w-[700px] md:block" />
+      <HeroArt className="absolute right-0 top-0 hidden h-[500px] w-[44%] overflow-hidden md:block" />
       <div className="wrap relative flex min-h-screen flex-col justify-between pb-0 pt-28">
         <div>
           <motion.p {...rise(0.05)} className="eyebrow inline-block"><span className="hl">An MCP trust gate</span></motion.p>
@@ -116,14 +117,25 @@ function Beats() {
 }
 
 /* ----------------------------------------------------------------- vision */
+function Word({ w, p, a, b }: { w: string; p: MotionValue<number>; a: number; b: number }) {
+  const color = useTransform(p, [a, b], ["#6b6764", "#ffffff"]);
+  return <motion.span style={{ color }} className="mr-[0.22em] inline-block">{w}</motion.span>;
+}
+
+const VISION = "A human still backs this server. Not a database, not a badge. A name, a key, a hash.".split(" ");
+
 function Vision() {
+  const ref = useRef<HTMLElement>(null);
+  const { scrollYProgress } = useScroll({ target: ref, offset: ["start 0.85", "center 0.35"] });
   return (
-    <section className="dark-zone grid-lines relative overflow-hidden border-t border-line py-32 md:py-44">
+    <section ref={ref} className="dark-zone grid-lines relative overflow-hidden border-t border-line py-32 md:py-44">
       <div className="wrap relative">
         <motion.p {...rise()} className="eyebrow">What we protect</motion.p>
-        <motion.h2 {...rise(0.08)} className="mt-8 max-w-[1000px] text-[clamp(44px,7.4vw,112px)] font-medium leading-[1.03] tracking-[-0.035em]">
-          A human still backs this <span className="text-[#767270]">server.</span>
-        </motion.h2>
+        <h2 className="mt-8 max-w-[1000px] text-[clamp(44px,7.4vw,112px)] font-medium leading-[1.03] tracking-[-0.035em]">
+          {VISION.map((w, i) => (
+            <Word key={i} w={w} p={scrollYProgress} a={i / VISION.length} b={Math.min(1, (i + 2.4) / VISION.length)} />
+          ))}
+        </h2>
         <motion.div {...rise(0.16)} className="mt-12"><PixelMark /></motion.div>
         <GradBars className="absolute right-4 top-6 hidden md:block" />
       </div>
@@ -144,6 +156,7 @@ function Tiers() {
   const ref = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({ target: ref, offset: ["start start", "end end"] });
   const x = useTransform(scrollYProgress, [0, 1], ["4%", "-66%"]);
+  const bar = useTransform(scrollYProgress, [0, 1], ["8%", "100%"]);
   const [idx, setIdx] = useState(1);
   useMotionValueEvent(scrollYProgress, "change", (v) => setIdx(Math.min(CARDS.length, Math.floor(v * CARDS.length) + 1)));
 
@@ -165,6 +178,37 @@ function Tiers() {
             </article>
           ))}
         </motion.div>
+        <div className="wrap mt-12">
+          <div className="relative h-[3px] bg-line">
+            <motion.div style={{ width: bar }} className="absolute left-0 top-1/2 flex h-5 -translate-y-1/2">
+              <span className="h-full flex-1" style={{ background: "linear-gradient(90deg,#4f46e5,#c026d3,#ea580c)" }} />
+              <span className="h-full w-4 bg-accent" />
+            </motion.div>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ----------------------------------------------------------- pattern band */
+const BAND = field(11, 9, 5);
+
+/** Full-bleed field of textured cubes with the mark set into a white hexagon at its centre. */
+function Band() {
+  const ref = useRef<HTMLElement>(null);
+  const { scrollYProgress } = useScroll({ target: ref, offset: ["start end", "end start"] });
+  const x = useTransform(scrollYProgress, [0, 1], ["-6%", "6%"]);
+  return (
+    <section ref={ref} className="relative h-[100vh] min-h-[620px] overflow-hidden bg-bg">
+      <motion.div style={{ x }} className="absolute left-1/2 top-1/2 w-[190vw] -translate-x-1/2 -translate-y-1/2 md:w-[150vw]">
+        <IsoArt cubes={BAND} u={120} id="band" className="w-full" />
+      </motion.div>
+      <div
+        className="absolute left-1/2 top-1/2 grid h-[300px] w-[260px] -translate-x-1/2 -translate-y-1/2 place-items-center bg-white"
+        style={{ clipPath: "polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%)" }}
+      >
+        <LogoMark className="h-24 w-24 text-text" />
       </div>
     </section>
   );
@@ -223,6 +267,7 @@ export function Story() {
       <Hero />
       <Gate />
       <Beats />
+      <Band />
       <Vision />
       <Tiers />
       <Partners />

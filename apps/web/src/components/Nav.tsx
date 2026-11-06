@@ -47,7 +47,7 @@ export function Nav({ solid = false }: { solid?: boolean }) {
           <Wordmark />
         </Link>
 
-        <ul className="hidden items-center gap-1 md:flex">
+        <ul className={`hidden items-center gap-1 transition-opacity duration-300 md:flex ${scrolled ? "opacity-100" : "pointer-events-none opacity-0"}`}>
           {LINKS.map((l) => {
             const active = path === l.href || path.startsWith(l.href + "/");
             return (
