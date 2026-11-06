@@ -37,6 +37,7 @@ export interface AttestationRecord extends SignedAttestation {
   tools: McpTool[];
   createdAt: number;
   hcs?: { topic: string; sequence: number; tx: string };
+  nft?: { tokenId: string; serial: number; tx: string };
 }
 /** A name this gateway registered. Everything about the agent (wallet, budget, pass) lives on ENS. */
 export interface Agent {

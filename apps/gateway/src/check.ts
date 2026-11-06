@@ -60,6 +60,8 @@ export async function evaluate(server: string, version?: string): Promise<CheckR
     tools: att?.tools,
     hcsTopic: att?.hcs?.topic,
     hcsSequence: att?.hcs?.sequence,
+    nftToken: att?.nft?.tokenId,
+    nftSerial: att?.nft?.serial,
     key,
     divergent: div.count,
   };

@@ -38,5 +38,7 @@ export interface CheckResult {
   tools?: McpTool[];
   hcsTopic?: string;
   hcsSequence?: number;
+  nftToken?: string;
+  nftSerial?: number;
   checkedAt: number;
 }

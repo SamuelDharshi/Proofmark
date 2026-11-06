@@ -8,6 +8,7 @@ import { evaluate, latestAttestation } from "../check";
 import { loadAgent, passStatus, budgetLeft, verifyAgentRequest } from "../agents";
 import { paywall, priceFor } from "../x402";
 import { buildPair, deriveAttestation, type Derived } from "../attest";
+import { mintAttestation } from "../hts";
 import { anchor, paidRecently } from "../hcs";
 import { readServerClaim, readKey } from "../chain";
 
@@ -134,7 +135,8 @@ attestRoutes.post("/approve", async (c) => {
   if (!ok) return c.json({ error: "signature does not match the attest.key recorded on ENS" }, 403);
 
   const hcs = await anchor({ type: "attestation", server: p.pair.server, version: p.pair.version, artifactHash: p.pair.artifactHash, toolManifestHash: p.pair.toolManifestHash, attestKey: p.pair.attestKey, subname: p.pair.attestSubname }).catch(() => null);
-  const rec: AttestationRecord = { pair: p.pair, signature, signer: p.pair.attestKey, tools: p.derived.tools, createdAt: Date.now(), hcs: hcs ?? undefined };
+  const nft = await mintAttestation({ server: p.pair.server, version: p.pair.version, manifestHash: p.pair.toolManifestHash }).catch(() => null);
+  const rec: AttestationRecord = { pair: p.pair, signature, signer: p.pair.attestKey, tools: p.derived.tools, createdAt: Date.now(), hcs: hcs ?? undefined, nft: nft ?? undefined };
   store.update((d) => void d.attestations.push(rec));
   pending.delete(id);
   logEvent({ kind: "attestation", server: p.pair.server, detail: `Attested ${p.pair.version}, signed by ${p.pair.attestSubname}`, tx: hcs ? { chain: "hedera", id: hcs.tx } : undefined });

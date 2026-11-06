@@ -25,6 +25,7 @@ const schema = z.object({
   HEDERA_GATEWAY_ACCOUNT_ID: opt,
   HEDERA_GATEWAY_PRIVATE_KEY: hederaKey,
   HCS_TOPIC_ID: opt,
+  HTS_TOKEN_ID: opt,
   X402_FACILITATOR_URL: z.string().default("https://api.testnet.blocky402.com"),
   X402_ASSET: z.string().default("0.0.0"),
   HBAR_USD: z.coerce.number().default(0.1),
@@ -64,6 +65,7 @@ export const dataDir = resolve(process.cwd(), env.DATA_DIR);
 export const caps = {
   hedera: !!(env.HEDERA_GATEWAY_ACCOUNT_ID && env.HEDERA_GATEWAY_PRIVATE_KEY),
   hcs: !!(env.HEDERA_GATEWAY_ACCOUNT_ID && env.HEDERA_GATEWAY_PRIVATE_KEY && env.HCS_TOPIC_ID),
+  hts: !!(env.HEDERA_GATEWAY_ACCOUNT_ID && env.HEDERA_GATEWAY_PRIVATE_KEY && env.HTS_TOKEN_ID),
   signing: !!env.ATTEST_PRIVATE_KEY,
   ens: !!(env.SEPOLIA_RPC_URL && env.ENS_ADMIN_PRIVATE_KEY),
   world: !!(env.WORLD_APP_ID && env.WORLD_RP_ID && env.WORLD_RP_SIGNING_KEY),

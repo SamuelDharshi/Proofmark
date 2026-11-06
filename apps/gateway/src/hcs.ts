@@ -2,6 +2,7 @@ import { Client, PrivateKey, TopicCreateTransaction, TopicMessageSubmitTransacti
 import { env, caps } from "./config";
 
 let client: Client | null = null;
+export function hederaClient() { return hedera(); }
 function hedera() {
   if (!caps.hedera) throw new Error("Hedera gateway account is not configured");
   if (!client) {
