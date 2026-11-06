@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
-import { LogView } from "@/components/log/LogView";
+import { ChainConsole } from "@/components/log/ChainConsole";
 
-export const metadata: Metadata = { title: "HCS log" };
+export const metadata: Metadata = { title: "On-chain" };
 
 export default function Page() {
-  return <LogView />;
+  return <ChainConsole />;
 }

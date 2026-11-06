@@ -9,7 +9,7 @@ const NAV = [
   { href: "/fleet", label: "Fleet", Icon: Activity },
   { href: "/claim", label: "Claim", Icon: ShieldPlus },
   { href: "/maintain", label: "Maintain", Icon: Wrench },
-  { href: "/log", label: "HCS log", Icon: FileClock },
+  { href: "/log", label: "On-chain", Icon: FileClock },
   { href: "/marketplace", label: "Marketplace", Icon: Store },
 ];
 
