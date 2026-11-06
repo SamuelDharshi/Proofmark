@@ -1,11 +1,11 @@
 import { Hono } from "hono";
 import { verifyMessage, getAddress, isAddress } from "viem";
 import { caps, env } from "../config";
-import { store, logEvent } from "../store";
+import { store, logEvent, uid } from "../store";
 import { getServer, verifyNameOwnership } from "../registry";
-import { rpSignature, verifyHumanProof, recordNullifier, worldStatus } from "../world";
+import { rpSignature, verifyHumanProof, recordNullifier, proofNullifier, worldStatus } from "../world";
 import * as ens from "../ens";
-import { orgInfra, readOrg, readKey, readServerClaim, registerServer } from "../chain";
+import { orgInfra, orgNameOwner, readOrg, readKey, readServerClaim, registerServer } from "../chain";
 
 export const claimRoutes = new Hono();
 
@@ -40,6 +40,25 @@ claimRoutes.post("/claim/ownership", async (c) => {
   return c.json({ ...o, title: meta?.title ?? meta?.name, version: meta?.version, description: meta?.description });
 });
 
+/**
+ * The ENS writes take about a minute (several Sepolia transactions), far too long for one HTTP request
+ * on a hosted gateway. The claim is validated here, then runs as a job the page polls.
+ */
+interface Job {
+  id: string;
+  status: "running" | "done" | "failed";
+  step: string;
+  txs: { label: string; hash: string }[];
+  error?: string;
+  result?: unknown;
+}
+const jobs = new Map<string, Job>();
+
+claimRoutes.get("/claim/job/:id", (c) => {
+  const j = jobs.get(c.req.param("id"));
+  return j ? c.json(j) : c.json({ error: "unknown job. If the gateway restarted, submit the claim again: it resumes where it stopped." }, 404);
+});
+
 /** Steps 2 to 4: Proof of Human, then the one-time ENS writes. */
 claimRoutes.post("/claim", async (c) => {
   if (!caps.ens) return c.json({ error: "ens-not-configured", message: "ENS is not configured on this gateway." }, 503);
@@ -49,45 +68,73 @@ claimRoutes.post("/claim", async (c) => {
   const owner = getAddress(b.owner);
 
   if (await readServerClaim(b.server)) return c.json({ error: "already-claimed", message: "This server is already claimed on ENS." }, 409);
+
+  // An org whose earlier attempt stopped part-way may be resumed, but only by the wallet that owns its name on-chain.
   const existing = await orgInfra(b.org);
+  let needsRecords = false;
   if (existing) {
-    const o = await readOrg(ens.orgName(b.org));
-    if (o.owner?.toLowerCase() !== owner.toLowerCase()) return c.json({ error: "org-taken", message: "That org name is owned by someone else." }, 409);
+    const chainOwner = await orgNameOwner(b.org);
+    if (chainOwner?.toLowerCase() !== owner.toLowerCase()) return c.json({ error: "org-taken", message: "That org name is owned by someone else." }, 409);
+    needsRecords = !(await readOrg(ens.orgName(b.org))).owner;
   }
 
   const own = await ownership(b.server).catch(() => ({ ok: false, method: "error", detail: "registry lookup failed" }));
   if (!own.ok) return c.json({ error: "ownership-failed", ...own }, 403);
 
-  // Validate on the backend. The client result is never trusted.
-  const proof = await verifyHumanProof(b.idkitResponse);
-  if (!proof.ok) {
-    logEvent({ kind: "claim-rejected", server: b.server, detail: proof.message });
-    return c.json({ error: proof.reason, message: proof.message }, proof.reason === "duplicate" ? 409 : proof.reason === "not-configured" ? 503 : 400);
+  // Validate on the backend. The client result is never trusted. A proof already accepted for this same org
+  // (an earlier attempt that did not finish) is not sent to World a second time.
+  const seen = proofNullifier(b.idkitResponse);
+  const prior = seen ? store.get().nullifiers.find((n) => n.nullifier === seen && n.action === env.WORLD_ACTION && n.org === b.org) : undefined;
+  let nullifier: string;
+  if (prior) {
+    nullifier = prior.nullifier;
+  } else {
+    const proof = await verifyHumanProof(b.idkitResponse);
+    if (!proof.ok) {
+      logEvent({ kind: "claim-rejected", server: b.server, detail: proof.message });
+      return c.json({ error: proof.reason, message: proof.message }, proof.reason === "duplicate" ? 409 : proof.reason === "not-configured" ? 503 : 400);
+    }
+    nullifier = proof.nullifier;
+    recordNullifier(nullifier, b.org);
   }
 
   const price = Math.min(b.price ?? env.CONNECT_PRICE_USD, env.MAX_PRICE_USD);
   const expiresAt = Math.floor(Date.now() / 1000) + 365 * DAY;
-  const txs: { label: string; hash: string }[] = [];
-  try {
-    if (!existing) {
-      const chain = await ens.registerOrg({ org: b.org, owner, payTo: b.payTo, price, worldVerified: true, expiresAt });
-      txs.push(...chain.txs);
-      ens.watchResolver(chain.resolver);
-    }
-    const srv = await registerServer({ server: b.server, org: b.org, owner, expiresAt });
-    txs.push(...srv.txs);
-  } catch (e) {
-    return c.json({ error: "ens-failed", message: (e as Error).message }, 502);
-  }
+  const job: Job = { id: uid(), status: "running", step: "Starting", txs: [] };
+  jobs.set(job.id, job);
 
-  recordNullifier(proof.nullifier, b.org);
-  // Display index only. The decisions are made from ENS.
-  store.update((d) => {
-    if (!d.orgs.some((o) => o.name === b.org)) d.orgs.push({ name: b.org, ensName: ens.orgName(b.org), owner, payTo: b.payTo, price, worldVerified: true, nullifier: proof.nullifier, createdAt: Date.now() });
-    d.claims.push({ server: b.server, org: b.org, claimedAt: Date.now(), ownershipProof: `${own.method}: ${own.detail}` });
-  });
-  logEvent({ kind: "claim", server: b.server, detail: `${b.server} claimed by ${ens.orgName(b.org)}`, tx: { chain: "sepolia", id: txs.at(-1)!.hash } });
-  return c.json({ ok: true, org: { name: b.org, ensName: ens.orgName(b.org), ensTx: txs.at(-1)?.hash }, txs });
+  void (async () => {
+    try {
+      if (!existing) {
+        const chain = await ens.registerOrg({ org: b.org, owner, payTo: b.payTo, price, worldVerified: true, expiresAt, onStep: (s) => (job.step = s) });
+        job.txs.push(...chain.txs);
+        ens.watchResolver(chain.resolver);
+      } else if (needsRecords) {
+        job.step = "Finishing the org records";
+        const hash = await ens.writeOrgRecords({ org: b.org, resolver: existing.resolver, owner, payTo: b.payTo, price, worldVerified: true });
+        job.txs.push({ label: "records", hash });
+      }
+      job.step = "Claiming the server name on ENS";
+      const srv = await registerServer({ server: b.server, org: b.org, owner, expiresAt });
+      job.txs.push(...srv.txs);
+
+      // Display index only. The decisions are made from ENS.
+      store.update((d) => {
+        if (!d.orgs.some((o) => o.name === b.org)) d.orgs.push({ name: b.org, ensName: ens.orgName(b.org), owner, payTo: b.payTo, price, worldVerified: true, nullifier, createdAt: Date.now() });
+        d.claims.push({ server: b.server, org: b.org, claimedAt: Date.now(), ownershipProof: `${own.method}: ${own.detail}` });
+      });
+      logEvent({ kind: "claim", server: b.server, detail: `${b.server} claimed by ${ens.orgName(b.org)}`, tx: { chain: "sepolia", id: job.txs.at(-1)!.hash } });
+      job.result = { ok: true, org: { name: b.org, ensName: ens.orgName(b.org), ensTx: job.txs.at(-1)?.hash }, txs: job.txs };
+      job.status = "done";
+      job.step = "Claimed";
+    } catch (e) {
+      job.status = "failed";
+      job.error = (e as Error).message;
+      job.step = "Stopped. Submit the claim again to resume.";
+    }
+  })();
+
+  return c.json({ jobId: job.id }, 202);
 });
 
 // ---- owner-signed actions. The owner is whoever the org's ENS `owner` record says. ----
