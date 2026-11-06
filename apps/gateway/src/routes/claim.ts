@@ -6,6 +6,7 @@ import { getServer, verifyNameOwnership } from "../registry";
 import { rpSignature, verifyHumanProof, recordNullifier, proofNullifier, worldStatus } from "../world";
 import * as ens from "../ens";
 import { verifyControl } from "../control";
+import { anchorTo } from "../hcs";
 import { orgInfra, orgNameOwner, readOrg, readKey, readServerClaim, registerServer } from "../chain";
 
 export const claimRoutes = new Hono();
@@ -178,7 +179,7 @@ claimRoutes.post("/comaintainers", async (c) => {
 /** One write revokes one co-maintainer. Their siblings' attestations stand. */
 claimRoutes.post("/revoke", async (c) => {
   if (!caps.ens) return c.json({ error: "ens-not-configured" }, 503);
-  const b = (await c.req.json()) as { org: string; label: string; ownerSig: string };
+  const b = (await c.req.json()) as { org: string; label: string; ownerSig: string; reason?: string };
   if (!(await requireOwner(b.org, `proofmark:revoke:${b.org}:${b.label}`, b.ownerSig))) return c.json({ error: "owner signature required" }, 403);
   const infra = await orgInfra(b.org);
   const key = await readKey(`${b.label}.${ens.orgName(b.org)}`);
@@ -194,8 +195,12 @@ claimRoutes.post("/revoke", async (c) => {
     const k = d.keys.find((x) => x.org === b.org && x.label === b.label);
     if (k) Object.assign(k, { revoked: true, revokedAt: Date.now(), ensTx: r.revoke });
   });
+  // ENS stays the source of truth. The topic makes the news reach every running proxy in seconds.
+  const hcs = env.REVOKE_TOPIC_ID
+    ? await anchorTo(env.REVOKE_TOPIC_ID, { type: "revocation", org: b.org, label: b.label, subname: r.subname, address: key.address, reason: (b.reason ?? "revoked by the maintainer").slice(0, 120), ensTx: r.revoke, ts: Date.now() }).catch(() => null)
+    : null;
   logEvent({ kind: "revoked", detail: `${r.subname} revoked. Everything it signed goes blocked.`, tx: { chain: "sepolia", id: r.revoke } });
-  return c.json({ ok: true, subname: r.subname, tx: r.revoke });
+  return c.json({ ok: true, subname: r.subname, tx: r.revoke, hcs });
 });
 
 /** Show that a co-maintainer cannot write status or payto. An eth_call, no key needed. */

@@ -28,6 +28,7 @@ publicRoutes.get("/config", (c) =>
     agentPass: idpStatus(),
     world: { environment: env.WORLD_ENVIRONMENT, appId: env.WORLD_APP_ID ?? null, action: env.WORLD_ACTION },
     ens: { root: env.ENS_ROOT_NAME, chainId: 11155111, contracts: ensAddresses, admin: caps.ens ? adminAddress() : null },
+    revocations: { topic: env.REVOKE_TOPIC_ID ?? null, topicUrl: env.REVOKE_TOPIC_ID ? hederaTopicUrl(env.REVOKE_TOPIC_ID) : null },
     hedera: {
       gatewayAccount: env.HEDERA_GATEWAY_ACCOUNT_ID ?? null,
       gatewayAccountUrl: env.HEDERA_GATEWAY_ACCOUNT_ID ? hederaAccountUrl(env.HEDERA_GATEWAY_ACCOUNT_ID) : null,
