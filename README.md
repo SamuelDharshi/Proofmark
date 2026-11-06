@@ -82,6 +82,10 @@ It is **not a code scanner**. An honest, verified maintainer can still ship a ba
 
 ## How it works, in one picture
 
+<p align="center"><img src="docs/architecture.png" alt="Proofmark architecture and workflow: who uses it, the Proofmark components, and the Hedera, ENS and World services, with the claim, attest, connect and revoke flows" /></p>
+
+The same system as text:
+
 ```
                                    ┌──────────────────────────────────────────────┐
   ┌──────────────┐   MCP (stdio)   │              PROOFMARK PROXY                 │
