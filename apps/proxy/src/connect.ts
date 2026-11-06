@@ -27,7 +27,7 @@ export type Connected = {
   tier: "green" | "sandboxed";
   session: Session;
   tools: McpTool[];
-  attested: { manifestHash: string; tools: McpTool[]; version: string };
+  attested: { manifestHash: string; tools: McpTool[]; version: string; attestKey?: string; attestSubname?: string };
   payment?: { tx: string; payer?: string };
   free: boolean;
   artifactVerified: boolean;
@@ -122,7 +122,7 @@ export async function connect(id: Identity, o: ConnectOptions): Promise<Decision
     return { ok: false, reason: "manifest-mismatch", message: `Refused before the model saw the tool list. The server ${describeDiff(diff) || "advertises a different tool manifest"}.`, diff, payment };
   }
 
-  return { ok: true, tier: "green", session, tools: allowed(session.tools, body.policy?.allowedTools), attested: { manifestHash: pair.toolManifestHash, tools: att.tools ?? [], version: pair.version }, payment, free: !!body.free, artifactVerified };
+  return { ok: true, tier: "green", session, tools: allowed(session.tools, body.policy?.allowedTools), attested: { manifestHash: pair.toolManifestHash, tools: att.tools ?? [], version: pair.version, attestKey: pair.attestKey, attestSubname: pair.attestSubname }, payment, free: !!body.free, artifactVerified };
 }
 
 /** Unclaimed servers run in a container we control, with read-only tools only. */

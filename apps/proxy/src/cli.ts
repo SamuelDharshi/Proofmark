@@ -5,6 +5,7 @@ import { CallToolRequestSchema, ListToolsRequestSchema } from "@modelcontextprot
 import { diffManifests, hederaTxUrl, toolManifestHash, type McpTool } from "@proofmark/core";
 import { loadIdentity } from "./identity";
 import { connect, type Connected } from "./connect";
+import { watchRevocations } from "./revocations";
 
 // stdout belongs to the MCP stream. Everything human-readable goes to stderr.
 const log = (msg: string, extra?: Record<string, unknown>) => console.error(`[proofmark] ${msg}${extra ? " " + JSON.stringify(extra) : ""}`);
@@ -113,6 +114,18 @@ async function main() {
       await block("error", (e as Error).message);
     }
   });
+
+  // Fast path: a revocation published to the Hedera topic reaches this session in seconds.
+  const cfg = (await fetch(`${opts.gateway}/config`).then((x) => x.json()).catch(() => null)) as any;
+  if (cfg?.revocations?.topic && d.attested.attestSubname) {
+    watchRevocations({
+      topic: cfg.revocations.topic,
+      matches: (r) => r.subname === d.attested.attestSubname || r.address.toLowerCase() === (d.attested.attestKey ?? "").toLowerCase(),
+      onHit: (r) => void block("key-revoked", `${r.subname} was revoked (HCS message ${r.sequence}): ${r.reason}`),
+      everyMs: Number(process.env.PROOFMARK_REVOCATION_POLL_MS ?? 5000),
+    });
+    log("watching the revocation topic", { topic: cfg.revocations.topic });
+  }
 
   // Liveness: revocation reaches a running session on the next check.
   const every = Number(process.env.PROOFMARK_RECHECK_MS ?? 15000);
