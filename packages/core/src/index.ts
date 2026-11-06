@@ -3,3 +3,4 @@ export * from "./tiers";
 export * from "./editDistance";
 export * from "./explorers";
 export * from "./types";
+export * from "./info";
