@@ -41,7 +41,7 @@ export function FleetView() {
             <Stat k="Agents" v={data.agents.length} />
             <Stat k="Payments" v={data.payments.length} />
             <Stat k="Claimed servers" v={data.claims.length} />
-            <Stat k="Revoked keys" v={data.keys.filter((k) => k.revoked).length} />
+            <Stat k="Revoked keys" v={data.keys.filter((k) => !k.live).length} />
           </div>
 
           <LayoutGroup id="fleet-tabs">
@@ -61,11 +61,11 @@ export function FleetView() {
                 (data.agents.length ? (
                   <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                     {data.agents.map((a) => (
-                      <AgentCard key={a.ensName} a={a} onPass={async (valid) => { await api.setPass(a.ensName, valid); refresh(); }} />
+                      <AgentCard key={a.ensName} a={a} onChange={refresh} />
                     ))}
                   </div>
                 ) : (
-                  <div className="card p-10 text-center text-muted">No agents registered. Run <span className="num">npm run agents:create -w @proofmark/gateway</span>.</div>
+                  <div className="card p-10 text-center text-muted">No agents registered. Run <span className="num">npm run agents:create -w @proofmark/gateway</span>. Each agent becomes an ENS name.</div>
                 ))}
               {tab === "activity" && <EventFeed events={data.events} />}
               {tab === "payments" && <PaymentTable payments={data.payments} />}

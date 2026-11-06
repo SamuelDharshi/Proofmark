@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
-import { Ban, Biohazard, KeyRound, Loader2, ShieldOff } from "lucide-react";
+import { Ban, KeyRound, Loader2, ShieldOff } from "lucide-react";
 import { api, type Fleet } from "@/lib/api";
 import { useWallet } from "@/lib/useWallet";
 import { ExplorerLink } from "../ExplorerLink";
@@ -20,13 +20,11 @@ function Panel({ Icon, title, body, children }: { Icon: typeof Ban; title: strin
 
 export function Drill({ fleet, onChange }: { fleet: Fleet; onChange: () => void }) {
   const wallet = useWallet();
-  const live = fleet.keys.filter((k) => !k.revoked);
-  const [mutated, setMutated] = useState<boolean | null>(null);
+  const live = fleet.keys.filter((k) => k.live);
   const [pick, setPick] = useState("");
   const [busy, setBusy] = useState<string | null>(null);
   const [msg, setMsg] = useState<{ kind: "ok" | "err"; text: string; tx?: string } | null>(null);
 
-  useEffect(() => void api.mutation().then((r) => setMutated(r.mutated)).catch(() => {}), []);
   useEffect(() => {
     if (!pick && live[0]) setPick(`${live[0].org}/${live[0].label}`);
   }, [live, pick]);
@@ -46,19 +44,7 @@ export function Drill({ fleet, onChange }: { fleet: Fleet; onChange: () => void 
   };
 
   return (
-    <div className="grid gap-4 lg:grid-cols-3">
-      <Panel Icon={Biohazard} title="Tool poisoning" body="Make the demo server advertise read_env. The next connect is refused before the model sees the tools.">
-        <button
-          className={`btn ${mutated ? "btn-ghost" : "btn-primary"} w-full`}
-          disabled={busy === "mut" || mutated === null}
-          onClick={() => wrap("mut", async () => setMutated((await api.setMutation(!mutated)).mutated))}
-        >
-          {busy === "mut" && <Loader2 className="h-4 w-4 animate-spin" aria-hidden />}
-          {mutated ? "Restore server" : "Mutate server"}
-        </button>
-        <p className="mt-3 text-[12.5px] text-faint">{mutated ? "Server now advertises read_env." : "Server is clean."}</p>
-      </Panel>
-
+    <div className="grid gap-4 lg:grid-cols-2">
       <Panel Icon={ShieldOff} title="Revoke a key" body="One ENS write. Everything that co-maintainer signed goes blocked on the next check.">
         {live.length === 0 ? (
           <p className="text-[14px] text-muted">No live co-maintainer keys.</p>
@@ -106,7 +92,7 @@ export function Drill({ fleet, onChange }: { fleet: Fleet; onChange: () => void 
       </Panel>
 
       {msg && (
-        <p className={`lg:col-span-3 rounded-xl border px-4 py-3 text-[14px] ${msg.kind === "ok" ? "border-accent/30 bg-accent/10 text-accent" : "border-danger/30 bg-danger/10 text-danger"}`}>
+        <p className={`lg:col-span-2 rounded-xl border px-4 py-3 text-[14px] ${msg.kind === "ok" ? "border-accent/30 bg-accent/10 text-accent" : "border-danger/30 bg-danger/10 text-danger"}`}>
           {msg.text} {msg.tx && <ExplorerLink k={{ type: "evm-tx", chainId: 11155111, id: msg.tx }} className="ml-2" />}
         </p>
       )}
