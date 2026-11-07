@@ -1,0 +1,30 @@
+{
+  "name": "proofmark-units",
+  "version": "1.0.0",
+  "mcpName": "io.github.SamuelDharshi/proofmark-units",
+  "description": "A small MCP server that converts between units of length, mass, temperature and data size.",
+  "type": "module",
+  "bin": {
+    "proofmark-units": "server.js"
+  },
+  "files": [
+    "server.js",
+    "README.md"
+  ],
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "units",
+    "conversion",
+    "convert"
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/SamuelDharshi/Proofmark.git",
+    "directory": "publish/units-server"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.32.0"
+  }
+}
