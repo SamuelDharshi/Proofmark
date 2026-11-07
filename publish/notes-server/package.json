@@ -1,0 +1,30 @@
+{
+  "name": "proofmark-notes",
+  "version": "1.0.0",
+  "mcpName": "io.github.SamuelDharshi/proofmark-notes",
+  "description": "A read-only MCP server for a folder of notes. List, search and read .md and .txt files, confined to one folder.",
+  "type": "module",
+  "bin": {
+    "proofmark-notes": "server.js"
+  },
+  "files": [
+    "server.js",
+    "README.md"
+  ],
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "notes",
+    "markdown",
+    "search"
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/SamuelDharshi/Proofmark.git",
+    "directory": "publish/notes-server"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.32.0"
+  }
+}

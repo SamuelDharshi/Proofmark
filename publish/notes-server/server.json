@@ -1,0 +1,29 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.SamuelDharshi/proofmark-notes",
+  "title": "Proofmark Notes",
+  "description": "Read-only notes: list, search and read Markdown or text notes inside one folder.",
+  "repository": {
+    "url": "https://github.com/SamuelDharshi/Proofmark",
+    "source": "github",
+    "subfolder": "publish/notes-server"
+  },
+  "version": "1.0.0",
+  "packages": [
+    {
+      "registryType": "npm",
+      "identifier": "proofmark-notes",
+      "version": "1.0.0",
+      "transport": {
+        "type": "stdio"
+      },
+      "environmentVariables": [
+        {
+          "name": "NOTES_ROOT",
+          "description": "The only folder the server may read notes from. Defaults to the working directory.",
+          "isRequired": false
+        }
+      ]
+    }
+  ]
+}
