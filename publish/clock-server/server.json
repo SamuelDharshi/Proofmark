@@ -1,0 +1,22 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.SamuelDharshi/proofmark-clock",
+  "title": "Proofmark Clock",
+  "description": "Current time in any time zone, and conversion of a date-time between zones.",
+  "repository": {
+    "url": "https://github.com/SamuelDharshi/Proofmark",
+    "source": "github",
+    "subfolder": "publish/clock-server"
+  },
+  "version": "1.0.0",
+  "packages": [
+    {
+      "registryType": "npm",
+      "identifier": "proofmark-clock",
+      "version": "1.0.0",
+      "transport": {
+        "type": "stdio"
+      }
+    }
+  ]
+}

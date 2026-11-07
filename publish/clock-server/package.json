@@ -1,0 +1,30 @@
+{
+  "name": "proofmark-clock",
+  "version": "1.0.0",
+  "mcpName": "io.github.SamuelDharshi/proofmark-clock",
+  "description": "A small MCP server for time: the current time in any IANA time zone, and conversion between zones.",
+  "type": "module",
+  "bin": {
+    "proofmark-clock": "server.js"
+  },
+  "files": [
+    "server.js",
+    "README.md"
+  ],
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "time",
+    "timezone",
+    "clock"
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/SamuelDharshi/Proofmark.git",
+    "directory": "publish/clock-server"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.32.0"
+  }
+}
