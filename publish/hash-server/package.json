@@ -1,0 +1,30 @@
+{
+  "name": "proofmark-hash",
+  "version": "1.0.0",
+  "mcpName": "io.github.SamuelDharshi/proofmark-hash",
+  "description": "A small MCP server that hashes text with SHA-256, SHA-512 or SHA3-256 and verifies digests in constant time.",
+  "type": "module",
+  "bin": {
+    "proofmark-hash": "server.js"
+  },
+  "files": [
+    "server.js",
+    "README.md"
+  ],
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "hash",
+    "sha256",
+    "crypto"
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/SamuelDharshi/Proofmark.git",
+    "directory": "publish/hash-server"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.32.0"
+  }
+}
